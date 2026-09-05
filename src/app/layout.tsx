@@ -1,15 +1,49 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { JetBrains_Mono, Manrope, Outfit } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
+import { WhatsAppFloat } from "@/components/whatsapp-float";
+import { ScrollTop } from "@/components/scroll-top";
+import { QuoteProvider } from "@/lib/quote-context";
+
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "Banning Procurement Hub",
-  description: "Ghana's #1 Procurement Hub for Construction. Cement, iron rods, tiles, roofing, plumbing and electrical materials delivered nationwide.",
+  title: { default: "Banning Procurement Hub", template: "%s | Banning Procurement Hub" },
+  description: "Ghana's #1 Procurement Hub for Construction. Bulk cement, iron rods, tiles, roofing, plumbing and electrical materials delivered nationwide.",
+  metadataBase: new URL("https://banningprocurementhub.com"),
 };
+
+export const viewport: Viewport = { themeColor: "#0d3d1a", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${manrope.variable} ${jetbrains.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{document.documentElement.dataset.theme=localStorage.getItem("bph-theme")||(matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light")}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="font-body antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[10px] focus:bg-accent focus:px-4 focus:py-2 focus:text-ink"
+        >
+          Skip to content
+        </a>
+        <QuoteProvider>
+          <Header />
+          <main id="main-content">{children}</main>
+          <Footer />
+          <WhatsAppFloat />
+          <ScrollTop />
+        </QuoteProvider>
+      </body>
     </html>
   );
 }

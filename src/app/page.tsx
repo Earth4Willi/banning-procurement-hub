@@ -6,6 +6,7 @@ import { Testimonials } from "@/components/sections/testimonials";
 import { Certifications } from "@/components/sections/certifications";
 import { Faq } from "@/components/sections/faq";
 import { CtaBand } from "@/components/sections/cta-band";
+import { OrganizationSchema } from "@/components/organization-schema";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <Certifications />
       <Faq />
       <CtaBand />
+      <OrganizationSchema />
     </>
   );
 }

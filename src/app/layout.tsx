@@ -15,6 +15,20 @@ export const metadata: Metadata = {
   title: { default: "Banning Procurement Hub", template: "%s | Banning Procurement Hub" },
   description: "Ghana's #1 Procurement Hub for Construction. Bulk cement, iron rods, tiles, roofing, plumbing and electrical materials delivered nationwide.",
   metadataBase: new URL("https://banningprocurementhub.com"),
+  openGraph: {
+    type: "website",
+    locale: "en_GH",
+    siteName: "Banning Procurement Hub",
+    title: "Banning Procurement Hub",
+    description: "Ghana's #1 Procurement Hub for Construction. Bulk cement, iron rods, tiles, roofing, plumbing and electrical materials delivered nationwide.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Banning Procurement Hub" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Banning Procurement Hub",
+    description: "Ghana's #1 Procurement Hub for Construction. Bulk cement, iron rods, tiles, roofing, plumbing and electrical materials delivered nationwide.",
+    images: ["/og.png"],
+  },
 };
 
 export const viewport: Viewport = { themeColor: "#0d3d1a", width: "device-width", initialScale: 1 };

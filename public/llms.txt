@@ -1,0 +1,26 @@
+# Banning Procurement Hub
+
+Construction and real-estate procurement in Ghana: cement, iron rods, tiles, roofing sheets, plumbing and electrical materials. Delivered nationwide, with same-day options in Greater Accra.
+
+# Sections
+
+- Home: /
+- Products: /products
+- Cement: /products/cement
+- Iron Rods: /products/iron-rods
+- Tiles: /products/tiles
+- Roofing Sheets: /products/roofing
+- Plumbing: /products/plumbing
+- Electricals: /products/electricals
+- Get a Quote: /quote
+- About: /about
+- Contact: /contact
+- Privacy Policy: /privacy
+- Terms: /terms
+
+# Contact
+
+- Phone: +233 55 885 0667
+- WhatsApp: +233 55 885 0667
+- Email: hello@banningprocurementhub.com
+- Location: Accra, Ghana

@@ -40,7 +40,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <a
             href="/quote"
-            className="hidden items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-accent-light sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-[10px] bg-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light sm:inline-flex"
           >
             <Quotes weight="duotone" size={14} />
             <span>{count > 0 ? formatItemCount(count) : "Get a Quote"}</span>

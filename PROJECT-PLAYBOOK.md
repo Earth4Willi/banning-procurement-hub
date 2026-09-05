@@ -20,11 +20,11 @@
 - [x] No AI-slopped copy (copy audited per checklist in design-taste skill)
 
 ### 0.3 Launch gates
-- [ ] Custom domain connected (N/A until client provides)
+- [ ] Custom domain connected (PENDING: metadataBase + sitemap use https://banningprocurementhub.com as placeholder until client confirms the real domain)
 - [x] Favicon added
-- [ ] "Made with AI" tag removed (none will be added)
-- [ ] Privacy policy page published
-- [ ] Terms and conditions page published
+- [x] "Made with AI" tag removed (confirmed: none exists in the build)
+- [x] Privacy policy page published (route shipped; content is a DRAFT awaiting legal review)
+- [x] Terms and conditions page published (route shipped; content is a DRAFT awaiting legal review)
 
 ## 1. Foundation & Setup
 
@@ -34,10 +34,10 @@
 
 ### 1.2 Development Setup
 - [x] This `PROJECT-PLAYBOOK.md`
-- [ ] Install plugins
-- [ ] Connect GitHub (N/A until client provides remote)
+- [x] Install plugins (confirmed: no extra plugins beyond Next.js, Tailwind v4, Motion, Phosphor)
+- [ ] Connect GitHub (PENDING: no remote yet, client to provide)
 - [x] `.gitignore`
-- [ ] Generate a brand document
+- [ ] Generate a brand document (PENDING: design system + tokens live in the design spec; formal brand doc optional, client-side)
 - [x] Lock in tech stack (Next.js static export, Tailwind v4, Motion, Phosphor)
 - [x] Set up a design system (brand tokens + Tailwind theme)
 
@@ -45,44 +45,44 @@
 - [x] Break the project into tasks (implementation plan)
 - [ ] Set up the database and authentication (N/A — no backend)
 - [x] Move all keys to environment variables (N/A — no keys; single phone constant in `site.ts`)
-- [ ] Split staging and production environments (N/A — static export; preview via PR)
+- [ ] Split staging and production environments (PENDING: static export, preview via PR on any static host; single host until domain confirmed)
 
 ### 1.4 Conventions & Project Hygiene
-- [ ] Add a README
+- [x] Add a README
 - [x] Plan your folder structure (App Router: app/, components/, lib/, data/)
-- [ ] Add error tracking (N/A for static site; console + build checks)
+- [ ] Add error tracking (PENDING: N/A for a static site; console + build checks only)
 - [x] Define what you are not building (see design spec §9 Scope Boundaries)
-- [ ] Commit small and often
+- [x] Commit small and often (feature-per-commit across the 14 implementation tasks)
 
 ## 2. Core Features & UI
 
 ### 2.1 Layout & Navigation
-- [ ] Sticky headers
-- [ ] Mobile menus
-- [ ] Scroll progress bars (skip — restraint; mark N/A by design choice)
-- [ ] Scroll-back-to-top button
+- [x] Sticky headers (header is `sticky top-0` with backdrop blur)
+- [x] Mobile menus (MobileMenu component with aria handling)
+- [ ] Scroll progress bars (PENDING: intentionally skipped by design restraint)
+- [x] Scroll-back-to-top button (ScrollTop component)
 - [x] Floating contact button (WhatsApp float)
-- [ ] Hover states on interactive elements
+- [x] Hover states on interactive elements (hover: + active: scale transitions on CTAs and cards)
 - [x] Loading animations (skeleton loaders)
 
 ### 2.2 Forms, Feedback & Input
-- [x] Form success states (WhatsApp handoff confirmation)
-- [x] Form error states (validation)
-- [ ] Confirmation modals
-- [ ] Password visibility toggle (N/A — no auth)
-- [ ] UTM tracking
-- [ ] Copy-to-clipboard buttons
+- [x] Form success states (WhatsApp handoff confirmation + status message)
+- [x] Form error states (validation with aria-invalid + role="alert")
+- [x] Confirmation modals (native confirm dialog when clearing the quote)
+- [ ] Password visibility toggle (PENDING: N/A, no auth)
+- [ ] UTM tracking (PENDING: none by design, no analytics)
+- [x] Copy-to-clipboard buttons (quote builder copies the WhatsApp message)
 
 ### 2.3 Content & Information
-- [ ] Full site search (client-side filter on /products)
+- [x] Full site search (live client-side filter on /products)
 - [x] Expandable FAQ sections (accordion)
 - [x] Last-updated dates
 
 ### 2.4 Accessibility & Compliance
 - [x] Skip-to-content link
 - [x] Dark mode toggle
-- [ ] Simple cookie banner (N/A — no cookies/tracking)
-- [ ] Print stylesheet (N/A for lead-gen storefront; skip)
+- [ ] Simple cookie banner (PENDING: N/A, no cookies or tracking)
+- [ ] Print stylesheet (PENDING: N/A for a lead-gen storefront; skipped by design)
 
 ## 3. Security
 
@@ -94,80 +94,80 @@
 ## 4. Pre-Launch QA Checklist
 
 ### 4.1 Navigation & Links
-- [ ] Find and fix broken links
-- [ ] Fix footer links
-- [ ] Remove unused navigation items
-- [ ] Make the logo clickable
+- [x] Find and fix broken links (walked every route incl. CTAs; all internal targets return 200, tel/wa.me/mailto present)
+- [x] Fix footer links (logo, nav, phone, WhatsApp, email all functional)
+- [x] Remove unused navigation items (header/footer nav matches shipped routes)
+- [x] Make the logo clickable (BrandLogo links to /)
 - [x] Make the phone number clickable
 - [x] Make the email address clickable (when present)
 
 ### 4.2 Mobile & Responsive
-- [ ] Remove horizontal scrolling
-- [ ] Fix mobile overflow
-- [ ] Mobile menu
-- [ ] Every page mobile optimized
+- [x] Remove horizontal scrolling (no viewport-overflow in source; CLS 0 verified; not visually re-checked in a browser)
+- [x] Fix mobile overflow (Lighthouse mobile emulation on home + products, no scroll/overflow errors)
+- [x] Mobile menu (MobileMenu component)
+- [x] Every page mobile optimized (responsive layout, 6px gutters, mobile nav verified at source level)
 
 ### 4.3 Copy & Content
-- [ ] Fix page titles
-- [ ] Add meta descriptions
-- [ ] Fix the copyright year
-- [ ] Remove placeholder text
+- [x] Fix page titles (unique title per route, verified in the route walk)
+- [x] Add meta descriptions (unique description per route)
+- [x] Fix the copyright year (dynamic `new Date().getFullYear()`, 2026 in build)
+- [x] Remove placeholder text (content is SAMPLE-tagged where real data is pending; no lorem/placeholder copy)
 
 ### 4.4 Visuals & Assets
 - [x] Add a favicon
-- [ ] Compress images
+- [ ] Compress images (PENDING: catalogue uses remote picsum SAMPLE photos; replace with client's compressed/hosted photos)
 - [x] Custom 404 page
 
 ### 4.5 Interaction & Feedback
-- [ ] Fix broken buttons
+- [x] Fix broken buttons (add-to-quote, clear-quote, submit all wired; walked at source + route level)
 - [x] Success messages
 - [x] Error messages
 
 ## 5. Marketing, Conversion & SEO
 
 ### 5.1 Conversion & Entry Experience
-- [ ] Clear calls-to-action above the fold
-- [ ] Internal links throughout
-- [ ] Breadcrumbs
-- [ ] Sticky mobile call-to-action (WhatsApp float covers this; group as header CTA)
-- [ ] Thank-you state after quote submission (confirmation screen → WhatsApp)
+- [x] Clear calls-to-action above the fold (hero "Get a Quote" → /quote)
+- [x] Internal links throughout (hero, nav, cards, footer, breadcrumbs)
+- [x] Breadcrumbs (category pages, Home → Products → Category)
+- [x] Sticky mobile call-to-action (WhatsApp float covers this)
+- [x] Thank-you state after quote submission (confirmation → WhatsApp handoff with status message)
 
 ### 5.2 Trust Building
-- [ ] Case study section (represented by certifications + stats; enable if client provides)
+- [ ] Case study section (PENDING: represented by certifications + stats now; enable if client provides case studies)
 - [x] Five frequently asked questions
 - [x] Response time promise
 - [x] Real customer reviews (testimonials, marked SAMPLE until client provides)
-- [ ] Real photo of your team (placeholder until client provides)
+- [ ] Real photo of your team (PENDING: placeholder until client provides)
 
 ### 5.3 Technical SEO
-- [ ] `robots.txt`
-- [ ] `sitemap.xml`
-- [ ] Canonical tags
-- [ ] Unique page titles
-- [ ] Meta descriptions
-- [ ] Social share images (OG tags)
-- [x] Maps and directions (Google Maps embed)
+- [x] `robots.txt`
+- [x] `sitemap.xml`
+- [x] Canonical tags (added per-route canonicals in Task 13 QA walk)
+- [x] Unique page titles
+- [x] Meta descriptions
+- [x] Social share images (OG tags + og.png)
+- [x] Maps and directions (static address by design; Accra-focused map embed)
 - [x] Alt text on all images
 - [x] Local business schema (JSON-LD)
-- [ ] Rich tooltips
+- [ ] Rich tooltips (PENDING: skipped by design restraint)
 - [x] Site favicon
-- [ ] Google Analytics (defer — N/A until client provides GA ID)
-- [ ] Google Search Console (defer — needs client account)
-- [ ] Compressed images
+- [ ] Google Analytics (PENDING: none by design; no GA ID provided)
+- [ ] Google Search Console (PENDING: needs client account)
+- [ ] Compressed images (PENDING: remote picsum SAMPLE photos to be replaced)
 - [x] Privacy policy page (route scaffolded; content reviewed with client)
-- [ ] `LLMs.txt`
+- [x] `LLMs.txt`
 
 ### 5.4 Content Pages
-- [ ] About page with a story
-- [ ] A separate page per service (category pages = procurement categories; skip blog)
-- [ ] Terms of service page
+- [x] About page with a story
+- [x] A separate page per service (category pages = procurement categories; skip blog)
+- [x] Terms of service page
 
 ### 5.5 Trust & Contact Touchpoints
 - [x] Tap-to-call phone number
 - [x] Form error messages
-- [ ] Opening hours displayed
+- [x] Opening hours displayed (footer + contact channels, from siteConfig.hours)
 - [x] Visible email address (when provided by client)
-- [ ] Working social links (N/A until client provides)
-- [ ] Working cookie consent (N/A — no cookies)
-- [x] Clear payment methods (placeholder until client confirms)
+- [ ] Working social links (PENDING: none provided by client)
+- [ ] Working cookie consent (PENDING: N/A, no cookies)
+- [x] Clear payment methods (mobile money, bank transfer, cash on delivery in terms + quote flow)
 - [x] Guarantee statement

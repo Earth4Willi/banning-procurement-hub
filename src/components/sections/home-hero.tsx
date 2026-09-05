@@ -28,7 +28,7 @@ export function HomeHero() {
                 Get a Quote
               </Link>
               <Link
-                href="/categories"
+                href="/products"
                 className="rounded-[10px] border border-primary px-6 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-white active:scale-[0.98]"
               >
                 Browse Materials

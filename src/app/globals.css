@@ -6,6 +6,7 @@
   --color-primary-500: var(--primary-500);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
+  --color-accent-dark: var(--accent-dark);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
   --color-ink: var(--ink);
@@ -21,6 +22,7 @@
   --primary-500: #2e9e4f;
   --accent: #f0b429;
   --accent-light: #fdd87a;
+  --accent-dark: #82671b;
   --surface: #faf8f3;
   --surface-alt: #f2eee3;
   --ink: #111a14;
@@ -31,6 +33,7 @@
   :root:not([data-theme="light"]) {
     --accent: #f0b429;
     --accent-light: #fdd87a;
+    --accent-dark: #f0b429;
     --surface: #0b2412;
     --surface-alt: #12391d;
     --ink: #f2f5ee;
@@ -44,6 +47,7 @@
   --primary-500: #2e9e4f;
   --accent: #f0b429;
   --accent-light: #fdd87a;
+  --accent-dark: #f0b429;
   --surface: #0b2412;
   --surface-alt: #12391d;
   --ink: #f2f5ee;

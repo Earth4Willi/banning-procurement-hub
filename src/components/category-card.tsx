@@ -12,7 +12,7 @@ type Props = {
 export function CategoryCard({ category, count }: Props) {
   return (
     <Link
-      href={`/categories/${category.id}`}
+      href={`/products/${category.id}`}
       aria-label={`${category.name} materials`}
       className="group flex h-full flex-col overflow-hidden rounded-[16px] border border-primary/10 bg-surface-alt transition-transform duration-300 hover:-translate-y-1"
     >

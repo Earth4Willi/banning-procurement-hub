@@ -84,7 +84,7 @@ export function MobileMenu() {
           {categories.map((cat) => (
             <a
               key={cat.id}
-              href={`/categories/${cat.id}`}
+              href={`/products/${cat.id}`}
               onClick={close}
               className="rounded-[10px] px-4 py-2.5 text-sm text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
             >

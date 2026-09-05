@@ -10,7 +10,7 @@ export function HomeHero() {
       <div className="mx-auto grid w-full max-w-[1400px] items-center gap-14 px-4 md:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
         <div>
           <Reveal>
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
               Construction materials, delivered across Ghana
             </p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-ink md:text-5xl lg:text-6xl">

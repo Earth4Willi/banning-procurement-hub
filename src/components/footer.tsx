@@ -48,7 +48,7 @@ export function Footer() {
             <ul className="space-y-2.5">
               {categories.map((cat) => (
                 <li key={cat.id}>
-                  <a href={`/categories/${cat.id}`} className="text-sm text-ink-muted transition-colors hover:text-ink">
+                  <a href={`/products/${cat.id}`} className="text-sm text-ink-muted transition-colors hover:text-ink">
                     {cat.name}
                   </a>
                 </li>

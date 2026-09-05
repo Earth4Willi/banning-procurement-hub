@@ -8,7 +8,7 @@ export function Testimonials() {
     <section className="py-24 lg:py-28" aria-label="Testimonials">
       <div className="mx-auto max-w-[1400px] px-4 md:px-6">
         <Reveal>
-          <SectionHeading kicker="Client words" title="Builders who came back for the next block" align="center" />
+          <SectionHeading title="Builders who came back for the next block" align="center" />
         </Reveal>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {testimonials.map((testimonial, index) => (

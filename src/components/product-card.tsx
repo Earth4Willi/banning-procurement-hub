@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check } from "@phosphor-icons/react";
 import type { Product } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
@@ -12,11 +12,19 @@ type Props = {
 export function ProductCard({ product }: Props) {
   const { add } = useQuote();
   const [added, setAdded] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleAdd = () => {
     add(product.slug);
     setAdded(true);
-    window.setTimeout(() => setAdded(false), 1600);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(() => setAdded(false), 1600);
   };
 
   return (
@@ -49,7 +57,7 @@ export function ProductCard({ product }: Props) {
           <span aria-live="polite">
             {added ? (
               <>
-                <Check weight="bold" size={16} className="inline" aria-hidden="true" />
+                <Check weight="duotone" size={16} className="inline" aria-hidden="true" />
                 Added
               </>
             ) : (

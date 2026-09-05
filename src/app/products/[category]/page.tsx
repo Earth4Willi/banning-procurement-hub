@@ -42,7 +42,7 @@ export default async function CategoryPage({ params }: Props) {
             ]}
           />
 
-          <div className="mt-10">
+          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
             <Reveal>
               <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
                 {cat.name}
@@ -56,6 +56,19 @@ export default async function CategoryPage({ params }: Props) {
               <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-ink-muted md:text-lg">
                 {cat.description}
               </p>
+            </Reveal>
+
+            <Reveal delay={0.15} className="relative">
+              <div className="overflow-hidden rounded-2xl">
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  width={900}
+                  height={700}
+                  loading="lazy"
+                  className="h-auto w-full object-cover"
+                />
+              </div>
             </Reveal>
           </div>
 

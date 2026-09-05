@@ -16,12 +16,20 @@ Live site: https://banningprocurementhub.com
 
 ## Tech stack
 
-- Next.js 15 (App Router) with static export (`output: "export"`)
+- Next.js 16 (App Router) with static export (`output: "export"`)
 - TypeScript
 - Tailwind CSS v4
 - Motion for animations
 - Phosphor icons
 - Vitest + jsdom for tests
+
+## Design system
+
+- Colors: deep green `#0d3d1a` / `#1a6b2f` / `#2e9e4f`, gold `#F0B429` / `#FDD87A`, cream surface `#FAF8F3`, ink `#111A14`
+- Dark theme switches via `data-theme` on the document root, persisting under the `bph-theme` key
+- Fonts: Outfit (display), Manrope (body), JetBrains Mono (numeric) via `next/font/google`
+- Shapes: 10px on small controls, 16px on cards; no pill-shaped elements by design
+- Design tokens live in `src/app/globals.css`
 
 ## Quickstart
 
@@ -60,7 +68,9 @@ public/             static assets: favicon, OG image, manifest
 
 ## Deployment
 
-Build produces a static `out/` directory. Deploy it to any static host (Netlify, Vercel, Cloudflare Pages, S3/CloudFront). No build-time environment variables are needed. Note that `metadataBase` and the sitemap use https://banningprocurementhub.com which is a placeholder until the real domain is confirmed.
+Build produces a static `out/` directory. Deploy it to any static host (Netlify, Vercel, Cloudflare Pages, S3/CloudFront). No build-time environment variables are needed.
+
+Pending client confirmation before launch: the live domain (the sitemap, `metadataBase` and the "Live site" line above use https://banningprocurementhub.com as a placeholder), real product data and photos (current content is SAMPLE), the JSON-LD `email` address, official social links and any analytics ID (none configured by design).
 
 ## Legal review note
 

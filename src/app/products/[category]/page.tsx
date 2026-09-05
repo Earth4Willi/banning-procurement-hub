@@ -20,6 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: cat ? `${cat.name} Materials` : "Materials",
     description: cat ? `Buy ${cat.name.toLowerCase()} in Ghana. ${cat.description}` : undefined,
+    alternates: cat ? { canonical: `/products/${cat.id}/` } : undefined,
   };
 }
 

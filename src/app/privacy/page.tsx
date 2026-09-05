@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How Banning Procurement Hub handles the information you share when you request a quote. Plain-language, honest and simple.",
+  alternates: { canonical: "/privacy/" },
 };
 
 const lastUpdated = "September 5, 2026";

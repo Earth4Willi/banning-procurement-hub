@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "Build your building materials quote and send it to Banning Procurement Hub on WhatsApp. We confirm pricing and delivery within 24 hours.",
   robots: { index: true },
+  alternates: { canonical: "/quote/" },
 };
 
 export default function QuotePage() {

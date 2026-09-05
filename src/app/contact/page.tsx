@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Contact Us",
   description:
     "Call, WhatsApp or email Banning Procurement Hub for cement, iron rods, tiles, roofing, plumbing and electricals across Ghana.",
+  alternates: { canonical: "/contact/" },
 };
 
 export default function ContactPage() {

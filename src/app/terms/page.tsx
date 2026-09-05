@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Terms of Service",
   description:
     "The terms that apply when you request a quote, order and receive building materials from Banning Procurement Hub.",
+  alternates: { canonical: "/terms/" },
 };
 
 const lastUpdated = "September 5, 2026";

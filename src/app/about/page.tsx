@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   title: "About Us",
   description:
     "Learn how Banning Procurement Hub sources verified building materials, counts every delivery and serves contractors across all 16 regions of Ghana.",
+  alternates: { canonical: "/about/" },
 };
 
 export default function AboutPage() {

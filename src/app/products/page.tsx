@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Browse Building Materials",
   description:
     "Browse cement, iron rods, tiles, roofing, plumbing and electrical materials with live search. Request a quote and get nationwide delivery across Ghana.",
+  alternates: { canonical: "/products/" },
 };
 
 export default function ProductsPage() {

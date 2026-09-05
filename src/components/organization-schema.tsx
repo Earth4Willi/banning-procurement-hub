@@ -7,7 +7,7 @@ export function OrganizationSchema() {
     name: siteConfig.name,
     description: "Construction and real-estate procurement: cement, iron rods, tiles, roofing, plumbing and electricals.",
     telephone: siteConfig.phoneIntl,
-    email: siteConfig.email,
+    email: "",
     address: { "@type": "PostalAddress", addressLocality: "Accra", addressCountry: "GH" },
     areaServed: "Ghana",
     openingHours: "Mo-Sa 08:00-18:00",

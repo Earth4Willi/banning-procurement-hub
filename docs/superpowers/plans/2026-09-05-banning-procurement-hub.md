@@ -125,7 +125,7 @@ export default defineConfig({
     include: ["src/**/*.test.{ts,tsx}"],
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
+    alias: { "@": path.resolve(import.meta.dirname, "./src") },
   },
 });
 ```
@@ -171,12 +171,8 @@ Install `@vitejs/plugin-react` with: `npm install -D @vitejs/plugin-react`
   --ink-muted: #4a574f;
 }
 
-[data-theme="dark"],
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --primary: #2e9e4f;
-    --primary-700: #1a6b2f;
-    --primary-500: #2e9e4f;
     --accent: #f0b429;
     --accent-light: #fdd87a;
     --surface: #0b2412;
@@ -296,8 +292,9 @@ import {
 
 describe("site data", () => {
   it("keeps one business phone across display, tel and whatsapp", () => {
+    expect(siteConfig.phoneDisplay).toBe("055 885 0667");
+    expect(siteConfig.phoneIntl).toBe("+233558850667");
     expect(siteConfig.whatsappNumber).toBe("233558850667");
-    expect(siteConfig.phoneIntl).toBe(new URL(`https://wa.me/${siteConfig.whatsappNumber}`).host);
   });
 
   it("has unique category ids matching the six catalogue categories", () => {

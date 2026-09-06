@@ -1,9 +1,9 @@
-# Generate brand assets from the master logo (logo/logo main 2.jpg — 1152x561 banner)
-# Outputs: public/main-logo.jpg, public/icon-512.png, public/icon-192.png,
+# Generate brand assets from the master logo (logo/logo main 3 transparent.png)
+# Outputs: public/main-logo.png, public/icon-512.png, public/icon-192.png,
 #          src/app/icon.png (favicon), public/og.png (1200x630 social card)
 Add-Type -AssemblyName System.Drawing
 
-$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 3.jpg"
+$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 3 transparent.png"
 $publicDir = "D:\Opencode\Web Projects\BPH\public"
 $appDir = "D:\Opencode\Web Projects\BPH\src\app"
 
@@ -12,12 +12,8 @@ if (-not (Test-Path -LiteralPath $logoPath)) { throw "Master logo not found: $lo
 $src = [System.Drawing.Bitmap]::new($logoPath)
 Write-Output ("source: " + $src.Width + "x" + $src.Height)
 
-if (-not ([System.Drawing.Imaging.ImageFormat]::Jpeg.Equals($src.RawFormat))) {
-  Write-Output "  (source not JPEG; will write JPG for site copy anyway)"
-}
-
-# 1) main site logo (full banner copy)
-Copy-Item -LiteralPath $logoPath -Destination (Join-Path $publicDir "main-logo.jpg") -Force
+# 1) main site logo copy (keep transparency, PNG)
+Copy-Item -LiteralPath $logoPath -Destination (Join-Path $publicDir "main-logo.png") -Force
 
 $brand = [System.Drawing.ColorTranslator]::FromHtml("#0d3d1a")
 

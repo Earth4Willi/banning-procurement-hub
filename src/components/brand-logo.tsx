@@ -6,7 +6,7 @@ export function BrandLogo({ href = "/" }: { href?: string }) {
         alt="Banning Procurement Hub"
         height={48}
         decoding="async"
-        className="h-10 w-auto sm:h-12"
+        className="h-12 w-auto sm:h-14"
       />
     </a>
   );

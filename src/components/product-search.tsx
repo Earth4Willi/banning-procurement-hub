@@ -2,13 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { categories, products, productsByCategory, getCategory } from "@/lib/site";
-import { CategoryCard } from "@/components/category-card";
+import { products, getCategory } from "@/lib/site";
 import { ProductCard } from "@/components/product-card";
-import { Reveal } from "@/components/reveal";
-
-const featuredCategories = categories.slice(0, 2);
-const standardCategories = categories.slice(2);
 
 export function ProductSearch() {
   const [query, setQuery] = useState("");
@@ -61,7 +56,7 @@ export function ProductSearch() {
       {searching ? (
         <div className="mt-12">
           {results && results.length > 0 ? (
-            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {results.map((product) => (
                 <li key={product.slug}>
                   <ProductCard product={product} />
@@ -73,43 +68,8 @@ export function ProductSearch() {
           )}
         </div>
       ) : (
-        <>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2">
-            {featuredCategories.map((category, index) => (
-              <Reveal key={category.id} delay={index * 0.08}>
-                <CategoryPreview category={category} />
-              </Reveal>
-            ))}
-          </div>
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {standardCategories.map((category, index) => (
-              <Reveal key={category.id} delay={index * 0.08}>
-                <CategoryPreview category={category} />
-              </Reveal>
-            ))}
-          </div>
-        </>
+        <p className="mt-10 text-sm text-ink-muted">Or scroll to browse by category below.</p>
       )}
-    </div>
-  );
-}
-
-function CategoryPreview({ category }: { category: (typeof categories)[number] }) {
-  const topProducts = productsByCategory(category.id).slice(0, 3);
-  return (
-    <div>
-      <CategoryCard category={category} count={productsByCategory(category.id).length} />
-      {topProducts.length > 0 ? (
-        <p className="mt-3 font-mono text-xs leading-relaxed tracking-wide text-ink-muted">
-          <span className="uppercase tracking-wider text-accent-dark">Top picks:</span>{" "}
-          {topProducts.map((product, index) => (
-            <span key={product.slug}>
-              {index > 0 && <span aria-hidden="true"> · </span>}
-              {product.name}
-            </span>
-          ))}
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -7,7 +7,7 @@ const sameDay = stats.find((stat) => stat.value.toLowerCase().includes("same")) 
 export function HomeHero() {
   return (
     <section
-      className="relative flex min-h-[100dvh] items-center overflow-hidden py-20"
+      className="relative flex min-h-[100dvh] items-center py-20"
       aria-label="Introduction"
     >
       <img
@@ -49,7 +49,7 @@ export function HomeHero() {
           </div>
         </Reveal>
       </div>
-      <div className="absolute bottom-8 right-4 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)] md:right-6">
+      <div className="absolute -bottom-7 right-4 z-10 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)] md:right-6">
         <p className="font-mono text-sm font-semibold uppercase tracking-wider text-primary">
           {sameDay.value}
         </p>

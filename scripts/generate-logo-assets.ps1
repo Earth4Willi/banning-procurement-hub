@@ -3,7 +3,7 @@
 #          src/app/icon.png (favicon), public/og.png (1200x630 social card)
 Add-Type -AssemblyName System.Drawing
 
-$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 2.jpg"
+$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 3.jpg"
 $publicDir = "D:\Opencode\Web Projects\BPH\public"
 $appDir = "D:\Opencode\Web Projects\BPH\src\app"
 

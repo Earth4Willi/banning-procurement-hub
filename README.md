@@ -57,8 +57,8 @@ The site is fully static. No environment variables or API keys are required.
 ### Images
 
 - Hero: `public/hero.jpg` (1200×800) — replace with the final brand photo.
-- Logo lockup: `public/logo.svg` — single self-contained SVG with the brand mark + "Banning Procurement Hub" wordmark, used in the header, footer and mobile menu. Regenerate after any master-logo change with `scripts/build-logo-lockup.ps1`.
-- Brand mark (for icons/OG): `public/main-logo.jpg` is the raw mark; the favicon (`src/app/icon.png`), PWA icons and social card (`public/og.png`) are regenerated from it via `scripts/generate-logo-assets.ps1`.
+- Logo lockup: `public/logo.svg` — single self-contained SVG embedding the full brand lockup (mark + "Banning Procurement Hub" wordmark, from `logo/logo main 3.jpg`, 665×186), used in the header, footer and mobile menu. Regenerate after any master-logo change with `scripts/build-logo-lockup.ps1`.
+- Brand mark (for icons/OG): `public/main-logo.jpg` is a copy of the same lockup; the favicon (`src/app/icon.png`), PWA icons and social card (`public/og.png`) are regenerated from it via `scripts/generate-logo-assets.ps1`.
 - Category and product images are local files in `public/materials/<key>.jpg` (900×700, 4:3), referenced from `site.ts` as `/materials/<key>.jpg`.
 - Current material photos are CC-licensed placeholders sourced from Wikimedia Commons; attribution is recorded in `public/materials/credits.json`.
 - Swap them for your own photos (matching filename) and re-run `npm run build`. Keep the aspect ratio to preserve CLS.

@@ -1,15 +1,30 @@
+# Build the site's single self-contained brand-lockup SVG.
+# The master logo (logo main 3.jpg, 665x186) already contains the full
+# lockup: brand mark + "Banning Procurement Hub" wordmark baked in.
+# The SVG just embeds it (base64) as one copyable image.
+# Output: public/logo.svg
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.Drawing
-$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 2.jpg"
+
+$logoPath = "D:\Opencode\Web Projects\BPH\logo\logo main 3.jpg"
 $logo = [System.Drawing.Image]::FromFile($logoPath)
 $lw = $logo.Width; $lh = $logo.Height
 $logo.Dispose()
+
 $b64 = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($logoPath))
-$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 1600 400" role="img" aria-label="Banning Procurement Hub">' + "`n"
-$svg += '  <image x="24" y="10" width="334" height="381" xlink:href="data:image/jpeg;base64,' + $b64 + '"/>' + "`n"
-$svg += '  <text x="384" y="250" font-family="Outfit, system-ui, Arial, sans-serif" font-weight="700" font-size="110">' + "`n"
-$svg += '    <tspan fill="#0d3d1a">Banning</tspan><tspan fill="#2e9e4f"> Procurement Hub</tspan>' + "`n"
-$svg += '  </text>' + "`n"
+
+# Lockup is wide (665x186, ~3.57:1). Scale to a viewBox that shows it large
+# with a transparent margin, preserving the native ratio.
+$mh = 260            # rendered mark height in viewBox units
+$mw = [int]($mh * ($lw / $lh))
+$padX = 40; $padY = 40
+$vw = $mw + 2 * $padX
+$vh = $mh + 2 * $padY
+
+$svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="100%" height="100%" viewBox="0 0 ' + $vw + ' ' + $vh + '" role="img" aria-label="Banning Procurement Hub">' + "`n"
+$svg += '  <image x="' + $padX + '" y="' + $padY + '" width="' + $mw + '" height="' + $mh + '" xlink:href="data:image/jpeg;base64,' + $b64 + '"/>' + "`n"
 $svg += '</svg>'
-[System.IO.File]::WriteAllText("D:\Opencode\Web Projects\BPH\public\logo.svg", $svg)
-Write-Output ("wrote public/logo.svg (" + (Get-Item "D:\Opencode\Web Projects\BPH\public\logo.svg").Length + " bytes)")
+
+$outPath = "D:\Opencode\Web Projects\BPH\public\logo.svg"
+[System.IO.File]::WriteAllText($outPath, $svg)
+Write-Output ("wrote public/logo.svg (" + (Get-Item $outPath).Length + " bytes), viewBox " + $vw + "x" + $vh)

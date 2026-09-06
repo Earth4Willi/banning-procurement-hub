@@ -38,7 +38,7 @@ npm install
 npm run dev       # local dev server
 npm run build     # production static export to out/
 npx serve out     # serve the exported build locally
-npm test          # vitest (19 tests)
+npm test          # vitest (20 tests)
 npm run typecheck # tsc --noEmit
 ```
 
@@ -47,6 +47,10 @@ npm run typecheck # tsc --noEmit
 All site content lives in one file: `src/lib/site.ts`.
 
 Edit `categories`, `products`, `testimonials`, `certifications` and `faqs`, then re-run `npm run build`. Prices, brands, descriptions and stats are current SAMPLE data to be replaced with confirmed figures before launch.
+
+Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catalogue shows an In stock / Limited / Out of stock badge on every card, and out-of-stock products cannot be added to a quote.
+
+The `/products` page groups the catalogue by category with a sticky jump-nav; each category also has a dedicated page (`/products/<category-id>`).
 
 The site is fully static. No environment variables or API keys are required.
 

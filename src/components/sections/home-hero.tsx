@@ -48,12 +48,12 @@ export function HomeHero() {
             </Link>
           </div>
         </Reveal>
-        <div className="absolute bottom-8 right-4 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)] md:right-6">
-          <p className="font-mono text-sm font-semibold uppercase tracking-wider text-primary">
-            {sameDay.value}
-          </p>
-          <p className="mt-0.5 text-xs text-ink-muted">{sameDay.label}</p>
-        </div>
+      </div>
+      <div className="absolute bottom-8 right-4 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)] md:right-6">
+        <p className="font-mono text-sm font-semibold uppercase tracking-wider text-primary">
+          {sameDay.value}
+        </p>
+        <p className="mt-0.5 text-xs text-ink-muted">{sameDay.label}</p>
       </div>
     </section>
   );

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { ProductSearch } from "@/components/product-search";
+import { categories, productsByCategory } from "@/lib/site";
+import { ProductCard } from "@/components/product-card";
 
 export const metadata: Metadata = {
   title: "Browse Building Materials",
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
 export default function ProductsPage() {
   return (
     <>
-      <section className="py-20 lg:py-28" aria-label="Catalogue overview">
+      <section className="pb-6 pt-20 lg:pt-28" aria-label="Catalogue overview">
         <div className="mx-auto max-w-[1400px] px-4 md:px-6">
           <Reveal>
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
@@ -23,15 +25,75 @@ export default function ProductsPage() {
               Browse materials
             </h1>
             <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-ink-muted md:text-lg">
-              Six categories covering cement, iron rods, tiles, roofing, plumbing and electricals, all
-              available to quote and delivered across Ghana.
+              Six categories covering cement, iron rods, tiles, roofing, plumbing and electricals.
+              Browse by material, or search across everything.
             </p>
           </Reveal>
 
-          <div className="mt-12">
+          <div className="mt-10">
             <Reveal>
               <ProductSearch />
             </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 lg:py-20" aria-label="Materials by category">
+        <div className="mx-auto max-w-[1400px] px-4 md:px-6">
+          <nav
+            aria-label="Jump to category"
+            className="sticky top-[64px] z-30 -mx-4 border-b border-primary/10 bg-surface/95 px-4 py-3 backdrop-blur-sm"
+          >
+            <ul className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <a
+                    href={`#${category.id}`}
+                    className="rounded-[10px] border border-primary/15 bg-surface px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-wider text-primary transition-colors hover:bg-primary hover:text-white"
+                  >
+                    {category.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="mt-12 space-y-16">
+            {categories.map((category) => {
+              const products = productsByCategory(category.id);
+              return (
+                <section
+                  key={category.id}
+                  id={category.id}
+                  className="scroll-mt-32"
+                  aria-label={`${category.name} materials`}
+                >
+                  <div className="flex flex-wrap items-end justify-between gap-4">
+                    <div>
+                      <h2 className="font-display text-2xl font-semibold tracking-tight text-ink md:text-3xl">
+                        {category.name}
+                      </h2>
+                      <p className="mt-1 text-sm text-ink-muted">{category.short}</p>
+                    </div>
+                    <Link
+                      href={`/products/${category.id}`}
+                      className="font-mono text-xs font-semibold uppercase tracking-wider text-accent-dark transition-colors hover:text-primary"
+                    >
+                      View all
+                    </Link>
+                  </div>
+                  <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {products.map((product, index) => (
+                      <li key={product.slug}>
+                        <Reveal delay={(index % 4) * 0.05}>
+                          <ProductCard product={product} />
+                        </Reveal>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
           </div>
         </div>
       </section>

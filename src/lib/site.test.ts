@@ -52,4 +52,15 @@ describe("site data", () => {
     expect(getCategory("nope")).toBeUndefined();
     expect(getProduct("nope")).toBeUndefined();
   });
+
+  it("tags every product with a valid stock status covering all three states", () => {
+    expect(products.length).toBe(18);
+    const statuses = products.map((p) => p.stock);
+    for (const p of products) {
+      expect(["in", "limited", "out"]).toContain(p.stock);
+    }
+    for (const s of ["in", "limited", "out"] as const) {
+      expect(statuses).toContain(s);
+    }
+  });
 });

@@ -40,15 +40,15 @@ export function HomeHero() {
         <Reveal delay={0.15} className="relative">
           <div className="overflow-hidden rounded-2xl shadow-[0_24px_48px_-16px_rgba(13,61,26,0.4)]">
             <img
-              src="https://picsum.photos/seed/bph-hero/800/600"
+              src="/hero.jpg"
               alt="Building materials ready for delivery in Accra"
-              width={800}
-              height={600}
+              width={1200}
+              height={800}
               fetchPriority="high"
               className="h-auto w-full object-cover"
             />
           </div>
-          <div className="absolute -bottom-5 left-6 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)]">
+          <div className="absolute -bottom-5 right-6 rounded-[16px] border border-primary/10 bg-surface p-4 shadow-[0_12px_24px_-8px_rgba(13,61,26,0.35)]">
             <p className="font-mono text-sm font-semibold uppercase tracking-wider text-primary">{sameDay.value}</p>
             <p className="mt-0.5 text-xs text-ink-muted">{sameDay.label}</p>
           </div>

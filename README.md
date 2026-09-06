@@ -46,9 +46,17 @@ npm run typecheck # tsc --noEmit
 
 All site content lives in one file: `src/lib/site.ts`.
 
-Edit `categories`, `products`, `testimonials`, `certifications` and `faqs`, then re-run `npm run build`. Prices, brands, descriptions and stats are current SAMPLE data to be replaced with confirmed figures and real photos before launch.
+Edit `categories`, `products`, `testimonials`, `certifications` and `faqs`, then re-run `npm run build`. Prices, brands, descriptions and stats are current SAMPLE data to be replaced with confirmed figures before launch.
 
-The site is fully static. No environment variables or API keys are required. Images are remote URLs in `site.ts`; swap them for your own hosted photos (keep the same aspect ratio to preserve CLS).
+The site is fully static. No environment variables or API keys are required.
+
+### Images
+
+- Hero: `public/hero.jpg` (1200×800) — replace with the final brand photo.
+- Category and product images are local files in `public/materials/<key>.jpg` (900×700, 4:3), referenced from `site.ts` as `/materials/<key>.jpg`.
+- Current material photos are CC-licensed placeholders sourced from Wikimedia Commons; attribution is recorded in `public/materials/credits.json`.
+- Swap them for your own photos (matching filename) and re-run `npm run build`. Keep the aspect ratio to preserve CLS.
+- `scripts/seed-material-images.mjs` regenerates the material placeholders from Wikimedia Commons (requires an internet connection).
 
 ## How quotes work
 

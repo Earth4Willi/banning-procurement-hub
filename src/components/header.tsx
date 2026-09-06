@@ -20,7 +20,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-primary/10 bg-surface/80 backdrop-blur-md">
-      <div className="relative flex h-16 items-center">
+      <div className="relative flex h-20 items-center sm:h-24">
         {/* Logo pinned to absolute left */}
         <div className="flex shrink-0 items-center">
           <BrandLogo />

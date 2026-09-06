@@ -166,9 +166,9 @@ export function QuoteBuilder() {
             return (
               <li
                 key={line.product.slug}
-                className="flex flex-col gap-4 rounded-[16px] border border-primary/10 bg-surface-alt p-4 sm:flex-row sm:items-center"
+                className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-surface-alt p-3 sm:flex-row sm:items-center sm:rounded-[16px] sm:p-4"
               >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-[10px]">
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-16 sm:w-16 sm:rounded-[10px]">
                   <img
                     src={line.product.image}
                     alt=""
@@ -194,7 +194,7 @@ export function QuoteBuilder() {
                       type="button"
                       aria-label={`Decrease ${label}`}
                       onClick={() => setQty(line.product.slug, line.qty - 1)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/20 bg-surface text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt active:scale-[0.95]"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-[10px] border border-primary/20 bg-surface text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt active:scale-[0.95] sm:h-9 sm:w-9"
                     >
                       <Minus weight="duotone" size={16} aria-hidden="true" />
                     </button>
@@ -209,13 +209,13 @@ export function QuoteBuilder() {
                         if (Number.isNaN(next)) return;
                         setQty(line.product.slug, next);
                       }}
-                      className="h-9 w-14 rounded-[10px] border border-primary/20 bg-surface text-center font-mono text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-accent/60"
+                      className="h-8 w-12 rounded-[10px] border border-primary/20 bg-surface text-center font-mono text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-accent/60 sm:h-9 sm:w-14"
                     />
                     <button
                       type="button"
                       aria-label={`Increase ${label}`}
                       onClick={() => setQty(line.product.slug, line.qty + 1)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-primary/20 bg-surface text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt active:scale-[0.95]"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-[10px] border border-primary/20 bg-surface text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt active:scale-[0.95] sm:h-9 sm:w-9"
                     >
                       <Plus weight="duotone" size={16} aria-hidden="true" />
                     </button>

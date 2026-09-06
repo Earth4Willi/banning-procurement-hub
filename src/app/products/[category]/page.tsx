@@ -33,7 +33,7 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <>
-      <section className="py-20 lg:py-28" aria-label={`${cat.name} materials`}>
+      <section className="py-12 lg:py-28" aria-label={`${cat.name} materials`}>
         <div className="mx-auto max-w-[1400px] px-4 md:px-6">
           <Breadcrumbs
             items={[
@@ -43,7 +43,7 @@ export default async function CategoryPage({ params }: Props) {
             ]}
           />
 
-          <div className="mt-10 grid items-center gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+          <div className="mt-6 grid items-center gap-6 lg:mt-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
             <Reveal>
               <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent-dark">
                 {cat.name}
@@ -73,7 +73,7 @@ export default async function CategoryPage({ params }: Props) {
             </Reveal>
           </div>
 
-          <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product, index) => (
               <li key={product.slug}>
                 <Reveal delay={index * 0.06}>

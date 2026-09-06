@@ -56,7 +56,7 @@ export function ProductSearch() {
       {searching ? (
         <div className="mt-12">
           {results && results.length > 0 ? (
-            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ul className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {results.map((product) => (
                 <li key={product.slug}>
                   <ProductCard product={product} />

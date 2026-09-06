@@ -57,8 +57,9 @@ The site is fully static. No environment variables or API keys are required.
 ### Images
 
 - Hero: `public/hero.jpg` (1200×800) — replace with the final brand photo.
-- Logo lockup: `public/logo.svg` — single self-contained SVG embedding the full brand lockup (mark + "Banning Procurement Hub" wordmark, from the transparent master `logo/logo main 3 transparent.png`), used in the header, footer and mobile menu. Regenerate after any master change with `scripts/build-logo-lockup.ps1`.
-- Transparent background: `scripts/remove-logo-bg.py` removes the white background of the master JPG (`logo/logo main 3.jpg`) via an edge flood-fill, producing the transparent PNG.
+- Logo lockup: `public/logo.svg` — single self-contained SVG embedding the brand lockup with a transparent background (no white box on light surfaces). Built by `scripts/make-logo-transparent.py` (clean luminance-based alpha from the original JPG, no flood-fill) and embedded by `scripts/build-logo-lockup.ps1`. Used in the header, footer and mobile menu.
+- Dark mode lockup: `public/logo-dark.svg` — recolored variant (dark surface bg `#0b2412`, lightened content) for dark mode. Built by `scripts/make-logo-dark.py` (luminance-based recolor) and embedded by `scripts/build-logo-lockup.ps1 -Dark`. Swapped in via CSS when `[data-theme="dark"]`; the header also goes fully opaque in dark mode so the logo merges exactly.
+- Transparent background: `scripts/remove-logo-bg.py` (edge flood-fill) produces `logo/logo main 3 transparent.png` for the app icons/OG compositing.
 - App icons/OG: `public/main-logo.png` is the transparent lockup; the favicon (`src/app/icon.png`), PWA icons and social card (`public/og.png`) keep a brand-green field for visibility and are regenerated via `scripts/generate-logo-assets.ps1`.
 - Category and product images are local files in `public/materials/<key>.jpg` (900×700, 4:3), referenced from `site.ts` as `/materials/<key>.jpg`.
 - Current material photos are CC-licensed placeholders sourced from Wikimedia Commons; attribution is recorded in `public/materials/credits.json`.

@@ -26,8 +26,8 @@ export function HomeHero() {
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-accent-light">
             Construction materials, delivered across Ghana
           </p>
-          <h1 className="mt-4 max-w-[16ch] font-display text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
-            Materials for your next build, delivered on time.
+          <h1 className="mt-4 max-w-[18ch] font-display text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
+            Quoted in 24 hours. Delivered across Ghana.
           </h1>
           <p className="mt-6 max-w-[65ch] text-base leading-relaxed text-white/85 md:text-lg">
             Cement, rods, tiles, roofing, plumbing and electricals supplied and delivered across all

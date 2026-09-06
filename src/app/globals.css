@@ -29,18 +29,6 @@
   --ink-muted: #4a574f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --accent: #f0b429;
-    --accent-light: #fdd87a;
-    --accent-dark: #f0b429;
-    --surface: #0b2412;
-    --surface-alt: #12391d;
-    --ink: #f2f5ee;
-    --ink-muted: #b8c4b8;
-  }
-}
-
 [data-theme="dark"] {
   --primary: #2e9e4f;
   --primary-700: #1a6b2f;
@@ -62,6 +50,29 @@ body {
   background-color: var(--surface);
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Logo: light-mode white-background lockup by default */
+.logo-light-mode { display: inline-block; }
+.logo-dark-mode { display: none; }
+
+/* Dark mode: use the recolored dark-ground lockup */
+[data-theme="dark"] .logo-light-mode { display: none; }
+[data-theme="dark"] .logo-dark-mode { display: inline-block; }
+
+/* Solid header in dark mode so the dark-ground logo blends perfectly */
+[data-theme="dark"] header {
+  background-color: var(--surface);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* piazam-style marquee ticker (mobile header band) */
+@keyframes ticker {
+  to { transform: translateX(-50%); }
+}
+.ticker-track {
+  animation: ticker 22s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

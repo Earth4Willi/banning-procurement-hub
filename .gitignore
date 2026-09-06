@@ -29,3 +29,11 @@ next-env.d.ts
 .vercel
 # sdd workspace
 /.superpowers
+
+# editor / local
+.vscode/
+
+# dev verification scratch
+mobile-*.html
+mobile-*.png
+nav-*.png

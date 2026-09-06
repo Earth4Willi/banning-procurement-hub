@@ -8,7 +8,7 @@ import { siteConfig } from "@/lib/site";
 const whatsappMessage = encodeURIComponent("Hello Banning Procurement Hub, I would like a quote.");
 
 const linkClass =
-  "rounded-[10px] font-display text-xl font-semibold text-ink transition-colors hover:text-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60";
+  "rounded-[10px] font-display text-xl font-semibold text-ink transition-colors hover:text-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 [overflow-wrap:anywhere]";
 
 const subClass = "mt-1 text-xs leading-relaxed text-ink-muted";
 
@@ -17,7 +17,7 @@ export function ContactChannels() {
     <section className="py-20 lg:py-24" aria-label="Contact channels">
       <div className="mx-auto max-w-[1400px] px-4 md:px-6">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr] lg:gap-8">
-          <div className="grid content-start gap-6 sm:grid-cols-2">
+          <div className="grid min-w-0 content-start gap-6 sm:grid-cols-2">
             <Reveal>
               <ContactCard icon={<Phone weight="duotone" size={20} />} title="Call us">
                 <a href={`tel:${siteConfig.phoneIntl}`} className={linkClass}>
@@ -69,7 +69,7 @@ export function ContactChannels() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.15} className="h-full">
+          <Reveal delay={0.15} className="h-full min-w-0">
             <div className="flex h-full flex-col rounded-[16px] bg-[#0d3d1a] p-8">
               <span className="flex h-10 w-10 items-center justify-center rounded-[10px] bg-accent text-[#0d3d1a]">
                 <MapPin weight="duotone" size={20} />

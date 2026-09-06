@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function QuotePage() {
   return (
     <>
-      <section className="py-20 lg:py-28" aria-label="Request a quote">
+      <section className="py-12 lg:py-28" aria-label="Request a quote">
         <div className="mx-auto max-w-[1400px] px-4 md:px-6">
           <SectionHeading
             kicker="Request a Quote"

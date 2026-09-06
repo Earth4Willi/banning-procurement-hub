@@ -5,17 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 type Theme = "light" | "dark";
 const STORAGE_KEY = "bph-theme";
 
-function systemPrefersDark(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
-
 export function useTheme(): { theme: Theme; toggle: () => void } {
+  // Light is the site's default and primary mode on every system. We never
+  // follow the OS preference — dark is opt-in only (via the toggle, persisted).
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
-    return systemPrefersDark() ? "dark" : "light";
+    return stored === "dark" ? "dark" : "light";
   });
 
   useEffect(() => {

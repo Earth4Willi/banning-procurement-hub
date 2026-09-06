@@ -4,9 +4,9 @@ export function BrandLogo({ href = "/" }: { href?: string }) {
       <img
         src="/logo.svg"
         alt="Banning Procurement Hub"
-        height={48}
+        height={56}
         decoding="async"
-        className="h-12 w-auto sm:h-14"
+        className="h-14 w-auto sm:h-16"
       />
     </a>
   );

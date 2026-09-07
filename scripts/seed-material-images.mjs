@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import sharp from "sharp";
 
 const API = "https://commons.wikimedia.org/w/api.php";
@@ -31,6 +31,19 @@ const subjects = [
   ["electric-cable-2-5mm", ["electric cable", "copper wire cable", "electrical wire"]],
   ["surface-mount-socket", ["electrical socket", "wall socket", "power socket"]],
   ["led-bulb-15w", ["led light bulb", "led bulb"]],
+  ["cat-blocks", ["concrete blocks", "hollow concrete blocks", "sandcrete blocks"]],
+  ["cat-paint", ["paint buckets", "paint cans", "emulsion paint"]],
+  ["cat-other", ["building materials", "construction materials"]],
+  ["hollow-block-6-inch", ["hollow concrete block", "concrete blocks"]],
+  ["hollow-block-9-inch", ["concrete block wall", "concrete masonry blocks"]],
+  ["sandcrete-solid-block", ["sandcrete block", "solid concrete blocks"]],
+  ["interior-emulsion-20l", ["paint buckets", "emulsion paint"]],
+  ["exterior-paint-20l", ["house paint cans", "exterior paint"]],
+  ["paint-primer-20l", ["paint buckets", "primer paint"]],
+  ["paint-thinner-5l", ["paint thinner", "thinner can"]],
+  ["sharp-sand", ["sand pile construction", "building sand"]],
+  ["wheelbarrow", ["wheelbarrow", "construction wheelbarrow"]],
+  ["shovel-spade-set", ["shovel and spade", "garden shovel spade", "spade shovel"]],
 ];
 
 const REUSABLE = /^(cc0|cc by|cc by-sa|public domain)/;
@@ -64,6 +77,16 @@ const CATEGORY_KEYS = {
   "bathroom-faucet-set": ["Faucets"],
   "pvc-pipe-6-inch": ["PVC pipes"],
   "pvc-pipe-1-5-inch": ["PVC pipes"],
+  "cat-blocks": ["Concrete blocks"],
+  "hollow-block-6-inch": ["Concrete blocks"],
+  "hollow-block-9-inch": ["Concrete blocks"],
+  "sandcrete-solid-block": ["Concrete blocks"],
+  "cat-paint": ["Paint buckets", "Paints"],
+  "interior-emulsion-20l": ["Paint buckets"],
+  "exterior-paint-20l": ["Paint buckets"],
+  "paint-primer-20l": ["Paint buckets"],
+  "cat-other": ["Construction materials"],
+  "sharp-sand": ["Sand"],
 };
 
 async function searchCategory(name, attempt = 0) {
@@ -180,6 +203,13 @@ await mkdir(OUT, { recursive: true });
 const credits = [];
 const failures = [];
 
+let existingCredits = [];
+try {
+  existingCredits = JSON.parse(await readFile(`${OUT}/credits.json`, "utf8")).images ?? [];
+} catch {
+  /* no existing credits to preserve */
+}
+
 for (const [key, queries] of subjects) {
   if (requestedKeys.length && !requestedKeys.includes(key)) continue;
   try {
@@ -202,7 +232,10 @@ for (const [key, queries] of subjects) {
   }
 }
 
-await writeFile(`${OUT}/credits.json`, JSON.stringify({ generated: new Date().toISOString(), images: credits }, null, 2));
+const regeneratedKeys = new Set(credits.map((c) => c.key));
+const preserved = existingCredits.filter((c) => !regeneratedKeys.has(c.key));
+const allCredits = [...preserved, ...credits];
+await writeFile(`${OUT}/credits.json`, JSON.stringify({ generated: new Date().toISOString(), images: allCredits }, null, 2));
 console.log(`\n${credits.length}/${subjects.length} images; failures: ${failures.length}`);
 for (const [key, msg] of failures) console.log(`  - ${key}: ${msg}`);
 process.exit(failures.length ? 1 : 0);

@@ -1,6 +1,6 @@
 "use client";
 
-import { Quotes } from "@phosphor-icons/react";
+import { Phone, Quotes } from "@phosphor-icons/react";
 import { categories, siteConfig, stats } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 import { formatItemCount } from "@/lib/format";
@@ -10,7 +10,8 @@ import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
   { label: "Home", href: "/" },
-  { label: "Materials", href: "/products" },
+  { label: "Products", href: "/products" },
+  { label: "Request a Quote", href: "/quote" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
@@ -85,11 +86,18 @@ export function Header() {
           {/* Right-side actions pinned to absolute right */}
           <div className="ml-auto flex shrink-0 items-center gap-2 pr-4 sm:pr-6">
             <a
+              href={`tel:${siteConfig.phoneIntl}`}
+              className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
+            >
+              <Phone weight="duotone" size={14} />
+              {siteConfig.phoneDisplay}
+            </a>
+            <a
               href="/quote"
               className="hidden items-center gap-1.5 rounded-[10px] bg-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light sm:inline-flex"
             >
               <Quotes weight="duotone" size={14} />
-              <span>{count > 0 ? formatItemCount(count) : "Get a Quote"}</span>
+              <span>{count > 0 ? formatItemCount(count) : "Request a Quote"}</span>
             </a>
 
             <ThemeToggle />

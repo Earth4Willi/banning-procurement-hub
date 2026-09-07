@@ -10,7 +10,7 @@ export function CategoryGrid() {
         <Reveal>
           <SectionHeading
             title="Shop by material"
-            description="Six categories, one verified supplier, and delivery measured bag for bag and piece for piece."
+            description="Nine categories, one verified supplier, and delivery measured bag for bag and piece for piece."
           />
         </Reveal>
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

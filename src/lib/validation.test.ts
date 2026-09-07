@@ -16,4 +16,10 @@ describe("validateQuoteContact", () => {
     expect(validateQuoteContact({ name: "a", phone: "233551234567", area: "x" }).phone).toBeUndefined();
     expect(validateQuoteContact({ name: "a", phone: "055551234567890", area: "x" }).phone).toBeDefined();
   });
+  it("accepts email when present and flags malformed or missing-domain addresses", () => {
+    expect(validateQuoteContact({ name: "a", phone: "0551234567", area: "x" }).email).toBeUndefined();
+    expect(validateQuoteContact({ name: "a", phone: "0551234567", area: "x", email: "nana@banning.com" }).email).toBeUndefined();
+    expect(validateQuoteContact({ name: "a", phone: "0551234567", area: "x", email: "not-an-email" }).email).toBeDefined();
+    expect(validateQuoteContact({ name: "a", phone: "0551234567", area: "x", email: "nana@" }).email).toBeDefined();
+  });
 });

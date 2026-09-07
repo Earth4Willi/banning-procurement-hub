@@ -22,11 +22,17 @@ const STOCK_BADGE_CLASSES: Record<StockStatus, string> = {
   out: "bg-ink/85 text-white",
 };
 
+const MODE_BADGE = {
+  fixed: { label: "Buy Now", className: "bg-primary text-white" },
+  quote: { label: "Get Quote", className: "border border-accent bg-surface text-accent-dark" },
+} as const;
+
 export function ProductCard({ product }: Props) {
   const { add } = useQuote();
   const [added, setAdded] = useState(false);
   const timerRef = useRef<number | null>(null);
   const outOfStock = product.stock === "out";
+  const modeBadge = MODE_BADGE[product.pricingMode];
 
   useEffect(() => {
     return () => {
@@ -52,11 +58,18 @@ export function ProductCard({ product }: Props) {
           loading="lazy"
           className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${outOfStock ? "opacity-70 grayscale" : ""}`}
         />
-        <span
-          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
-        >
-          {STOCK_LABEL[product.stock]}
-        </span>
+        <div className="flex flex-wrap gap-1.5">
+          <span
+            className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
+          >
+            {STOCK_LABEL[product.stock]}
+          </span>
+          <span
+            className={`absolute right-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${modeBadge.className}`}
+          >
+            {modeBadge.label}
+          </span>
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent-dark sm:text-[11px]">
@@ -66,10 +79,17 @@ export function ProductCard({ product }: Props) {
         <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-ink-muted sm:line-clamp-2">
           {product.description}
         </p>
-        <p className="mt-auto flex items-baseline gap-2 pt-3 font-mono text-[15px] font-bold tracking-tight text-accent-dark">
-          {product.unitPrice}
-          <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
-        </p>
+        {product.pricingMode === "fixed" ? (
+          <p className="mt-auto flex items-baseline gap-2 pt-3 font-mono text-[15px] font-bold tracking-tight text-accent-dark">
+            {product.unitPrice}
+            <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
+          </p>
+        ) : (
+          <p className="mt-auto flex items-baseline gap-2 pt-3 font-mono text-[13px] font-semibold tracking-tight text-ink-muted">
+            Price on request
+            <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
+          </p>
+        )}
         <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
           <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
           {siteConfig.responsePromise}
@@ -94,7 +114,7 @@ export function ProductCard({ product }: Props) {
             ) : outOfStock ? (
               "Unavailable"
             ) : (
-              "Add to Quote"
+              product.pricingMode === "fixed" ? "Buy Now" : "Get pricing"
             )}
           </span>
         </button>

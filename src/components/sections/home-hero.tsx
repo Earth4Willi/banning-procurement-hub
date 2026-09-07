@@ -30,8 +30,8 @@ export function HomeHero() {
             Quoted in 24 hours. Delivered across Ghana.
           </h1>
           <p className="mt-6 max-w-[65ch] text-base leading-relaxed text-white/85 md:text-lg">
-            Cement, rods, tiles, roofing, plumbing and electricals supplied and delivered across all
-            16 regions of Ghana.
+            Cement, blocks, rods, roofing sheets, plumbing, electricals, paint and tiles —
+            supplied and delivered across all 16 regions of Ghana.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

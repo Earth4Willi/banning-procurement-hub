@@ -7,8 +7,9 @@ import { siteConfig } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 import { buildQuoteMessage, buildWhatsAppUrl, type QuoteContact } from "@/lib/whatsapp";
 import { validateQuoteContact } from "@/lib/validation";
+import { submitViaWeb3Forms, web3FormsConfigured } from "@/lib/forms";
 
-const EMPTY: QuoteContact = { name: "", phone: "", area: "", note: "" };
+const EMPTY: QuoteContact = { name: "", phone: "", email: "", area: "", note: "" };
 
 const inputClass = (hasError: boolean) =>
   `w-full rounded-[10px] border bg-surface px-4 py-3 text-base text-ink outline-none transition-colors focus:ring-2 ${
@@ -24,7 +25,8 @@ export function ContactForm() {
   const [status, setStatus] = useState<string | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
-  const areaRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const areaRef = useRef<HTMLSelectElement>(null);
 
   const updateContact = (field: keyof QuoteContact, value: string) => {
     const next = { ...contact, [field]: value };
@@ -33,7 +35,7 @@ export function ContactForm() {
     setErrors((prev) => {
       const copy = { ...prev };
       if (field === "note") return copy;
-      const key = field as "name" | "phone" | "area";
+      const key = field as "name" | "phone" | "email" | "area";
       if (nextErrors[key]) {
         copy[key] = nextErrors[key];
       } else {
@@ -43,19 +45,36 @@ export function ContactForm() {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateQuoteContact(contact);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       if (nextErrors.name && nameRef.current) nameRef.current.focus();
       else if (nextErrors.phone && phoneRef.current) phoneRef.current.focus();
+      else if (nextErrors.email && emailRef.current) emailRef.current.focus();
       else if (nextErrors.area && areaRef.current) areaRef.current.focus();
       return;
     }
     const message = buildQuoteMessage(contact, lines);
     const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
-    setStatus("Opening WhatsApp with your message…");
+    let emailed = false;
+    if (web3FormsConfigured()) {
+      const result = await submitViaWeb3Forms({
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        area: contact.area,
+        message: contact.note ?? "",
+        subject: "Contact message — Banning Procurement Hub",
+      });
+      emailed = result.ok;
+    }
+    setStatus(
+      emailed
+        ? "Message sent to us by email and opened in WhatsApp."
+        : "Opening WhatsApp with your message…"
+    );
     window.open(url, "_blank", "noopener");
   };
 
@@ -72,8 +91,8 @@ export function ContactForm() {
                 Send us a message
               </h2>
               <p className="mt-4 max-w-[55ch] text-base leading-relaxed text-ink-muted">
-                Tell us your details and what you need. The message opens in WhatsApp, ready to
-                send. {siteConfig.responsePromise}.
+                Tell us your details and what you need. The message reaches us by email and is
+                ready to send on WhatsApp. {siteConfig.responsePromise}.
               </p>
             </div>
           </Reveal>
@@ -136,23 +155,53 @@ export function ContactForm() {
                   ) : null}
                 </div>
 
+                <div>
+                  <label htmlFor="contact-email" className="text-sm font-medium text-ink">
+                    Email<span className="text-ink-muted"> (optional)</span>
+                  </label>
+                  <input
+                    ref={emailRef}
+                    id="contact-email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={contact.email ?? ""}
+                    onChange={(event) => updateContact("email", event.target.value)}
+                    aria-describedby={errorId("email")}
+                    aria-invalid={errorText("email") ? true : undefined}
+                    className={`mt-2 ${inputClass(Boolean(errorText("email")))}`}
+                  />
+                  {errorText("email") ? (
+                    <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">
+                      {errorText("email")}
+                    </p>
+                  ) : null}
+                </div>
+
                 <div className="sm:col-span-2">
                   <label htmlFor="contact-area" className="text-sm font-medium text-ink">
                     Delivery area<span className="text-accent-dark"> *</span>
                   </label>
-                  <input
+                  <select
                     ref={areaRef}
                     id="contact-area"
                     name="area"
-                    type="text"
                     value={contact.area}
                     onChange={(event) => updateContact("area", event.target.value)}
                     aria-required="true"
                     aria-describedby={errorId("area")}
                     aria-invalid={errorText("area") ? true : undefined}
-                    placeholder="e.g. East Legon, Accra"
                     className={`mt-2 ${inputClass(Boolean(errorText("area")))}`}
-                  />
+                  >
+                    <option value="" disabled>
+                      Select your area…
+                    </option>
+                    {siteConfig.deliveryAreas.map((area) => (
+                      <option key={area} value={area}>
+                        {area}
+                      </option>
+                    ))}
+                  </select>
                   {errorText("area") ? (
                     <p id="area-error" role="alert" className="mt-2 text-sm text-red-700">
                       {errorText("area")}
@@ -184,7 +233,7 @@ export function ContactForm() {
                 className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98]"
               >
                 <PaperPlaneTilt weight="duotone" size={16} aria-hidden="true" />
-                Send message on WhatsApp
+                Send message
               </button>
 
               {status ? (

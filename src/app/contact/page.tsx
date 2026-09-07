@@ -9,7 +9,7 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Contact Us",
   description:
-    "Call, WhatsApp or email Banning Procurement Hub for cement, iron rods, tiles, roofing, plumbing and electricals across Ghana.",
+    "Call, WhatsApp or email Banning Procurement Hub for cement, blocks, iron rods, tiles, roofing, plumbing, electricals, paint and more across Ghana.",
   alternates: { canonical: "/contact/" },
 };
 

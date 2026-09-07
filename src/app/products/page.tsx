@@ -8,7 +8,7 @@ import { ProductCard } from "@/components/product-card";
 export const metadata: Metadata = {
   title: "Browse Building Materials",
   description:
-    "Browse cement, iron rods, tiles, roofing, plumbing and electrical materials with live search. Request a quote and get nationwide delivery across Ghana.",
+    "Browse cement, blocks, iron rods, tiles, roofing, plumbing, electricals and paint with live search. Request a quote and get nationwide delivery across Ghana.",
   alternates: { canonical: "/products/" },
 };
 
@@ -25,8 +25,8 @@ export default function ProductsPage() {
               Browse materials
             </h1>
             <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-ink-muted md:text-lg">
-              Six categories covering cement, iron rods, tiles, roofing, plumbing and electricals.
-              Browse by material, or search across everything.
+              Nine categories covering cement, blocks, iron rods, roofing sheets, plumbing,
+              electricals, paint, tiles and more. Browse by material, or search across everything.
             </p>
           </Reveal>
 

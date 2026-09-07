@@ -46,7 +46,14 @@ export function QuoteProvider({ children }: { children: ReactNode }) {
     const lines: QuoteLine[] = state.items
       .flatMap((item) => {
         const product = getProduct(item.productId);
-        return product ? [{ name: product.name, unit: product.unit, unitPrice: product.unitPrice, qty: item.qty }] : [];
+        return product
+          ? [{
+              name: product.name,
+              unit: product.unit,
+              unitPrice: product.pricingMode === "quote" ? "" : product.unitPrice,
+              qty: item.qty,
+            }]
+          : [];
       });
     return {
       items: state.items,

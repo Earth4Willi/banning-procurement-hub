@@ -1,14 +1,18 @@
-export type QuoteContact = { name: string; phone: string; area: string; note?: string };
+export type QuoteContact = { name: string; phone: string; email?: string; area: string; note?: string };
 export type QuoteLine = { name: string; unit: string; unitPrice: string; qty: number };
 
 export function buildQuoteMessage(contact: QuoteContact, lines: QuoteLine[]): string {
   const parts: string[] = [];
-  parts.push("Hello Banning Procurement Hub, I would like a quote.");
+  parts.push("Hello Banning Procurement Hub, I would like a quote or order.");
   parts.push(`Name: ${contact.name}`);
   parts.push(`Phone: ${contact.phone}`);
+  if (contact.email && contact.email.trim()) {
+    parts.push(`Email: ${contact.email.trim()}`);
+  }
   parts.push(`Delivery area: ${contact.area}`);
   lines.forEach((line, index) => {
-    parts.push(`${index + 1}. ${line.name} - ${line.qty} x ${line.unit} @ ${line.unitPrice}`);
+    const price = line.unitPrice ? ` @ ${line.unitPrice}` : " — price on request";
+    parts.push(`${index + 1}. ${line.name} - ${line.qty} x ${line.unit}${price}`);
   });
   if (contact.note && contact.note.trim()) {
     parts.push(`Note: ${contact.note.trim()}`);

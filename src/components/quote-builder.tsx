@@ -8,12 +8,14 @@ import { useQuote } from "@/lib/quote-context";
 import { buildQuoteMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { QuoteContact } from "@/lib/whatsapp";
 import { validateQuoteContact } from "@/lib/validation";
+import { submitViaWeb3Forms, web3FormsConfigured } from "@/lib/forms";
 import { formatItemCount, monetaryTotal } from "@/lib/format";
 
-const EMPTY: QuoteContact = { name: "", phone: "", area: "", note: "" };
+const EMPTY: QuoteContact = { name: "", phone: "", email: "", area: "", note: "" };
 const FIELD_LABEL: Record<string, string> = {
   name: "Full name",
   phone: "Phone",
+  email: "Email",
   area: "Delivery area",
   note: "Note (optional)",
 };
@@ -33,7 +35,8 @@ export function QuoteBuilder() {
   const [copied, setCopied] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
-  const areaRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const areaRef = useRef<HTMLSelectElement>(null);
 
   const lines = useMemo(
     () =>
@@ -100,19 +103,36 @@ export function QuoteBuilder() {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextErrors = validateQuoteContact(contact);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       if (nextErrors.name && nameRef.current) nameRef.current.focus();
       else if (nextErrors.phone && phoneRef.current) phoneRef.current.focus();
+      else if (nextErrors.email && emailRef.current) emailRef.current.focus();
       else if (nextErrors.area && areaRef.current) areaRef.current.focus();
       return;
     }
     const message = buildQuoteMessage(contact, baseLines);
     const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
-    setStatus("Opening WhatsApp with your quote…");
+    let emailed = false;
+    if (web3FormsConfigured()) {
+      const result = await submitViaWeb3Forms({
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        area: contact.area,
+        message: message,
+        subject: "Quote request — Banning Procurement Hub",
+      });
+      emailed = result.ok;
+    }
+    setStatus(
+      emailed
+        ? "Request sent to us by email and opened in WhatsApp."
+        : "Opening WhatsApp with your request…"
+    );
     window.open(url, "_blank", "noopener");
   };
 
@@ -325,23 +345,54 @@ export function QuoteBuilder() {
             </div>
 
             <div>
+              <label htmlFor="email" className="text-sm font-medium text-ink">
+                {FIELD_LABEL.email}
+                <span className="text-ink-muted"> (optional)</span>
+              </label>
+              <input
+                ref={emailRef}
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={contact.email ?? ""}
+                onChange={(event) => updateContact("email", event.target.value)}
+                aria-describedby={errorId("email")}
+                aria-invalid={errorText("email") ? true : undefined}
+                className={`mt-2 ${inputClass("email")}`}
+              />
+              {errorText("email") ? (
+                <p id="email-error" role="alert" className="mt-2 text-sm text-red-700">
+                  {errorText("email")}
+                </p>
+              ) : null}
+            </div>
+
+            <div>
               <label htmlFor="area" className="text-sm font-medium text-ink">
                 {FIELD_LABEL.area}
                 <span className="text-accent-dark"> *</span>
               </label>
-              <input
+              <select
                 ref={areaRef}
                 id="area"
                 name="area"
-                type="text"
                 value={contact.area}
                 onChange={(event) => updateContact("area", event.target.value)}
                 aria-required="true"
                 aria-describedby={errorId("area")}
                 aria-invalid={errorText("area") ? true : undefined}
-                placeholder="e.g. East Legon, Accra"
                 className={`mt-2 ${inputClass("area")}`}
-              />
+              >
+                <option value="" disabled>
+                  Select your area…
+                </option>
+                {siteConfig.deliveryAreas.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
               {errorText("area") ? (
                 <p id="area-error" role="alert" className="mt-2 text-sm text-red-700">
                   {errorText("area")}
@@ -372,7 +423,7 @@ export function QuoteBuilder() {
             type="submit"
             className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98]"
           >
-            Send Quote via WhatsApp
+            Send request
           </button>
 
           {status ? (
@@ -384,6 +435,10 @@ export function QuoteBuilder() {
           <div className="mt-6 rounded-[10px] border border-primary/10 bg-surface p-4">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-accent-dark">
               Review before sending
+            </p>
+            <p className="mt-2 text-xs text-ink-muted">
+              The estimated total covers fixed-price items only. Quote-only items are priced on
+              request.
             </p>
             <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-[10px] bg-surface-alt p-3 font-mono text-xs leading-relaxed text-ink-muted">
               {buildQuoteMessage(contact, baseLines)}

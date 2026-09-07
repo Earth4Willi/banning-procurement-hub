@@ -19,10 +19,10 @@ describe("site data", () => {
     expect(siteConfig.whatsappNumber).toBe("233558850667");
   });
 
-  it("has unique category ids matching the six catalogue categories", () => {
+  it("has unique category ids matching the nine catalogue categories", () => {
     const ids = categories.map((c) => c.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).toEqual(["cement", "iron-rods", "tiles", "roofing", "plumbing", "electricals"]);
+    expect(ids).toEqual(["cement", "blocks", "iron-rods", "roofing", "plumbing", "electricals", "paint", "tiles", "other"]);
   });
 
   it("has unique product slugs and a valid categoryId per product", () => {
@@ -54,7 +54,7 @@ describe("site data", () => {
   });
 
   it("tags every product with a valid stock status covering all three states", () => {
-    expect(products.length).toBe(18);
+    expect(products.length).toBe(28);
     const statuses = products.map((p) => p.stock);
     for (const p of products) {
       expect(["in", "limited", "out"]).toContain(p.stock);
@@ -62,5 +62,14 @@ describe("site data", () => {
     for (const s of ["in", "limited", "out"] as const) {
       expect(statuses).toContain(s);
     }
+  });
+
+  it("assigns every product a valid pricing mode with both modes represented", () => {
+    const modes = products.map((p) => p.pricingMode);
+    for (const p of products) {
+      expect(["fixed", "quote"]).toContain(p.pricingMode);
+    }
+    expect(modes).toContain("fixed");
+    expect(modes).toContain("quote");
   });
 });

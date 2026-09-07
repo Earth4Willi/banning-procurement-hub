@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-06T09:15:55.240Z",
+  "generated": "2026-09-07T20:59:32.615Z",
   "images": [
     {
       "key": "cat-cement",
@@ -32,6 +32,123 @@
       "license": "Public domain",
       "artist": "KVDP",
       "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/62/Portland_Cement_Bags.jpg/960px-Portland_Cement_Bags.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail"
+    },
+    {
+      "key": "cat-blocks",
+      "file": "materials/cat-blocks.jpg",
+      "title": "File:500px photo (188688289).jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Chi King",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/500px_photo_%28188688289%29.jpeg/960px-500px_photo_%28188688289%29.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Concrete blocks"
+    },
+    {
+      "key": "cat-paint",
+      "file": "materials/cat-paint.jpg",
+      "title": "File:USMC-101217-M-9236J-061.jpg",
+      "license": "Public domain",
+      "artist": "",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/USMC-101217-M-9236J-061.jpg/960px-USMC-101217-M-9236J-061.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Paint buckets"
+    },
+    {
+      "key": "cat-other",
+      "file": "materials/cat-other.jpg",
+      "title": "File:2021 Exposición Arquitectura Atemporal CentroCentro - Caña (Arundo donax).jpg",
+      "license": "CC0",
+      "artist": "Keinmy",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ab/2021_Exposici%C3%B3n_Arquitectura_Atemporal_CentroCentro_-_Ca%C3%B1a_%28Arundo_donax%29.jpg/960px-2021_Exposici%C3%B3n_Arquitectura_Atemporal_CentroCentro_-_Ca%C3%B1a_%28Arundo_donax%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Construction materials"
+    },
+    {
+      "key": "hollow-block-6-inch",
+      "file": "materials/hollow-block-6-inch.jpg",
+      "title": "File:500px photo (188688289).jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Chi King",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/500px_photo_%28188688289%29.jpeg/960px-500px_photo_%28188688289%29.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Concrete blocks"
+    },
+    {
+      "key": "hollow-block-9-inch",
+      "file": "materials/hollow-block-9-inch.jpg",
+      "title": "File:500px photo (188688289).jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Chi King",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/500px_photo_%28188688289%29.jpeg/960px-500px_photo_%28188688289%29.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Concrete blocks"
+    },
+    {
+      "key": "sandcrete-solid-block",
+      "file": "materials/sandcrete-solid-block.jpg",
+      "title": "File:500px photo (188688289).jpeg",
+      "license": "CC BY 3.0",
+      "artist": "Chi King",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/500px_photo_%28188688289%29.jpeg/960px-500px_photo_%28188688289%29.jpeg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Concrete blocks"
+    },
+    {
+      "key": "interior-emulsion-20l",
+      "file": "materials/interior-emulsion-20l.jpg",
+      "title": "File:USMC-101217-M-9236J-061.jpg",
+      "license": "Public domain",
+      "artist": "",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/USMC-101217-M-9236J-061.jpg/960px-USMC-101217-M-9236J-061.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Paint buckets"
+    },
+    {
+      "key": "exterior-paint-20l",
+      "file": "materials/exterior-paint-20l.jpg",
+      "title": "File:USMC-101217-M-9236J-061.jpg",
+      "license": "Public domain",
+      "artist": "",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/USMC-101217-M-9236J-061.jpg/960px-USMC-101217-M-9236J-061.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Paint buckets"
+    },
+    {
+      "key": "paint-primer-20l",
+      "file": "materials/paint-primer-20l.jpg",
+      "title": "File:USMC-101217-M-9236J-061.jpg",
+      "license": "Public domain",
+      "artist": "",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/USMC-101217-M-9236J-061.jpg/960px-USMC-101217-M-9236J-061.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Paint buckets"
+    },
+    {
+      "key": "paint-thinner-5l",
+      "file": "materials/paint-thinner-5l.jpg",
+      "title": "File:Thinner Superior.jpg",
+      "license": "CC BY-SA 4.0",
+      "artist": "Trecex materiales SRL",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Thinner_Superior.jpg/960px-Thinner_Superior.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "paint thinner"
+    },
+    {
+      "key": "sharp-sand",
+      "file": "materials/sharp-sand.jpg",
+      "title": "File:PSM V08 D373 Section of a sand hill blasted by wind.jpg",
+      "license": "Public domain",
+      "artist": "Unknown authorUnknown author",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/PSM_V08_D373_Section_of_a_sand_hill_blasted_by_wind.jpg/960px-PSM_V08_D373_Section_of_a_sand_hill_blasted_by_wind.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "Category:Sand"
+    },
+    {
+      "key": "wheelbarrow",
+      "file": "materials/wheelbarrow.jpg",
+      "title": "File:Moderne Schubkarre.jpg",
+      "license": "CC BY-SA 3.0",
+      "artist": "User:MarkusHagenlocher",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a4/Moderne_Schubkarre.jpg/960px-Moderne_Schubkarre.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "wheelbarrow"
+    },
+    {
+      "key": "shovel-spade-set",
+      "file": "materials/shovel-spade-set.jpg",
+      "title": "File:Schep.jpg",
+      "license": "CC BY-SA 3.0",
+      "artist": "Rasbak",
+      "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7e/Schep.jpg/960px-Schep.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "query": "shovel and spade"
     }
   ]
 }

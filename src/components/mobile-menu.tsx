@@ -14,11 +14,11 @@ import {
   WhatsappLogo,
 } from "@phosphor-icons/react";
 import { siteConfig } from "@/lib/site";
-import { useQuote } from "@/lib/quote-context";
 
 const PRIMARY = [
   { label: "Home", href: "/", icon: House },
-  { label: "Materials", href: "/products", icon: Package },
+  { label: "Products", href: "/products", icon: Package },
+  { label: "Request a Quote", href: "/quote", icon: FileText },
   { label: "Categories", href: "/products", icon: TreeStructure },
 ];
 
@@ -32,7 +32,6 @@ export function MobileMenu() {
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
-  const { count } = useQuote();
 
   useEffect(() => {
     setMounted(true);
@@ -107,20 +106,6 @@ export function MobileMenu() {
 
                 <div className="my-1 border-t border-primary/10" />
 
-                <a
-                  href="/quote"
-                  onClick={close}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
-                >
-                  <FileText weight="duotone" size={20} className="shrink-0 text-ink-muted" />
-                  Get a Quote
-                  {count > 0 && (
-                    <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-[10px] font-bold text-[#0d3d1a]">
-                      {count}
-                    </span>
-                  )}
-                </a>
-
                 {SECONDARY.map((item) => (
                   <a
                     key={item.href}
@@ -134,6 +119,15 @@ export function MobileMenu() {
                 ))}
 
                 <div className="my-1 border-t border-primary/10" />
+
+                <a
+                  href={`tel:${siteConfig.phoneIntl}`}
+                  onClick={close}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                >
+                  <Phone weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                  Call {siteConfig.phoneDisplay}
+                </a>
 
                 <a
                   href={`https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent("Hello Banning Procurement Hub, I would like a quote.")}`}

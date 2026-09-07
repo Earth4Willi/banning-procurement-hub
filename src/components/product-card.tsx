@@ -16,23 +16,25 @@ const STOCK_LABEL: Record<StockStatus, string> = {
   out: "Out of stock",
 };
 
+const AVAILABILITY_LABEL: Record<StockStatus, string> = {
+  in: "Available",
+  limited: "Low stock",
+  out: "Unavailable",
+};
+
 const STOCK_BADGE_CLASSES: Record<StockStatus, string> = {
   in: "bg-primary text-white",
   limited: "bg-accent text-[#0d3d1a]",
   out: "bg-ink/85 text-white",
 };
 
-const MODE_BADGE = {
-  fixed: { label: "Buy Now", className: "bg-primary text-white" },
-  quote: { label: "Get Quote", className: "border border-accent bg-surface text-accent-dark" },
-} as const;
-
 export function ProductCard({ product }: Props) {
   const { add } = useQuote();
   const [added, setAdded] = useState(false);
   const timerRef = useRef<number | null>(null);
   const outOfStock = product.stock === "out";
-  const modeBadge = MODE_BADGE[product.pricingMode];
+  const availabilityLabel =
+    product.kind === "measure" ? AVAILABILITY_LABEL[product.stock] : STOCK_LABEL[product.stock];
 
   useEffect(() => {
     return () => {
@@ -58,18 +60,11 @@ export function ProductCard({ product }: Props) {
           loading="lazy"
           className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${outOfStock ? "opacity-70 grayscale" : ""}`}
         />
-        <div className="flex flex-wrap gap-1.5">
-          <span
-            className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
-          >
-            {STOCK_LABEL[product.stock]}
-          </span>
-          <span
-            className={`absolute right-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${modeBadge.className}`}
-          >
-            {modeBadge.label}
-          </span>
-        </div>
+        <span
+          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
+        >
+          {availabilityLabel}
+        </span>
       </div>
       <div className="flex flex-1 flex-col p-3 sm:p-4">
         <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent-dark sm:text-[11px]">
@@ -114,7 +109,7 @@ export function ProductCard({ product }: Props) {
             ) : outOfStock ? (
               "Unavailable"
             ) : (
-              product.pricingMode === "fixed" ? "Buy Now" : "Get pricing"
+              "Add to quote"
             )}
           </span>
         </button>

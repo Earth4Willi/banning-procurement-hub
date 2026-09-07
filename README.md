@@ -48,7 +48,7 @@ All site content lives in one file: `src/lib/site.ts`.
 
 Edit `categories`, `products`, `testimonials`, `certifications` and `faqs`, then re-run `npm run build`. Prices, brands, descriptions and stats are current SAMPLE data to be replaced with confirmed figures before launch.
 
-Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catalogue shows an In stock / Limited / Out of stock badge on every card, and out-of-stock products cannot be added to a quote.
+Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catalogue shows an availability badge on every card—countable items (`kind: "unit"`) read *In stock / Limited / Out of stock*, while uncountable measure items like sand (`kind: "measure"`) read *Available / Low stock / Unavailable*—and out-of-stock products cannot be added to a quote.
 
 The `/products` page groups the catalogue by category with a sticky jump-nav; each category also has a dedicated page (`/products/<category-id>`).
 

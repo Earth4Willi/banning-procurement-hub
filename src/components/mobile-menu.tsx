@@ -17,7 +17,7 @@ import { siteConfig } from "@/lib/site";
 
 const PRIMARY = [
   { label: "Home", href: "/", icon: House },
-  { label: "Products", href: "/products", icon: Package },
+  { label: "Materials", href: "/products", icon: Package },
   { label: "Request a Quote", href: "/quote", icon: FileText },
   { label: "Categories", href: "/products", icon: TreeStructure },
 ];

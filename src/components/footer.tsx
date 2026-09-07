@@ -3,7 +3,6 @@
 import { Phone, WhatsappLogo, EnvelopeSimple, MapPin } from "@phosphor-icons/react";
 import { categories, siteConfig, certifications } from "@/lib/site";
 import { BrandLogo } from "./brand-logo";
-import { ThemeToggle } from "./theme-toggle";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -122,7 +121,13 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <a href="/privacy" className="text-xs text-ink-muted transition-colors hover:text-ink">Privacy</a>
             <a href="/terms" className="text-xs text-ink-muted transition-colors hover:text-ink">Terms</a>
-            <ThemeToggle />
+            <a
+              href="mailto:appianda@proton.me"
+              className="text-xs text-ink-muted transition-colors hover:text-ink"
+            >
+              Made by <span className="font-semibold text-ink">WILSTACK</span>
+              <span className="text-primary-500">//</span>
+            </a>
           </div>
         </div>
       </div>

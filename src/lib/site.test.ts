@@ -72,4 +72,12 @@ describe("site data", () => {
     expect(modes).toContain("fixed");
     expect(modes).toContain("quote");
   });
+
+  it("tags every product with a valid kind and routes uncountable measure items like sand", () => {
+    for (const p of products) {
+      expect(["unit", "measure"]).toContain(p.kind);
+    }
+    const measure = products.filter((p) => p.kind === "measure");
+    expect(measure.map((p) => p.slug)).toEqual(["sharp-sand"]);
+  });
 });

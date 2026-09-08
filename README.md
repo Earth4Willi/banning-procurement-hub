@@ -16,12 +16,13 @@ Live site: https://banningprocurementhub.com
 
 ## Tech stack
 
-- Next.js 16 (App Router) with static export (`output: "export"`)
+- Next.js 16 (App Router) in server mode — pages are prerendered; `/api/*` route handlers run on the server
 - TypeScript
 - Tailwind CSS v4
 - Motion for animations
 - Phosphor icons
 - Vitest + jsdom for tests
+- Server layer: Supabase (audit log, future persistence), Upstash Redis (rate limiting, owner sessions), zod, bcryptjs
 
 ## Design system
 
@@ -35,11 +36,23 @@ Live site: https://banningprocurementhub.com
 
 ```bash
 npm install
-npm run dev       # local dev server
-npm run build     # production static export to out/
-npx serve out     # serve the exported build locally
-npm test          # vitest (20 tests)
-npm run typecheck # tsc --noEmit
+cp .env.example .env.local   # fill in the backend keys (see below)
+npm run dev                  # local dev server
+npm run build                # production build
+npm run start                # serve the production build (server mode)
+npm test                     # vitest (70 tests)
+npm run typecheck            # tsc --noEmit
+```
+
+Server-mode routes (`/api/quote`, future owner auth) read their configuration from environment variables at runtime. They are validated by `src/server/env.ts` on first use and fail fast if a required variable is missing. Generate secrets with:
+
+```bash
+# AUTH_SECRET (>= 32 chars) and OWNER_TOTP_SECRET (20 random bytes, base32):
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+node -e "console.log(require('crypto').randomBytes(20).toString('base64').replace(/=+$/,'').toUpperCase())"
+
+# OWNER_PASSWORD_HASH (bcrypt, cost 12 in production):
+npx tsx -e "import('bcryptjs').then(b=>console.log(b.hashSync(process.argv[1],12)))" 'your-password-here'
 ```
 
 ## How to update the catalogue
@@ -52,7 +65,7 @@ Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catal
 
 The `/products` page groups the catalogue by category with a sticky jump-nav; each category also has a dedicated page (`/products/<category-id>`).
 
-The site is fully static. No environment variables or API keys are required.
+Pages are prerendered and need no runtime backend; the `/api` route handlers (quote submission, later owner authentication) do need the environment variables above. Rate limiting degrades gracefully: if Redis is unreachable, requests flow through rather than the site erroring.
 
 ### Images
 
@@ -70,21 +83,27 @@ The site is fully static. No environment variables or API keys are required.
 
 - Visitors add products to a quote which persists in `localStorage` under the `bph-quote` key.
 - The quote page validates name, phone and delivery area client-side.
-- Submitting builds a WhatsApp message and opens `wa.me/233558850667?text=...`; the buyer sends it manually, nothing is transmitted to a server.
+- Submitting builds a WhatsApp message and opens `wa.me/233558850667?text=...`; the buyer sends it manually.
+
+A parallel server path (`POST /api/quote`) records submissions through the security floor — rate limiting (Upstash, sliding window), strict origin check against CSRF, a 16 KB body cap with schema validation (zod), and a best-effort `security_events` audit insert into Supabase. It returns `202` with a reference id; persistence/CTAs for it arrive in a later iteration.
 
 ## Project structure
 
 ```
 src/
-  app/              App Router pages and layouts
+  app/              App Router pages and layouts, plus /api route handlers
   components/       UI components and sections
   lib/              site data, quote state, validation, formatting
+  server/           backend security modules (env, auth, csrf, rate-limit,
+                    session, totp, validate, audit) with unit tests
 public/             static assets: favicon, OG image, manifest
 ```
 
 ## Deployment
 
-Build produces a static `out/` directory. Deploy it to any static host (Netlify, Vercel, Cloudflare Pages, S3/CloudFront). No build-time environment variables are needed.
+Build produces a server-ready bundle. Deploy to any Node-capable host (Vercel, Netlify, Railway) and set the environment variables from `.env.example` (`SUPABASE_URL`, `UPSTASH_REDIS_REST_URL`, `AUTH_SECRET`, `OWNER_*`, etc.). The route handlers need the service-role Supabase key, so they must never run in the browser bundle — they are server-only (`src/server/*` is not imported by any client component).
+
+The security headers (CSP, HSTS, frame/embedding protections, MIME sniffing) are emitted by `next.config.mjs` `headers()`.
 
 Pending client confirmation before launch: the live domain (the sitemap, `metadataBase` and the "Live site" line above use https://banningprocurementhub.com as a placeholder), real product data and photos (current content is SAMPLE), the JSON-LD `email` address, official social links and any analytics ID (none configured by design).
 

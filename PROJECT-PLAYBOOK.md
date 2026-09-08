@@ -38,19 +38,19 @@
 - [ ] Connect GitHub (PENDING: no remote yet, client to provide)
 - [x] `.gitignore`
 - [ ] Generate a brand document (PENDING: design system + tokens live in the design spec; formal brand doc optional, client-side)
-- [x] Lock in tech stack (Next.js static export, Tailwind v4, Motion, Phosphor)
+- [x] Lock in tech stack (Next.js server mode, Tailwind v4, Motion, Phosphor, Supabase, Upstash, zod)
 - [x] Set up a design system (brand tokens + Tailwind theme)
 
 ### 1.3 Architecture & Environment
 - [x] Break the project into tasks (implementation plan)
-- [ ] Set up the database and authentication (N/A — no backend)
-- [x] Move all keys to environment variables (N/A — no keys; single phone constant in `site.ts`)
-- [ ] Split staging and production environments (PENDING: static export, preview via PR on any static host; single host until domain confirmed)
+- [ ] Set up the database and authentication (PENDING: server layer + auth modules shipped; live Supabase project, migration, and login route pending)
+- [x] Move all keys to environment variables (all runtime config via `src/server/env.ts` + `.env.example`; passwords never stored, only bcrypt hashes)
+- [ ] Split staging and production environments (PENDING: single host until domain confirmed)
 
 ### 1.4 Conventions & Project Hygiene
 - [x] Add a README
 - [x] Plan your folder structure (App Router: app/, components/, lib/, data/)
-- [ ] Add error tracking (PENDING: N/A for a static site; console + build checks only)
+- [ ] Add error tracking (PENDING: N/A for a marketing site; `with-error-handling` logs structured API errors, console + build checks only)
 - [x] Define what you are not building (see design spec §9 Scope Boundaries)
 - [x] Commit small and often (feature-per-commit across the 14 implementation tasks)
 
@@ -69,7 +69,7 @@
 - [x] Form success states (WhatsApp handoff confirmation + status message)
 - [x] Form error states (validation with aria-invalid + role="alert")
 - [x] Confirmation modals (native confirm dialog when clearing the quote)
-- [ ] Password visibility toggle (PENDING: N/A, no auth)
+- [ ] Password visibility toggle (PENDING: owner login form pending; password + TOTP modules shipped)
 - [ ] UTM tracking (PENDING: none by design, no analytics)
 - [x] Copy-to-clipboard buttons (quote builder copies the WhatsApp message)
 
@@ -86,10 +86,22 @@
 
 ## 3. Security
 
-- [x] Force HTTPS everywhere (static host default; no HTTP server)
-- [x] HSTS (handled by hosting platform at CDN edge; N/A at app layer)
-- [x] No sessions/cookies to secure (no auth, no backend)
-- [x] Global checkboxes 3.2–3.6: N/A — no database, no auth, no payments, no server, no secrets, no uploads. Only static content + WhatsApp deep links. Validate & sanitize all form input client-side before building the message.
+> Backend security floor shipped 2026-09-08 (see `docs/superpowers/plans/2026-09-08-backend-security.md` and the vault decision note). Owner mandates: no plaintext secrets, no enum/lockout, no timing side-channels, strict CSRF/validation/rate limits, minimal disclosure on errors, audit trail.
+
+- [x] Force HTTPS everywhere (host + route handlers; production cookie flag `secure`)
+- [x] HSTS (via `next.config.mjs` headers)
+- [x] Rate limiting on public API routes (Upstash sliding window, graceful degradation when Redis is down)
+- [x] CSRF same-origin enforcement on state-changing requests (`verifySameOrigin`)
+- [x] Input validation + 16 KB body cap on API routes (`src/server/validate.ts`, zod)
+- [x] No secrets in the client bundle; server-only modules; env contract validated on first use (`src/server/env.ts`)
+- [x] Structured error contract — internal errors never leak stack/messages (`http-error.ts`)
+- [x] Security headers: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy, COOP, CORP
+- [x] No plaintext passwords: bcrypt (cost 12) + RFC 6238 TOTP modules, tested
+- [x] Owner session model: opaque ids, absolute + idle TTLs, rotation, httpOnly/SameSite=Lax cookies (tested)
+- [x] Dependabot (weekly npm + actions) and CI gate: typecheck, tests, build, `npm audit --omit=dev`
+- [ ] Apply Supabase migration: `security_events` table + RLS policies (PENDING: no live Supabase project yet)
+- [ ] Wire the owner login route (password + TOTP modules done; endpoint + UI pending)
+- [ ] Verified live deployment: confirm headers and rate-limit degradation on the real domains (PENDING)
 
 ## 4. Pre-Launch QA Checklist
 

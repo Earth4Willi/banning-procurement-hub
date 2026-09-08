@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    pool: "threads",
     include: ["src/**/*.test.{ts,tsx}"],
   },
   resolve: {

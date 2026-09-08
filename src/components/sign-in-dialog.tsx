@@ -98,20 +98,27 @@ export function SignInDialog({ open, onClose, session }: Props) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="backdrop-in absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Owner sign in"
-        className="relative flex w-full max-w-md flex-col overflow-hidden rounded-[16px] border border-primary/10 bg-surface shadow-[0_24px_60px_rgba(13,61,26,0.35)] sm:max-w-lg sm:flex-row"
+        className="dialog-in relative flex w-full max-w-md flex-col overflow-hidden rounded-[16px] border border-primary/10 bg-surface shadow-[0_24px_60px_rgba(13,61,26,0.35)] sm:max-w-lg sm:flex-row"
       >
         <div
-          className="relative h-32 w-full shrink-0 bg-cover bg-center sm:h-auto sm:w-2/5"
+          className="relative h-32 w-full shrink-0 overflow-hidden bg-cover bg-center sm:h-auto sm:w-2/5"
           style={{ backgroundImage: "url(/login-bg.jpg)" }}
           aria-hidden="true"
         >
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#0d3d1a]/90 via-[#0d3d1a]/45 to-transparent" />
+          <span className="shine-sweep shine-open" />
+          <div className="absolute bottom-3 left-4 flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-accent" />
+            <span className="font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-white/90">
+              Banning Procurement Hub
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-1 flex-col p-6 sm:p-7">
@@ -148,7 +155,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                     void session.signOut();
                     onClose();
                   }}
-                  className="inline-flex items-center gap-2 rounded-[10px] bg-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light"
+                  className="inline-flex items-center gap-2 rounded-[10px] bg-gradient-to-b from-accent-light to-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] shadow-[0_4px_12px_rgba(240,180,41,0.3)] transition-[box-shadow,transform] duration-200 hover:-translate-y-px hover:shadow-[0_8px_16px_rgba(240,180,41,0.4)]"
                 >
                   <SignOut weight="duotone" size={14} />
                   Sign out
@@ -166,7 +173,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                     autoComplete="one-time-code"
                     value={totpCode}
                     onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 font-mono text-base tracking-[0.3em] text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent"
+                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 font-mono text-base tracking-[0.3em] text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/40"
                     placeholder="000000"
                   />
                 </label>
@@ -189,7 +196,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                   <button
                     type="submit"
                     disabled={busy}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 py-2.5 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-b from-accent-light to-accent px-4 py-2.5 text-sm font-semibold text-[#0d3d1a] shadow-[0_6px_18px_rgba(240,180,41,0.35)] transition-[box-shadow,transform,opacity] duration-200 hover:-translate-y-px hover:shadow-[0_10px_22px_rgba(240,180,41,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {busy ? (
                       <>
@@ -212,7 +219,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                     autoComplete="username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-normal text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent"
+                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-normal text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/40"
                     placeholder="owner@example.com"
                   />
                 </label>
@@ -224,7 +231,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-normal text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent"
+                    className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-normal text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-muted/60 focus:border-accent focus:ring-2 focus:ring-accent/40"
                     placeholder="••••••••"
                   />
                 </label>
@@ -236,10 +243,10 @@ export function SignInDialog({ open, onClose, session }: Props) {
                 )}
 
                 <button
-                  type="submit"
-                  disabled={busy}
-                  className="mt-1 inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-4 py-2.5 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-60"
-                >
+                    type="submit"
+                    disabled={busy}
+                    className="mt-1 inline-flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-b from-accent-light to-accent px-4 py-2.5 text-sm font-semibold text-[#0d3d1a] shadow-[0_6px_18px_rgba(240,180,41,0.35)] transition-[box-shadow,transform,opacity] duration-200 hover:-translate-y-px hover:shadow-[0_10px_22px_rgba(240,180,41,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
                   {busy ? (
                     <>
                       <CircleNotch size={16} className="animate-spin" />

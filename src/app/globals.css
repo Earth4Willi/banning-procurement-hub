@@ -113,6 +113,27 @@ body {
 }
 .add-pulse { animation: add-pulse 900ms ease-out; }
 
+/* Sign-in dialog entrance + backdrop fade */
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dialog-in { animation: dialog-in 320ms cubic-bezier(0.22, 1, 0.36, 1); }
+
+@keyframes backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.backdrop-in { animation: backdrop-in 240ms ease-out; }
+
+/* One-shot sheen across the dialog image when it opens */
+@keyframes shine-open {
+  0% { transform: translateX(0) skewX(-12deg); opacity: 0; }
+  15% { opacity: 1; }
+  70%, 100% { transform: translateX(420%) skewX(-12deg); opacity: 0; }
+}
+.shine-open { animation: shine-open 900ms ease-out 250ms; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }

@@ -87,7 +87,7 @@ Pages are prerendered and need no runtime backend; the `/api` route handlers (qu
 
 A parallel server path (`POST /api/quote`) records submissions through the security floor — rate limiting (Upstash, sliding window), strict origin check against CSRF, a 16 KB body cap with schema validation (zod), and a best-effort `security_events` audit insert into Supabase. It returns `202` with a reference id; persistence/CTAs for it arrive in a later iteration.
 
-The nav offers an **owner sign-in** (desktop action cluster + mobile menu) with the same security floor applied to three routes: `POST /api/auth/login` (same-origin check, per-IP and per-email rate limits, password + TOTP, Redis-backed session cookie), `GET /api/auth/me` (session read; fast 401 when no cookie), and `POST /api/auth/signout` (revoke + clear). Success flips the nav to an "Owner" chip with a sign-out action. Admin dashboard, quote persistence and live database wiring are the next phase.
+The nav offers an **owner sign-in** (desktop action cluster + mobile menu) with the same security floor applied across four routes in a standard two-step authenticator flow. `POST /api/auth/login` (same-origin check, per-IP and per-email rate limits, email + password verified via bcrypt) issues a one-shot, ip-bound pending login (TTL 120s). `POST /api/auth/login/verify` (per-IP rate limit, Redis `getdel` consume, TOTP check) completes login with a Redis-backed session cookie. `GET /api/auth/me` reads the session (fast 401 when no cookie), and `POST /api/auth/signout` revokes + clears it. The dialog auto-advances from credentials to the "Enter your code" screen. Success flips the nav to an "Owner" chip with a sign-out action. Sign-in is owner-only — visitors stay guests and add-to-quote stays frictionless. Admin dashboard, quote persistence and live database wiring are the next phase.
 
 ## Project structure
 
@@ -97,7 +97,7 @@ src/
   components/       UI components and sections
   lib/              site data, quote state, validation, formatting
   server/           backend security modules (env, auth, csrf, rate-limit,
-                    session, totp, validate, audit) with unit tests
+                    session, totp, pending-login, validate, audit) with unit tests
 public/             static assets: favicon, OG image, manifest
 ```
 

@@ -40,16 +40,20 @@ Four owner-directed touches, staying inside the site's "subtle / refined" motion
 
 - **Nav (desktop):** "Sign in" button (icon + label) in the right action cluster in `header.tsx`. When signed in it becomes an "Owner" chip with a Sign out action.
 - **Nav (mobile):** — a "Sign in" (or "Owner · Sign out") row pinned at the top of the `mobile-menu.tsx` panel, above Primary links.
-- **Dialog** (`components/sign-in-dialog.tsx`): email, password, 6-digit TOTP; inline generic error (`Invalid email, password, or code.`); busy submit state; Escape + backdrop close; focus move into the dialog on open (pattern copied from `mobile-menu.tsx`).
-- **Session hook** (`lib/use-session.ts`): on mount calls `GET /api/auth/me`; exposes `{ status: "loading" | "signed-out" | "signed-in", email, refresh(), signOut() }`. Header and mobile menu share it.
+- **Dialog** (`components/sign-in-dialog.tsx`), **two screens** — the standard authenticator-app flow:
+  1. Email + password ("Continue"). On success the dialog auto-advances to the code screen ("pops up the code prompt").
+  2. 6-digit authenticator code ("Verify & sign in") with a Back button. Codes are read from the owner's authenticator app — nothing is sent.
+  Inline generic errors, busy submit states, Escape + backdrop close, focus moves into the dialog on open (pattern copied from `mobile-menu.tsx`).
+- **Session hook** (`lib/use-session.ts`): on mount calls `GET /api/auth/me`; exposes `{ status: "loading" | "signed-out" | "signed-in", email, beginLogin(email,password), verifyCode(pendingId,code), signOut() }`. Header and mobile menu share it.
 
 ### Backend (thin routes over tested modules)
 
-- `POST /api/auth/login` — `verifySameOrigin` → rate limits (`rl:login:ip` 20/15min, `rl:login:email` 5/15min) → `loginWithPassword` → `createSession` (Redis) → set httpOnly `SameSite=Lax` session cookie → `204`. Errors via `withErrorHandling` (structured, no leak).
-- `GET /api/auth/me` — read session cookie → `readSession` → `200 { email, role }` or `401`.
+- `POST /api/auth/login` — **step 1.** `verifySameOrigin` → rate limits (`rl:login:ip` 20/15min, `rl:login:email` 5/15min) → verify email+password (bcrypt always runs; identical generic error) → issue a one-shot, ip-bound, Redis-backed pending login (TTL 120s) → `200 { step: "code", pendingId }`.
+- `POST /api/auth/login/verify` — **step 2.** `verifySameOrigin` → `rl:login:totp` (5/5min) → consume pending (`getdel`, one-shot, ip-bound) → TOTP check → `createSession` (Redis) → httpOnly `SameSite=Lax` session cookie → `204`. Errors via `withErrorHandling` (structured, no leak).
+- `GET /api/auth/me` — read session cookie → `readSession` → `200 { email, role }` or `401` (fast 401 when no cookie, without touching Redis).
 - `POST /api/auth/signout` — `verifySameOrigin` → `revokeSession` → clear cookie → `204`.
-- No new design: all auth/validation primitives already shipped and unit-tested in `src/server/*`.
-- **Operational caveat:** end-to-end login requires real `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` in `.env.local` (sessions live in Redis). Until then the degrade path keeps rate limiting permissive; module behavior stays covered by the 70 green unit tests.
+- No new design: all auth/validation primitives shipped and unit-tested in `src/server/*` (two-phase auth now covered by `pending-login.test.ts` and the reworked `auth.test.ts`).
+- **Operational caveat:** end-to-end login requires real `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` in `.env.local` (sessions **and** pending logins live in Redis). Until then the degrade path keeps rate limiting permissive; module behavior stays covered by the green unit tests.
 
 ## Files
 
@@ -57,9 +61,11 @@ Four owner-directed touches, staying inside the site's "subtle / refined" motion
 - `src/components/product-card.tsx` — shine span, hover polish, add feedback
 - `src/components/header.tsx` — Sign in / Owner chip (desktop)
 - `src/components/mobile-menu.tsx` — Sign in / Owner row
-- `src/components/sign-in-dialog.tsx` — new login dialog
-- `src/lib/use-session.ts` — new session hook
-- `src/app/api/auth/login/route.ts`, `src/app/api/auth/me/route.ts`, `src/app/api/auth/signout/route.ts` — new auth routes
+- `src/components/sign-in-dialog.tsx` — new two-screen (credentials → code) login dialog
+- `src/lib/use-session.ts` — new session hook (two-phase sign-in)
+- `src/app/api/auth/login/route.ts`, `src/app/api/auth/login/verify/route.ts`, `src/app/api/auth/me/route.ts`, `src/app/api/auth/signout/route.ts` — auth routes
+- `src/server/pending-login.ts` — new one-shot, ip-bound pending-login store (+ tests)
+- `src/server/auth.ts` — split into `beginOwnerLogin` + `completeOwnerLogin`
 - `.env.example`, `README.md`, `PROJECT-PLAYBOOK.md` — env note + status touch
 
 ## Verification

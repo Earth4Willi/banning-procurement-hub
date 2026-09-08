@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CircleNotch, LockKey, SignOut, X } from "@phosphor-icons/react";
+import { ArrowLeft, CircleNotch, LockKey, SignOut, X } from "@phosphor-icons/react";
+import type { BeginLoginResult } from "@/lib/use-session";
 
 type SessionLike = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
   error?: string;
-  signIn: (input: { email: string; password: string; totpCode: string }) => Promise<boolean>;
+  beginLogin: (input: { email: string; password: string }) => Promise<BeginLoginResult>;
+  verifyCode: (pendingId: string, totpCode: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 };
 
@@ -20,15 +22,27 @@ type Props = {
 
 export function SignInDialog({ open, onClose, session }: Props) {
   const [mounted, setMounted] = useState(false);
+  const [step, setStep] = useState<"credentials" | "code">("credentials");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [totpCode, setTotpCode] = useState("");
+  const [pendingId, setPendingId] = useState("");
   const [busy, setBusy] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    setStep("credentials");
+    setEmail("");
+    setPassword("");
+    setTotpCode("");
+    setPendingId("");
+    setBusy(false);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -41,24 +55,41 @@ export function SignInDialog({ open, onClose, session }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    const first = dialogRef.current?.querySelector<HTMLElement>("input");
-    first?.focus();
     document.body.style.overflow = "hidden";
+    const timer = window.setTimeout(() => {
+      dialogRef.current?.querySelector<HTMLElement>("input")?.focus();
+    }, 50);
     return () => {
       document.body.style.overflow = "";
+      window.clearTimeout(timer);
     };
-  }, [open]);
+  }, [open, step]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleCredentials(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (busy || session.status !== "signed-out") return;
+    if (busy) return;
     setBusy(true);
-    const ok = await session.signIn({ email, password, totpCode });
+    const result = await session.beginLogin({ email, password });
+    setBusy(false);
+    if (result.ok && result.pendingId) {
+      setPendingId(result.pendingId);
+      setTotpCode("");
+      setStep("code");
+    }
+  }
+
+  async function handleCode(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (busy || !pendingId) return;
+    setBusy(true);
+    const ok = await session.verifyCode(pendingId, totpCode);
     setBusy(false);
     if (ok) {
       setEmail("");
       setPassword("");
       setTotpCode("");
+      setPendingId("");
+      setStep("credentials");
       onClose();
     }
   }
@@ -77,8 +108,14 @@ export function SignInDialog({ open, onClose, session }: Props) {
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="font-display text-lg font-semibold text-ink">Owner sign in</h2>
-            <p className="mt-0.5 text-xs text-ink-muted">Two-factor access for the site owner.</p>
+            <h2 className="font-display text-lg font-semibold text-ink">
+              {step === "code" ? "Enter your code" : "Owner sign in"}
+            </h2>
+            <p className="mt-0.5 text-xs text-ink-muted">
+              {step === "code"
+                ? "Open your authenticator app for the 6-digit code."
+                : "Two-factor access for the site owner."}
+            </p>
           </div>
           <button
             type="button"
@@ -107,8 +144,56 @@ export function SignInDialog({ open, onClose, session }: Props) {
               Sign out
             </button>
           </div>
+        ) : step === "code" ? (
+          <form onSubmit={handleCode} className="mt-5 flex flex-col gap-3">
+            <label className="flex flex-col gap-1 text-xs font-semibold text-ink">
+              Authenticator code
+              <input
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                required
+                autoComplete="one-time-code"
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
+                className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 font-mono text-base tracking-[0.3em] text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent"
+                placeholder="000000"
+              />
+            </label>
+
+            {session.error && (
+              <p role="alert" className="text-xs font-medium text-red-600">
+                {session.error}
+              </p>
+            )}
+
+            <div className="mt-1 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setStep("credentials")}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt"
+              >
+                <ArrowLeft size={15} aria-hidden="true" />
+                Back
+              </button>
+              <button
+                type="submit"
+                disabled={busy}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 py-2.5 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {busy ? (
+                  <>
+                    <CircleNotch size={16} className="animate-spin" />
+                    Verifying…
+                  </>
+                ) : (
+                  "Verify & sign in"
+                )}
+              </button>
+            </div>
+          </form>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-3">
+          <form onSubmit={handleCredentials} className="mt-5 flex flex-col gap-3">
             <label className="flex flex-col gap-1 text-xs font-semibold text-ink">
               Email
               <input
@@ -133,20 +218,6 @@ export function SignInDialog({ open, onClose, session }: Props) {
                 placeholder="••••••••"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs font-semibold text-ink">
-              Authenticator code
-              <input
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                required
-                autoComplete="one-time-code"
-                value={totpCode}
-                onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ""))}
-                className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 font-mono text-sm font-normal tracking-[0.3em] text-ink outline-none transition-colors placeholder:text-ink-muted/60 focus:border-accent"
-                placeholder="000000"
-              />
-            </label>
 
             {session.error && (
               <p role="alert" className="text-xs font-medium text-red-600">
@@ -162,15 +233,18 @@ export function SignInDialog({ open, onClose, session }: Props) {
               {busy ? (
                 <>
                   <CircleNotch size={16} className="animate-spin" />
-                  Signing in…
+                  Checking…
                 </>
               ) : (
                 <>
                   <LockKey weight="duotone" size={15} />
-                  Sign in
+                  Continue
                 </>
               )}
             </button>
+            <p className="text-center text-[11px] text-ink-muted">
+              A 6-digit code from your authenticator app is the next step.
+            </p>
           </form>
         )}
       </div>

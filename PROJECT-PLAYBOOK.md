@@ -100,7 +100,7 @@
 - [x] Owner session model: opaque ids, absolute + idle TTLs, rotation, httpOnly/SameSite=Lax cookies (tested)
 - [x] Dependabot (weekly npm + actions) and CI gate: typecheck, tests, build, `npm audit --omit=dev`
 - [ ] Apply Supabase migration: `security_events` table + RLS policies (PENDING: no live Supabase project yet)
-- [x] Wire the owner login route + UI (`/api/auth/login|me|signout`, use-session hook, nav sign-in dialog; e2e needs real `UPSTASH_REDIS_*` keys)
+- [x] Wire the owner login route + UI (`/api/auth/login` + `/verify` two-step, `/api/auth/me`, `/api/auth/signout`, use-session hook, nav sign-in dialog; e2e needs real `UPSTASH_REDIS_*` keys)
 - [ ] Verified live deployment: confirm headers and rate-limit degradation on the real domains (PENDING)
 
 ## 4. Pre-Launch QA Checklist

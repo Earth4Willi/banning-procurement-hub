@@ -59,10 +59,16 @@ export const contactSubmitSchema = z
   })
   .strict();
 
-export const loginSchema = z
+export const loginCredentialsSchema = z
   .object({
     email: emailSchema,
     password: z.string().min(1).max(200),
+  })
+  .strict();
+
+export const verifyLoginSchema = z
+  .object({
+    pendingId: z.string().trim().min(1).max(128),
     totpCode: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code."),
   })
   .strict();

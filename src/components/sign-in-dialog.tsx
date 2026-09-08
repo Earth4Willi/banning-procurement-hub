@@ -98,7 +98,14 @@ export function SignInDialog({ open, onClose, session }: Props) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div className="absolute inset-0 overflow-hidden bg-surface" aria-hidden="true">
+        <div
+          className="absolute inset-0 scale-110 bg-cover bg-center blur-xl"
+          style={{ backgroundImage: "url(/login-bg.jpg)" }}
+        />
+        <div className="absolute inset-0 bg-black/55" />
+      </div>
+      <div className="absolute inset-0" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
         role="dialog"

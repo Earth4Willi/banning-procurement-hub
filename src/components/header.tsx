@@ -1,11 +1,14 @@
 "use client";
 
-import { Phone, Quotes } from "@phosphor-icons/react";
+import { useState } from "react";
+import { Phone, Quotes, SignIn, SignOut, UserCircle } from "@phosphor-icons/react";
 import { categories, siteConfig, stats } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 import { formatItemCount } from "@/lib/format";
+import { useSession } from "@/lib/use-session";
 import { BrandLogo } from "./brand-logo";
 import { MobileMenu } from "./mobile-menu";
+import { SignInDialog } from "./sign-in-dialog";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
@@ -23,6 +26,9 @@ const TICKER = [
 
 export function Header() {
   const { count } = useQuote();
+  const session = useSession();
+  const [signInOpen, setSignInOpen] = useState(false);
+  const openSignIn = () => setSignInOpen(true);
 
   return (
     <>
@@ -53,7 +59,11 @@ export function Header() {
 
           <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle compact />
-            <MobileMenu />
+            <MobileMenu
+              signedIn={session.status === "signed-in"}
+              onOpenSignIn={openSignIn}
+              onSignOut={() => void session.signOut()}
+            />
           </div>
         </div>
       </header>
@@ -91,6 +101,36 @@ export function Header() {
               <Phone weight="duotone" size={14} />
               {siteConfig.phoneDisplay}
             </a>
+            {session.status === "signed-in" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSignInOpen(true)}
+                  className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
+                >
+                  <UserCircle weight="duotone" size={14} aria-hidden="true" />
+                  Owner
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void session.signOut()}
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className="hidden h-9 w-9 items-center justify-center rounded-[10px] text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink sm:inline-flex"
+                >
+                  <SignOut weight="duotone" size={16} aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSignInOpen(true)}
+                className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
+              >
+                <SignIn weight="duotone" size={14} aria-hidden="true" />
+                Sign in
+              </button>
+            )}
             <a
               href="/quote"
               className="hidden items-center gap-1.5 rounded-[10px] bg-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light sm:inline-flex"
@@ -103,6 +143,8 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      <SignInDialog open={signInOpen} onClose={() => setSignInOpen(false)} session={session} />
     </>
   );
 }

@@ -50,7 +50,7 @@ export function ProductCard({ product }: Props) {
   };
 
   return (
-    <div className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-surface-alt transition-transform duration-300 hover:-translate-y-1 sm:rounded-[16px]">
+    <div className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-surface-alt transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_12px_40px_rgba(13,61,26,0.12)] sm:rounded-[16px]">
       <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
         <img
           src={product.image}
@@ -60,6 +60,7 @@ export function ProductCard({ product }: Props) {
           loading="lazy"
           className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${outOfStock ? "opacity-70 grayscale" : ""}`}
         />
+        <span aria-hidden="true" className="shine-sweep" />
         <span
           className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
         >
@@ -74,17 +75,18 @@ export function ProductCard({ product }: Props) {
         <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-ink-muted sm:line-clamp-2">
           {product.description}
         </p>
-        {product.pricingMode === "fixed" ? (
-          <p className="mt-auto flex items-baseline gap-2 pt-3 font-mono text-[15px] font-bold tracking-tight text-accent-dark">
-            {product.unitPrice}
-            <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
-          </p>
-        ) : (
-          <p className="mt-auto flex items-baseline gap-2 pt-3 font-mono text-[13px] font-semibold tracking-tight text-ink-muted">
-            Price on request
-            <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
-          </p>
-        )}
+        <p
+          className={`mt-auto flex items-baseline gap-2 pt-3 font-mono tracking-tight transition-[transform,color] duration-200 group-hover:scale-[1.03] group-hover:text-accent-dark ${
+            product.pricingMode === "fixed" ? "text-[15px] font-bold" : "text-[13px] font-semibold text-ink-muted"
+          }`}
+        >
+          {product.pricingMode === "fixed" ? (
+            product.unitPrice
+          ) : (
+            <span className="text-[13px] font-semibold tracking-tight">Price on request</span>
+          )}
+          <span className="text-[11px] font-normal tracking-normal text-ink-muted">{product.unit}</span>
+        </p>
         <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ink-muted">
           <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
           {siteConfig.responsePromise}
@@ -94,16 +96,18 @@ export function ProductCard({ product }: Props) {
           onClick={handleAdd}
           disabled={outOfStock}
           aria-disabled={outOfStock}
-          className={`mt-3 inline-flex items-center justify-center gap-2 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold transition-colors active:scale-[0.98] sm:px-3 sm:py-2 ${
+          className={`mt-3 inline-flex items-center justify-center gap-2 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold transition-[background-color,color,transform] duration-200 active:scale-[0.98] sm:px-3 sm:py-2 ${
             outOfStock
               ? "cursor-not-allowed bg-ink/10 text-ink-muted"
-              : "bg-accent text-[#0d3d1a] hover:bg-accent-light"
+              : added
+                ? "add-pulse bg-accent text-[#0d3d1a]"
+                : "bg-accent text-[#0d3d1a] hover:bg-accent-light"
           }`}
         >
           <span aria-live="polite">
             {added ? (
               <>
-                <Check weight="duotone" size={14} className="inline" aria-hidden="true" />
+                <Check weight="duotone" size={14} className="pop-in inline" aria-hidden="true" />
                 Added
               </>
             ) : outOfStock ? (

@@ -43,7 +43,7 @@
 
 ### 1.3 Architecture & Environment
 - [x] Break the project into tasks (implementation plan)
-- [ ] Set up the database and authentication (PENDING: server layer + auth modules shipped; live Supabase project, migration, and login route pending)
+- [ ] Set up the database and authentication (PENDING: server layer + auth modules + login routes/UI shipped; live Supabase project and migration pending)
 - [x] Move all keys to environment variables (all runtime config via `src/server/env.ts` + `.env.example`; passwords never stored, only bcrypt hashes)
 - [ ] Split staging and production environments (PENDING: single host until domain confirmed)
 
@@ -69,7 +69,7 @@
 - [x] Form success states (WhatsApp handoff confirmation + status message)
 - [x] Form error states (validation with aria-invalid + role="alert")
 - [x] Confirmation modals (native confirm dialog when clearing the quote)
-- [ ] Password visibility toggle (PENDING: owner login form pending; password + TOTP modules shipped)
+- [ ] Password visibility toggle (PENDING: not built; owner login form shipped without a reveal toggle)
 - [ ] UTM tracking (PENDING: none by design, no analytics)
 - [x] Copy-to-clipboard buttons (quote builder copies the WhatsApp message)
 
@@ -100,7 +100,7 @@
 - [x] Owner session model: opaque ids, absolute + idle TTLs, rotation, httpOnly/SameSite=Lax cookies (tested)
 - [x] Dependabot (weekly npm + actions) and CI gate: typecheck, tests, build, `npm audit --omit=dev`
 - [ ] Apply Supabase migration: `security_events` table + RLS policies (PENDING: no live Supabase project yet)
-- [ ] Wire the owner login route (password + TOTP modules done; endpoint + UI pending)
+- [x] Wire the owner login route + UI (`/api/auth/login|me|signout`, use-session hook, nav sign-in dialog; e2e needs real `UPSTASH_REDIS_*` keys)
 - [ ] Verified live deployment: confirm headers and rate-limit degradation on the real domains (PENDING)
 
 ## 4. Pre-Launch QA Checklist

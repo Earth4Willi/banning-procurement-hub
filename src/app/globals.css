@@ -75,7 +75,46 @@ body {
   animation: ticker 22s linear infinite;
 }
 
+/* Hover shine ray across product-card images (piazam-style glint) */
+.shine-sweep {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -35%;
+  width: 35%;
+  transform: skewX(-12deg);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.4), transparent);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+.group:hover .shine-sweep,
+.group:focus-within .shine-sweep {
+  animation: shine-sweep 700ms ease-out;
+}
+@keyframes shine-sweep {
+  0% { transform: translateX(0) skewX(-12deg); opacity: 1; }
+  75%, 100% { transform: translateX(420%) skewX(-12deg); opacity: 0; }
+}
+
+/* Add-to-quote feedback: check icon pop + one-shot accent pulse */
+@keyframes pop-in {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pop-in { animation: pop-in 280ms ease-out; }
+
+@keyframes add-pulse {
+  0% { background-color: var(--accent); }
+  30% { background-color: var(--primary-500); }
+  70% { background-color: var(--accent-light); }
+  100% { background-color: var(--accent); }
+}
+.add-pulse { animation: add-pulse 900ms ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .shine-sweep { animation: none !important; opacity: 0; }
 }

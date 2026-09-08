@@ -44,7 +44,7 @@ npm test                     # vitest (70 tests)
 npm run typecheck            # tsc --noEmit
 ```
 
-Server-mode routes (`/api/quote`, future owner auth) read their configuration from environment variables at runtime. They are validated by `src/server/env.ts` on first use and fail fast if a required variable is missing. Generate secrets with:
+Server-mode routes (`/api/quote`, owner sign-in at `/api/auth/*`) read their configuration from environment variables at runtime. They are validated by `src/server/env.ts` on first use and fail fast if a required variable is missing. Generate secrets with:
 
 ```bash
 # AUTH_SECRET (>= 32 chars) and OWNER_TOTP_SECRET (20 random bytes, base32):
@@ -65,7 +65,7 @@ Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catal
 
 The `/products` page groups the catalogue by category with a sticky jump-nav; each category also has a dedicated page (`/products/<category-id>`).
 
-Pages are prerendered and need no runtime backend; the `/api` route handlers (quote submission, later owner authentication) do need the environment variables above. Rate limiting degrades gracefully: if Redis is unreachable, requests flow through rather than the site erroring.
+Pages are prerendered and need no runtime backend; the `/api` route handlers (quote submission, owner authentication) do need the environment variables above. Rate limiting degrades gracefully: if Redis is unreachable, requests flow through rather than the site erroring. Same for the owner sign-in: it cannot complete end-to-end until real `UPSTASH_REDIS_*` keys exist (sessions live in Redis), though the auth modules themselves are unit-tested.
 
 ### Images
 
@@ -86,6 +86,8 @@ Pages are prerendered and need no runtime backend; the `/api` route handlers (qu
 - Submitting builds a WhatsApp message and opens `wa.me/233558850667?text=...`; the buyer sends it manually.
 
 A parallel server path (`POST /api/quote`) records submissions through the security floor — rate limiting (Upstash, sliding window), strict origin check against CSRF, a 16 KB body cap with schema validation (zod), and a best-effort `security_events` audit insert into Supabase. It returns `202` with a reference id; persistence/CTAs for it arrive in a later iteration.
+
+The nav offers an **owner sign-in** (desktop action cluster + mobile menu) with the same security floor applied to three routes: `POST /api/auth/login` (same-origin check, per-IP and per-email rate limits, password + TOTP, Redis-backed session cookie), `GET /api/auth/me` (session read; fast 401 when no cookie), and `POST /api/auth/signout` (revoke + clear). Success flips the nav to an "Owner" chip with a sign-out action. Admin dashboard, quote persistence and live database wiring are the next phase.
 
 ## Project structure
 

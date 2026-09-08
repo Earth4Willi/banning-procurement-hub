@@ -1,18 +1,9 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
-import { getEnv } from "./env";
 import { HttpError } from "./http-error";
+import { createRedis } from "./redis";
 
 let warned = false;
-
-function createRedis(): Redis {
-  const env = getEnv();
-  return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
-  });
-}
 
 function toIso(reset: number): string {
   const ms = reset < 1e12 ? reset * 1000 : reset;

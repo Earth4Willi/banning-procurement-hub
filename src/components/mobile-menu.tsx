@@ -12,6 +12,8 @@ import {
   Phone,
   Info,
   WhatsappLogo,
+  SignIn,
+  SignOut,
 } from "@phosphor-icons/react";
 import { siteConfig } from "@/lib/site";
 
@@ -27,7 +29,13 @@ const SECONDARY = [
   { label: "About", href: "/about", icon: Info },
 ];
 
-export function MobileMenu() {
+type Props = {
+  signedIn?: boolean;
+  onOpenSignIn?: () => void;
+  onSignOut?: () => void;
+};
+
+export function MobileMenu({ signedIn = false, onOpenSignIn, onSignOut }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -92,6 +100,25 @@ export function MobileMenu() {
               style={{ maxHeight: "min(60vh, 500px)" }}
             >
               <nav className="flex flex-col gap-1 p-3" aria-label="Mobile nav">
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    if (signedIn) onSignOut?.();
+                    else onOpenSignIn?.();
+                  }}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                >
+                  {signedIn ? (
+                    <SignOut weight="duotone" size={20} className="shrink-0 text-accent-dark" />
+                  ) : (
+                    <SignIn weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                  )}
+                  {signedIn ? "Owner · Sign out" : "Sign in"}
+                </button>
+
+                <div className="my-1 border-t border-primary/10" />
+
                 {PRIMARY.map((item) => (
                   <a
                     key={item.href + item.label}

@@ -55,7 +55,7 @@ export function Header() {
           </div>
         </div>
         <div className="flex min-h-16 items-center justify-between px-4 sm:px-6">
-          <BrandLogo imgClassName="h-9 w-auto" />
+          <BrandLogo imgClassName="h-11 w-auto" />
 
           <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle compact />

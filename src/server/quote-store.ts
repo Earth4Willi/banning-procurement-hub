@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./audit";
+import type { QuoteSource } from "@/lib/catalog-types";
 
 export type QuoteStatus = "new" | "reviewed" | "won" | "lost";
 
@@ -14,6 +15,7 @@ export type QuoteRecord = {
   note: string | null;
   items: QuoteItem[];
   status: QuoteStatus;
+  source: QuoteSource;
   created_at: string;
 };
 
@@ -25,6 +27,7 @@ export type QuoteInput = {
   area: string;
   note?: string;
   items: QuoteItem[];
+  source?: QuoteSource;
 };
 
 export type EventRecord = {
@@ -55,6 +58,7 @@ export async function persistQuote(input: QuoteInput): Promise<boolean> {
       area: input.area,
       note: input.note ?? null,
       items: input.items,
+      source: input.source ?? "web",
     });
     if (error) {
       console.warn(`[quote-store] insert failed: ${error.message}`);
@@ -67,19 +71,36 @@ export async function persistQuote(input: QuoteInput): Promise<boolean> {
   }
 }
 
-export async function listQuotes(limit = 100): Promise<QuoteRecord[]> {
+export async function listQuotes(limit = 100, phone?: string): Promise<QuoteRecord[]> {
   const client = getSupabaseClient();
   if (!client) return [];
-  const { data, error } = await client
-    .from("quotes")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(limit);
+  let query = client.from("quotes").select("*");
+  if (phone) query = query.eq("phone", phone);
+  const { data, error } = await query.order("created_at", { ascending: false }).limit(limit);
   if (error) {
     console.warn(`[quote-store] list failed: ${error.message}`);
     return [];
   }
   return (data ?? []) as unknown as QuoteRecord[];
+}
+
+export async function updateQuote(
+  id: string,
+  patch: Partial<Pick<QuoteRecord, "name" | "phone" | "email" | "area" | "note" | "items" | "status" | "source">>,
+): Promise<boolean> {
+  try {
+    const client = getSupabaseClient();
+    if (!client) return false;
+    const { error } = await client.from("quotes").update(patch).eq("id", id);
+    if (error) {
+      console.warn(`[quote-store] update failed: ${error.message}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.warn("[quote-store] unavailable:", error);
+    return false;
+  }
 }
 
 export async function setQuoteStatus(id: string, status: QuoteStatus): Promise<boolean> {

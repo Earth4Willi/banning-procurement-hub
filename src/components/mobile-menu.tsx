@@ -9,7 +9,6 @@ import {
   House,
   Package,
   TreeStructure,
-  FileText,
   Phone,
   Info,
   SignIn,
@@ -19,7 +18,6 @@ import {
 const PRIMARY = [
   { label: "Home", href: "/", icon: House },
   { label: "Materials", href: "/products", icon: Package },
-  { label: "Request a Quote", href: "/quote", icon: FileText },
   { label: "Categories", href: "/products", icon: TreeStructure },
 ];
 

@@ -63,7 +63,16 @@ export function Header() {
         <div className="flex min-h-16 items-center justify-between px-4 sm:px-6">
           <BrandLogo imgClassName="h-12 w-auto" />
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1.5">
+            <a
+              href="/quote"
+              className="inline-flex items-center gap-1.5 rounded-[10px] bg-accent px-3 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light"
+            >
+              <Quotes weight="duotone" size={14} aria-hidden="true" />
+              <span className="hidden min-[380px]:inline">
+                {count > 0 ? formatItemCount(count) : "Request a Quote"}
+              </span>
+            </a>
             <ThemeToggle compact />
             <MobileMenu
               signedIn={session.status === "signed-in"}

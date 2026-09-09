@@ -24,6 +24,16 @@ describe("whatsapp", () => {
     expect(url.includes(" ")).toBe(false);
   });
 
+  it("includes the reference line right after the greeting when provided", () => {
+    const msg = buildQuoteMessage(contact, lines, "a1b2c3d4e5");
+    expect(msg.split("\n")[1]).toBe("Ref: a1b2c3d4e5");
+    expect(msg.indexOf("a1b2c3d4e5")).toBeLessThan(msg.indexOf("Name:"));
+  });
+
+  it("omits the reference line when absent", () => {
+    expect(buildQuoteMessage(contact, lines, undefined).includes("Ref:")).toBe(false);
+  });
+
   it("omits note when absent", () => {
     const msg = buildQuoteMessage({ ...contact, note: "" }, lines);
     expect(msg.includes("Note")).toBe(false);

@@ -1,9 +1,12 @@
 export type QuoteContact = { name: string; phone: string; email?: string; area: string; note?: string };
 export type QuoteLine = { name: string; unit: string; unitPrice: string; qty: number };
 
-export function buildQuoteMessage(contact: QuoteContact, lines: QuoteLine[]): string {
+export function buildQuoteMessage(contact: QuoteContact, lines: QuoteLine[], reference?: string): string {
   const parts: string[] = [];
   parts.push("Hello Banning Procurement Hub, I would like a quote or order.");
+  if (reference) {
+    parts.push(`Ref: ${reference}`);
+  }
   parts.push(`Name: ${contact.name}`);
   parts.push(`Phone: ${contact.phone}`);
   if (contact.email && contact.email.trim()) {

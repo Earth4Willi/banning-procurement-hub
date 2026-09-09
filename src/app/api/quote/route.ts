@@ -30,6 +30,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   const reference = randomBytes(6).toString("hex");
   const persisted = await persistQuote({
     reference,
+    source: "web",
     ...body,
   });
   await audit("quote_submitted", {

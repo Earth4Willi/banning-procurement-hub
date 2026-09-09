@@ -16,6 +16,7 @@ const envSchema = z.object({
   OWNER_EMAIL: z.string().email(),
   OWNER_PASSWORD_HASH: z.string().min(60),
   OWNER_TOTP_SECRET: z.string().min(16),
+  DEV_OWNER_BYPASS: z.enum(["1", "true"]).optional(),
 });
 
 export type ParsedEnv = z.infer<typeof envSchema>;

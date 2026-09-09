@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
   adminQuoteStatusSchema,
+  catalogItemIdSchema,
+  categorySchema,
   contactSubmitSchema,
+  customerUpdateSchema,
+  manualQuoteSchema,
+  messageUpdateSchema,
   parseBody,
+  productSchema,
   quoteSubmitSchema,
+  quoteUpdateSchema,
 } from "./validate";
 
 describe("parseBody", () => {
@@ -90,6 +97,44 @@ describe("contactSubmitSchema", () => {
     });
     expect(parsed.phone).toBe("+233241234567");
   });
+
+  it("coerces an empty message to undefined and allows omission", () => {
+    const empty = contactSubmitSchema.parse({
+      name: "Kojo",
+      phone: "0241234567",
+      area: "Tema",
+      message: "",
+    });
+    expect(empty.message).toBeUndefined();
+    const omitted = contactSubmitSchema.parse({ name: "Kojo", phone: "0241234567", area: "Tema" });
+    expect(omitted.message).toBeUndefined();
+  });
+});
+
+describe("manualQuoteSchema", () => {
+  it("passes a valid manual quote and normalizes phone", () => {
+    const parsed = manualQuoteSchema.parse({
+      name: "Ama",
+      phone: "0558850667",
+      area: "Accra",
+      note: "WhatsApp chat follow-up",
+    });
+    expect(parsed.phone).toBe("+233558850667");
+  });
+
+  it("accepts optional email and note", () => {
+    expect(manualQuoteSchema.parse({ name: "Ama", phone: "0241234567", area: "Accra" })).toEqual({
+      name: "Ama",
+      phone: "+233241234567",
+      area: "Accra",
+    });
+  });
+
+  it("rejects missing required fields", () => {
+    expect(() => manualQuoteSchema.parse({ name: "", phone: "0241234567", area: "Accra" })).toThrow();
+    expect(() => manualQuoteSchema.parse({ name: "Ama", phone: "abc", area: "Accra" })).toThrow();
+    expect(() => manualQuoteSchema.parse({ name: "Ama", phone: "0241234567", area: "" })).toThrow();
+  });
 });
 
 describe("adminQuoteStatusSchema", () => {
@@ -106,5 +151,68 @@ describe("adminQuoteStatusSchema", () => {
 
   it("rejects extra keys (strict)", () => {
     expect(() => adminQuoteStatusSchema.parse({ id: "abc", status: "new", extra: true })).toThrow();
+  });
+});
+
+describe("catalog schemas", () => {
+  it("productSchema passes a full product and defaults omission", () => {
+    const parsed = productSchema.parse({
+      slug: "Ghacem-Supacem",
+      categoryId: "cement",
+      name: "Ghacem Supacem",
+      unitPrice: "GH¢ 98.00",
+    });
+    expect(parsed.slug).toBe("ghacem-supacem");
+    expect(parsed.stock).toBe("in");
+    expect(parsed.pricingMode).toBe("quote");
+    expect(parsed.brand).toBeUndefined();
+  });
+
+  it("productSchema rejects extra keys and bad slugs", () => {
+    expect(() => productSchema.parse({ slug: "x", categoryId: "c", name: "n", oops: 1 })).toThrow();
+    expect(() => productSchema.parse({ slug: "Bad Slug!", categoryId: "c", name: "n" })).toThrow();
+  });
+
+  it("categorySchema passes and defaults", () => {
+    const parsed = categorySchema.parse({ id: "roofing", name: "Roofing" });
+    expect(parsed.sortOrder).toBe(0);
+    expect(parsed.visible).toBe(true);
+    expect(parsed.description).toBeUndefined();
+  });
+
+  it("catalogItemIdSchema accepts ids and rejects emtpy", () => {
+    expect(catalogItemIdSchema.parse({ id: "cement" })).toEqual({ id: "cement" });
+    expect(() => catalogItemIdSchema.parse({ id: "" })).toThrow();
+  });
+});
+
+describe("messageUpdateSchema", () => {
+  it("allows partial updates", () => {
+    expect(messageUpdateSchema.parse({ id: "m1", read: true })).toEqual({ id: "m1", read: true });
+    expect(messageUpdateSchema.parse({ id: "m1", message: "" }).message).toBeUndefined();
+  });
+
+  it("rejects unknown fields", () => {
+    expect(() => messageUpdateSchema.parse({ id: "m1", read: true, junk: 1 })).toThrow();
+  });
+});
+
+describe("customerUpdateSchema", () => {
+  it("normalizes phone and coerces empty notes", () => {
+    const parsed = customerUpdateSchema.parse({ phone: "0558850667", notes: "", status: "repeat" });
+    expect(parsed.phone).toBe("+233558850667");
+    expect(parsed.notes).toBeUndefined();
+    expect(parsed.status).toBe("repeat");
+  });
+
+  it("rejects bad statuses", () => {
+    expect(() => customerUpdateSchema.parse({ phone: "0558850667", status: "vip" })).toThrow();
+  });
+});
+
+describe("quoteUpdateSchema", () => {
+  it("accepts optional fields and rejects extras", () => {
+    expect(quoteUpdateSchema.parse({ id: "q", status: "won" })).toEqual({ id: "q", status: "won" });
+    expect(() => quoteUpdateSchema.parse({ id: "q", items: [] })).toThrow();
   });
 });

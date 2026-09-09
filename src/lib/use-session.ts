@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 type SessionState = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
+  avatarUrl?: string;
   error?: string;
 };
 
@@ -24,8 +25,8 @@ export function useSession() {
     try {
       const res = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (res.ok) {
-        const data = (await res.json()) as { email?: string };
-        setState({ status: "signed-in", email: data.email });
+        const data = (await res.json()) as { email?: string; avatarUrl?: string };
+        setState({ status: "signed-in", email: data.email, avatarUrl: data.avatarUrl });
       } else {
         setState({ status: "signed-out" });
       }
@@ -80,8 +81,13 @@ export function useSession() {
       }
       const me = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (me.ok) {
-        const data = (await me.json()) as { email?: string };
-        setState((s) => ({ ...s, status: "signed-in", email: s.email ?? data.email }));
+        const data = (await me.json()) as { email?: string; avatarUrl?: string };
+        setState((s) => ({
+          ...s,
+          status: "signed-in",
+          email: s.email ?? data.email,
+          avatarUrl: s.avatarUrl ?? data.avatarUrl,
+        }));
       } else {
         setState((s) => ({ ...s, status: "signed-in" }));
       }

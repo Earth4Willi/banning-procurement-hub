@@ -49,13 +49,28 @@ export const quoteSubmitSchema = z
   })
   .strict();
 
+export const manualQuoteSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    phone: phoneSchema,
+    email: emailSchema.optional().or(z.literal("").transform(() => undefined)),
+    area: z.string().trim().min(1).max(120),
+    note: z.string().trim().max(2000).optional().or(z.literal("").transform(() => undefined)),
+  })
+  .strict();
+
 export const contactSubmitSchema = z
   .object({
     name: z.string().trim().min(1).max(80),
     phone: phoneSchema,
     email: emailSchema.optional().or(z.literal("").transform(() => undefined)),
     area: z.string().trim().min(1).max(120),
-    message: z.string().trim().min(1).max(2000),
+    message: z
+      .string()
+      .trim()
+      .max(2000)
+      .optional()
+      .transform((value) => (value === undefined || value === "" ? undefined : value)),
   })
   .strict();
 
@@ -77,6 +92,93 @@ export const verifyLoginSchema = z
   .object({
     pendingId: z.string().trim().min(1).max(128),
     totpCode: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code."),
+  })
+  .strict();
+
+const optionalText = (max: number) =>
+  z.string().trim().max(max).optional().transform((value) => (value === undefined || value === "" ? undefined : value));
+
+export const categorySchema = z
+  .object({
+    id: z.string().trim().min(1).max(60),
+    name: z.string().trim().min(1).max(80),
+    short: optionalText(40),
+    description: optionalText(2000),
+    imageUrl: optionalText(500),
+    sortOrder: z.number().int().min(0).max(9999).default(0),
+    visible: z.boolean().default(true),
+  })
+  .strict();
+
+export const productSchema = z
+  .object({
+    slug: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a lowercase slug like 'ghacem-supacem-42-5'.")
+      .min(1)
+      .max(120),
+    categoryId: z.string().trim().min(1).max(60),
+    name: z.string().trim().min(1).max(120),
+    brand: optionalText(80),
+    unit: optionalText(30),
+    unitPrice: optionalText(30),
+    imageUrl: optionalText(500),
+    description: optionalText(2000),
+    stock: z.enum(["in", "limited", "out"]).default("in"),
+    pricingMode: z.enum(["fixed", "quote"]).default("quote"),
+    kind: z.enum(["unit", "measure"]).default("unit"),
+    visible: z.boolean().default(true),
+    sortOrder: z.number().int().min(0).max(9999).default(0),
+  })
+  .strict();
+
+export const catalogItemIdSchema = z
+  .object({
+    id: z.string().trim().min(1).max(120),
+  })
+  .strict();
+
+export const messageUpdateSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    read: z.boolean().optional(),
+    name: z.string().trim().min(1).max(80).optional(),
+    phone: phoneSchema.optional(),
+    email: emailSchema.optional().or(z.literal("").transform(() => undefined)),
+    area: z.string().trim().min(1).max(120).optional(),
+    message: optionalText(2000),
+  })
+  .strict();
+
+export const customerUpdateSchema = z
+  .object({
+    phone: phoneSchema,
+    notes: optionalText(2000),
+    status: z.enum(["new", "active", "repeat", "inactive"]).optional(),
+  })
+  .strict();
+
+export const quoteUpdateSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    name: z.string().trim().min(1).max(80).optional(),
+    phone: phoneSchema.optional(),
+    email: emailSchema.optional().or(z.literal("").transform(() => undefined)),
+    area: z.string().trim().min(1).max(120).optional(),
+    note: optionalText(2000),
+    status: z.enum(["new", "reviewed", "won", "lost"]).optional(),
+    items: z
+      .array(
+        z.object({
+          slug: z.string().trim().min(1).max(80),
+          label: z.string().trim().min(1).max(120),
+          quantity: z.number().int().min(1).max(9999),
+        }),
+      )
+      .max(200)
+      .optional(),
   })
   .strict();
 

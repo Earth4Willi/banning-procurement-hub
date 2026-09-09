@@ -59,7 +59,22 @@ export function ContactForm() {
     const message = buildQuoteMessage(contact, lines);
     const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
     let emailed = false;
-    if (web3FormsConfigured()) {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: contact.name,
+        phone: contact.phone,
+        email: contact.email,
+        area: contact.area,
+        message: contact.note ?? "",
+      }),
+    }).catch(() => null);
+    if (response?.ok) {
+      const payload = (await response.json().catch(() => null)) as { emailed?: boolean } | null;
+      emailed = Boolean(payload?.emailed);
+    }
+    if (!emailed && web3FormsConfigured()) {
       const result = await submitViaWeb3Forms({
         name: contact.name,
         phone: contact.phone,

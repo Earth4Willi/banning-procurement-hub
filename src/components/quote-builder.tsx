@@ -114,7 +114,34 @@ export function QuoteBuilder() {
       else if (nextErrors.area && areaRef.current) areaRef.current.focus();
       return;
     }
-    const message = buildQuoteMessage(contact, baseLines);
+    setStatus("Saving your request…");
+
+    let reference: string | null = null;
+    try {
+      const res = await fetch("/api/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email ?? "",
+          area: contact.area,
+          note: contact.note ?? "",
+          items: lines.map((line) => ({
+            slug: line.product.slug,
+            label: line.product.name,
+            quantity: line.qty,
+          })),
+        }),
+      });
+      const data = (await res.json().catch(() => null)) as { reference?: string } | null;
+      reference = res.ok && data?.reference ? data.reference : null;
+    } catch {
+      // Persistence is best-effort — the WhatsApp handoff still proceeds.
+    }
+
+    const message = buildQuoteMessage(contact, baseLines, reference ?? undefined);
     const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
     let emailed = false;
     if (web3FormsConfigured()) {
@@ -129,9 +156,11 @@ export function QuoteBuilder() {
       emailed = result.ok;
     }
     setStatus(
-      emailed
-        ? "Request sent to us by email and opened in WhatsApp."
-        : "Opening WhatsApp with your request…"
+      reference
+        ? `Your request is saved (Ref: ${reference}). Opening WhatsApp with your message…`
+        : emailed
+          ? "Request sent to us by email and opened in WhatsApp."
+          : "Opening WhatsApp with your request…"
     );
     window.open(url, "_blank", "noopener");
   };

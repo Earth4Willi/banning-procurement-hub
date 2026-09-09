@@ -45,3 +45,20 @@ export async function audit(event: string, metadata: Record<string, unknown> = {
     }
   }
 }
+
+export type SecurityEventRecord = { id: number; event: string; metadata: Record<string, unknown>; created_at: string };
+
+export async function listSecurityEvents(limit = 50): Promise<SecurityEventRecord[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("security_events")
+    .select("id, event, metadata, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.warn(`[audit] list failed: ${error.message}`);
+    return [];
+  }
+  return (data ?? []) as unknown as SecurityEventRecord[];
+}

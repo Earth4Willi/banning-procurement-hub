@@ -5,9 +5,9 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   APP_ORIGIN: z.string().url().default("http://localhost:3000"),
-  SUPABASE_URL: z.string().url(),
-  SUPABASE_ANON_KEY: z.string().min(1),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
   AUTH_SECRET: z.string().min(32),
@@ -31,7 +31,15 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): ParsedEnv {
       .join("; ");
     throw new Error(`Invalid environment configuration: ${issues}`);
   }
-  cached = result.data;
+  const env = result.data;
+  const missingSupabase = !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.SUPABASE_SERVICE_ROLE_KEY;
+  if (missingSupabase && env.NODE_ENV === "production") {
+    console.warn(
+      "[env] SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are not set. " +
+        "The admin dashboard and security events log will be unavailable until the database is configured.",
+    );
+  }
+  cached = env;
   return cached;
 }
 

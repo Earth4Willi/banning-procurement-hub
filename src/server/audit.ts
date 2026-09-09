@@ -6,9 +6,16 @@ let warned = false;
 
 const DEFAULT_HEADERS = { "x-client-info": "bph-backend" };
 
-export function getSupabaseClient(): SupabaseClient {
+export function getSupabaseClient(): SupabaseClient | null {
   if (supabase) return supabase;
   const env = getEnv();
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (!warned) {
+      warned = true;
+      console.warn("[audit] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set; audit log skipped.");
+    }
+    return null;
+  }
   supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
     global: { headers: DEFAULT_HEADERS },
@@ -22,7 +29,9 @@ export function getSupabaseClient(): SupabaseClient {
  */
 export async function audit(event: string, metadata: Record<string, unknown> = {}): Promise<void> {
   try {
-    const { error } = await getSupabaseClient()
+    const client = getSupabaseClient();
+    if (!client) return;
+    const { error } = await client
       .from("security_events")
       .insert({ event, metadata, created_at: new Date().toISOString() });
     if (error && !warned) {

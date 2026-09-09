@@ -47,9 +47,9 @@ npm run typecheck            # tsc --noEmit
 Server-mode routes (`/api/quote`, owner sign-in at `/api/auth/*`) read their configuration from environment variables at runtime. They are validated by `src/server/env.ts` on first use and fail fast if a required variable is missing. Generate secrets with:
 
 ```bash
-# AUTH_SECRET (>= 32 chars) and OWNER_TOTP_SECRET (20 random bytes, base32):
+# AUTH_SECRET (>= 32 chars) and OWNER_TOTP_SECRET (RFC 6238 base32):
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-node -e "console.log(require('crypto').randomBytes(20).toString('base64').replace(/=+$/,'').toUpperCase())"
+npx tsx -e "import('./src/server/totp.ts').then(m=>console.log(m.generateSecret()))"
 
 # OWNER_PASSWORD_HASH (bcrypt, cost 12 in production):
 npx tsx -e "import('bcryptjs').then(b=>console.log(b.hashSync(process.argv[1],12)))" 'your-password-here'

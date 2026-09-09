@@ -38,12 +38,18 @@ export class RedisPendingLoginStore implements PendingLoginStore {
 
   async consume(id: string): Promise<PendingLogin | null> {
     const raw = await this.redis.getdel(this.key(id));
-    if (typeof raw !== "string" || raw.length === 0) return null;
-    try {
-      const record = JSON.parse(raw) as PendingLogin;
-      return typeof record.email === "string" && typeof record.ip === "string" ? record : null;
-    } catch {
-      return null;
+    if (raw === null || raw === undefined) return null;
+    let record: PendingLogin;
+    if (typeof raw === "string") {
+      if (raw.length === 0) return null;
+      try {
+        record = JSON.parse(raw) as PendingLogin;
+      } catch {
+        return null;
+      }
+    } else {
+      record = raw as PendingLogin;
     }
+    return typeof record.email === "string" && typeof record.ip === "string" ? record : null;
   }
 }

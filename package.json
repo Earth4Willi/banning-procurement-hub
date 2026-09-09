@@ -8,7 +8,10 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "redis:ping": "node --env-file=.env.local scripts/redis-ping.mjs",
+    "upstash:provision": "node scripts/upstash-provision.mjs",
+    "upstash:info": "node scripts/upstash-provision.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

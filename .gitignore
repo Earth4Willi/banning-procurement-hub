@@ -37,3 +37,6 @@ next-env.d.ts
 mobile-*.html
 mobile-*.png
 nav-*.png
+
+# upstash provisioning state (holds REST token)
+.upstash-provision.json

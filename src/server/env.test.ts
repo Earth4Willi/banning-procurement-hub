@@ -14,10 +14,13 @@ const FULL = {
 };
 
 describe("getEnv", () => {
-  it("rejects when a required variable is missing", () => {
+  it("allows missing Supabase vars (degraded until the DB phase)", () => {
     resetEnvCache();
-    const { SUPABASE_URL: _drop, ...rest } = FULL;
-    expect(() => getEnv({ ...rest, NODE_ENV: "test" })).toThrow(/SUPABASE_URL/);
+    const { SUPABASE_URL: _dropUrl, SUPABASE_ANON_KEY: _dropAnon, SUPABASE_SERVICE_ROLE_KEY: _dropSvc, ...rest } = FULL;
+    const env = getEnv({ ...rest, NODE_ENV: "test" });
+    expect(env.SUPABASE_URL).toBeUndefined();
+    expect(env.UPSTASH_REDIS_REST_URL).toBe(FULL.UPSTASH_REDIS_REST_URL);
+    resetEnvCache();
   });
 
   it("rejects a short AUTH_SECRET", () => {

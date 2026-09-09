@@ -46,6 +46,19 @@ describe("RedisPendingLoginStore", () => {
     await expect(store.consume("missing")).resolves.toBeNull();
   });
 
+  it("consumes a payload the store auto-deserialized to an object", async () => {
+    const { redis, map } = fakeRedis();
+    redis.getdel = vi.fn(async (key: string) => {
+      const value = map.get(key);
+      map.delete(key);
+      return typeof value === "string" ? JSON.parse(value) : value;
+    });
+    const store = new RedisPendingLoginStore(redis);
+    await store.create("id-auto", record, 120);
+    await expect(store.consume("id-auto")).resolves.toEqual(record);
+    expect(map.size).toBe(0);
+  });
+
   it("treats malformed payloads as consumed-and-invalid", async () => {
     const { redis, map } = fakeRedis();
     const store = new RedisPendingLoginStore(redis);

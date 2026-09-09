@@ -2,10 +2,18 @@ import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 
 const storyParagraphs = [
-  "Banning Procurement Hub supplies building materials to contractors and self-builders across Ghana. We started with a simple observation: too many projects slow down because materials arrive late, short-counted or not as ordered.",
-  "Today we focus on the basics done well. Every bag of cement is counted, every bundle of rods checked against the order before it leaves. Materials are sourced from authorised dealers and verified distributors, so what arrives at your gate matches what you approved.",
-  "We share a quote on WhatsApp within 24 hours, we deliver to all 16 regions and every load is insured until it is signed for at your site.",
-  "From a single project in Accra to sites across the country, our job stays the same: source verified materials, count every delivery and help contractors build without the guesswork.",
+  "Banning Procurement Hub is a professional procurement and sourcing service with practical experience working within the construction and real estate industry, supporting projects with the sourcing, evaluation, negotiation, and supply of essential building and finishing materials.",
+  "We help homeowners, contractors, real estate developers, architects, and businesses procure quality materials at competitive prices while reducing the risks of overpricing, poor-quality products, and unreliable suppliers.",
+  "Our experience in construction and real estate procurement gives us a strong understanding of project requirements, material specifications, supplier coordination, cost control, delivery timelines, and quality expectations across different stages of development.",
+  "We specialize in sourcing cement, iron rods, tiles, sanitary ware, doors and locks, plumbing and electrical materials, roofing products, kitchen appliances, bathroom fittings, and other construction materials directly from trusted manufacturers, importers, authorized distributors, and wholesalers.",
+  "Our services include supplier sourcing, quotation comparison, price negotiation, sample coordination, bulk purchasing, quality verification, and delivery coordination.",
+  "At Banning Procurement Hub, our goal is to help clients build smarter, buy better, control costs, and procure with confidence.",
+];
+
+const storyFacts = [
+  "Accra, Ghana",
+  "Construction & Real Estate Procurement",
+  "Supplier Sourcing | Price Negotiation | Bulk Supply | Delivery Coordination",
 ];
 
 export function AboutStory() {
@@ -21,13 +29,25 @@ export function AboutStory() {
               {storyParagraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>{paragraph}</p>
               ))}
+              <p className="font-display text-xl font-semibold tracking-tight text-accent-dark">
+                Build Smarter. Buy Better. Save More.
+              </p>
             </div>
+            <ul className="mt-8 space-y-3">
+              {storyFacts.map((fact) => (
+                <li key={fact} className="flex items-center gap-3 text-sm font-medium text-ink">
+                  <img src="/logo.svg" alt="" aria-hidden="true" height={16} decoding="async" className="logo-light-mode h-4 w-auto shrink-0" />
+                  <img src="/logo-dark.svg" alt="" aria-hidden="true" height={16} decoding="async" className="logo-dark-mode h-4 w-auto shrink-0" />
+                  {fact}
+                </li>
+              ))}
+            </ul>
           </Reveal>
           <Reveal delay={0.15}>
             <div className="overflow-hidden rounded-2xl shadow-[0_24px_48px_-16px_rgba(13,61,26,0.4)]">
               <img
-                src="https://picsum.photos/seed/bph-about/800/600"
-                alt="Packed building materials ready for delivery across Ghana"
+                src="/about-story.jpg"
+                alt="Construction formwork and materials ready for a building project"
                 width={800}
                 height={600}
                 className="h-auto w-full object-cover"

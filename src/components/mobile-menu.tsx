@@ -11,11 +11,9 @@ import {
   FileText,
   Phone,
   Info,
-  WhatsappLogo,
   SignIn,
   SignOut,
 } from "@phosphor-icons/react";
-import { siteConfig } from "@/lib/site";
 
 const PRIMARY = [
   { label: "Home", href: "/", icon: House },
@@ -144,27 +142,6 @@ export function MobileMenu({ signedIn = false, onOpenSignIn, onSignOut }: Props)
                     {item.label}
                   </a>
                 ))}
-
-                <div className="my-1 border-t border-primary/10" />
-
-                <a
-                  href={`tel:${siteConfig.phoneIntl}`}
-                  onClick={close}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
-                >
-                  <Phone weight="duotone" size={20} className="shrink-0 text-ink-muted" />
-                  Call {siteConfig.phoneDisplay}
-                </a>
-
-                <a
-                  href={`https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent("Hello Banning Procurement Hub, I would like a quote.")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
-                >
-                  <WhatsappLogo weight="duotone" size={20} className="shrink-0 text-[#25D366]" />
-                  WhatsApp Us
-                </a>
               </nav>
             </div>
           </>,

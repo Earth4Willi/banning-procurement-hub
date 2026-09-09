@@ -170,6 +170,8 @@ export async function getQuote(id: string): Promise<QuoteRecord | null> {
 }
 
 export async function ensureQuoteToken(id: string): Promise<string | null> {
+  const existing = await getQuote(id);
+  if (existing?.doc_token) return existing.doc_token;
   const docToken = randomBytes(16).toString("hex");
   const ok = await updateQuote(id, { docToken });
   return ok ? docToken : null;

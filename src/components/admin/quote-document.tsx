@@ -1,4 +1,4 @@
-import { money, computeTotals, formatValidUntil } from "@/lib/quote-document";
+import { money, formatValidUntil } from "@/lib/quote-document";
 import { siteConfig } from "@/lib/site";
 
 export type QuoteDocumentItem = {
@@ -38,9 +38,6 @@ function statusLabel(status: string): string {
 
 export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
   const hasPricing = quote.items.some((item) => typeof item.unitPrice === "number");
-  const totals = hasPricing
-    ? computeTotals(quote.items.map((i) => ({ quantity: i.quantity, unitPrice: i.unitPrice })))
-    : null;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -103,20 +100,20 @@ export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
         </tbody>
       </table>
 
-      {totals && (
+      {quote.total_amount != null && (
         <div className="mt-4 flex justify-end">
           <div className="w-64 text-sm">
             <div className="flex justify-between py-1 text-slate-600">
               <span>Subtotal</span>
-              <span>{money(totals.subtotal)}</span>
+              <span>{money(Math.round((quote.total_amount / 1.15) * 100) / 100)}</span>
             </div>
             <div className="flex justify-between py-1 text-slate-600">
               <span>VAT (15%)</span>
-              <span>{money(totals.vat)}</span>
+              <span>{money(Math.round((quote.total_amount - quote.total_amount / 1.15) * 100) / 100)}</span>
             </div>
             <div className="flex justify-between border-t border-slate-200 py-1 font-semibold text-slate-900">
               <span>Total</span>
-              <span>{money(totals.total)}</span>
+              <span>{money(quote.total_amount)}</span>
             </div>
           </div>
         </div>

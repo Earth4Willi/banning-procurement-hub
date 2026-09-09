@@ -68,7 +68,6 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     email: body.email,
     area: body.area,
     note: body.note,
-    status: body.status,
     items: body.items,
   };
 

@@ -66,6 +66,13 @@ export const loginCredentialsSchema = z
   })
   .strict();
 
+export const adminQuoteStatusSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    status: z.enum(["new", "reviewed", "won", "lost"]),
+  })
+  .strict();
+
 export const verifyLoginSchema = z
   .object({
     pendingId: z.string().trim().min(1).max(128),

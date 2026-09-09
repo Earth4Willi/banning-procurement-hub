@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  Gauge,
   List,
   X,
   House,
@@ -114,6 +115,17 @@ export function MobileMenu({ signedIn = false, onOpenSignIn, onSignOut }: Props)
                   )}
                   {signedIn ? "Owner · Sign out" : "Sign in"}
                 </button>
+
+                {signedIn && (
+                  <a
+                    href="/admin"
+                    onClick={close}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                  >
+                    <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                    Admin dashboard
+                  </a>
+                )}
 
                 <div className="my-1 border-t border-primary/10" />
 

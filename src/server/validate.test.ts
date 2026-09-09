@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { contactSubmitSchema, parseBody, quoteSubmitSchema } from "./validate";
+import {
+  adminQuoteStatusSchema,
+  contactSubmitSchema,
+  parseBody,
+  quoteSubmitSchema,
+} from "./validate";
 
 describe("parseBody", () => {
   it("rejects malformed JSON", async () => {
@@ -84,5 +89,22 @@ describe("contactSubmitSchema", () => {
       message: "Quote for 100 bags of cement",
     });
     expect(parsed.phone).toBe("+233241234567");
+  });
+});
+
+describe("adminQuoteStatusSchema", () => {
+  it("accepts a valid id and status", () => {
+    expect(adminQuoteStatusSchema.parse({ id: "abc-123", status: "new" })).toEqual({
+      id: "abc-123",
+      status: "new",
+    });
+  });
+
+  it("rejects an unknown status", () => {
+    expect(() => adminQuoteStatusSchema.parse({ id: "abc", status: "archived" })).toThrow();
+  });
+
+  it("rejects extra keys (strict)", () => {
+    expect(() => adminQuoteStatusSchema.parse({ id: "abc", status: "new", extra: true })).toThrow();
   });
 });

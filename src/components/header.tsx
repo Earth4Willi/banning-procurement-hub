@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Quotes, SignIn, SignOut, UserCircle } from "@phosphor-icons/react";
+import { Gauge, Quotes, SignIn, SignOut } from "@phosphor-icons/react";
 import { siteConfig, stats } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 import { formatItemCount } from "@/lib/format";
@@ -103,14 +103,13 @@ export function Header() {
           <div className="ml-auto flex shrink-0 items-center gap-2 pr-4 sm:pr-6">
             {session.status === "signed-in" ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setSignInOpen(true)}
+                <a
+                  href="/admin"
                   className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
                 >
-                  <UserCircle weight="duotone" size={14} aria-hidden="true" />
-                  Owner
-                </button>
+                  <Gauge weight="duotone" size={14} aria-hidden="true" />
+                  Admin
+                </a>
                 <button
                   type="button"
                   onClick={() => void session.signOut()}

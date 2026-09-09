@@ -40,3 +40,4 @@ nav-*.png
 
 # upstash provisioning state (holds REST token)
 .upstash-provision.json
+image/

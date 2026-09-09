@@ -12,7 +12,8 @@
     "redis:ping": "node --env-file=.env.local scripts/redis-ping.mjs",
     "upstash:provision": "node scripts/upstash-provision.mjs",
     "upstash:provision:account": "node scripts/upstash-account-provision.mjs",
-    "upstash:info": "node scripts/upstash-provision.mjs"
+    "upstash:info": "node scripts/upstash-provision.mjs",
+    "supabase:migrate": "node --env-file=.env.local scripts/supabase-migrate.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -34,6 +35,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "jsdom": "^30.0.1",
+    "pg": "^8.23.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",

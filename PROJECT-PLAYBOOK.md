@@ -43,7 +43,7 @@
 
 ### 1.3 Architecture & Environment
 - [x] Break the project into tasks (implementation plan)
-- [ ] Set up the database and authentication (PENDING: server layer + auth modules + login routes/UI shipped; live Supabase project and migration pending)
+- [x] Set up the database and authentication (live Supabase project `qubjxqbkipvokrbpxbqt`; `quotes` + `security_events` migrated; owner login + TOTP + session live)
 - [x] Move all keys to environment variables (all runtime config via `src/server/env.ts` + `.env.example`; passwords never stored, only bcrypt hashes)
 - [ ] Split staging and production environments (PENDING: single host until domain confirmed)
 
@@ -99,8 +99,10 @@
 - [x] No plaintext passwords: bcrypt (cost 12) + RFC 6238 TOTP modules, tested
 - [x] Owner session model: opaque ids, absolute + idle TTLs, rotation, httpOnly/SameSite=Lax cookies (tested)
 - [x] Dependabot (weekly npm + actions) and CI gate: typecheck, tests, build, `npm audit --omit=dev`
-- [ ] Apply Supabase migration: `security_events` table + RLS policies (PENDING: no live Supabase project yet)
+- [x] Apply Supabase migration: `security_events` + `quotes` tables, RLS enabled, zero anon policies (applied to live project 2026-09-09)
 - [x] Wire the owner login route + UI (`/api/auth/login` + `/verify` two-step, `/api/auth/me`, `/api/auth/signout`, use-session hook, nav sign-in dialog; e2e needs real `UPSTASH_REDIS_*` keys)
+- [x] Owner admin dashboard (`/admin`): quote inbox (new/reviewed/won/lost), CSV export, audit events; owner-gated APIs `/api/admin/quotes`, `/api/admin/events`, `/api/admin/quotes/status`
+- [x] Quote submissions persist to Supabase (`/api/quote` → `public.quotes`, best-effort when configured)
 - [ ] Verified live deployment: confirm headers and rate-limit degradation on the real domains (PENDING)
 
 ## 4. Pre-Launch QA Checklist

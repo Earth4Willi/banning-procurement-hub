@@ -85,9 +85,11 @@ Pages are prerendered and need no runtime backend; the `/api` route handlers (qu
 - The quote page validates name, phone and delivery area client-side.
 - Submitting builds a WhatsApp message and opens `wa.me/233558850667?text=...`; the buyer sends it manually.
 
-A parallel server path (`POST /api/quote`) records submissions through the security floor — rate limiting (Upstash, sliding window), strict origin check against CSRF, a 16 KB body cap with schema validation (zod), and a best-effort `security_events` audit insert into Supabase. It returns `202` with a reference id; persistence/CTAs for it arrive in a later iteration.
+A parallel server path (`POST /api/quote`) records submissions through the security floor — rate limiting (Upstash, sliding window), strict origin check against CSRF, a 16 KB body cap with schema validation (zod), and a best-effort `security_events` audit insert into Supabase. With a live Supabase project configured it also **persists the quote row** to `public.quotes` and returns `202` with a reference id.
 
-The nav offers an **owner sign-in** (desktop action cluster + mobile menu) with the same security floor applied across four routes in a standard two-step authenticator flow. `POST /api/auth/login` (same-origin check, per-IP and per-email rate limits, email + password verified via bcrypt) issues a one-shot, ip-bound pending login (TTL 120s). `POST /api/auth/login/verify` (per-IP rate limit, Redis `getdel` consume, TOTP check) completes login with a Redis-backed session cookie. `GET /api/auth/me` reads the session (fast 401 when no cookie), and `POST /api/auth/signout` revokes + clears it. The dialog auto-advances from credentials to the "Enter your code" screen. Success flips the nav to an "Owner" chip with a sign-out action. Sign-in is owner-only — visitors stay guests and add-to-quote stays frictionless. Admin dashboard, quote persistence and live database wiring are the next phase.
+The nav offers an **owner sign-in** (desktop action cluster + mobile menu) with the same security floor applied across four routes in a standard two-step authenticator flow. `POST /api/auth/login` (same-origin check, per-IP and per-email rate limits, email + password verified via bcrypt) issues a one-shot, ip-bound pending login (TTL 120s). `POST /api/auth/login/verify` (per-IP rate limit, Redis `getdel` consume, TOTP check) completes login with a Redis-backed session cookie. `GET /api/auth/me` reads the session (fast 401 when no cookie), and `POST /api/auth/signout` revokes + clears it. The dialog auto-advances from credentials to the "Enter your code" screen. Success flips the nav to an "Admin" link with a sign-out action.
+
+Signing in grants access to the **owner admin dashboard** at `/admin`: a live quote inbox (name, phone, area, item list, source + status), status workflow (`new → reviewed → won/lost`), CSV export, and the tamper-proof `security_events` audit trail. It's owner-only — visitors stay guests and add-to-quote stays frictionless.
 
 ## Project structure
 
@@ -97,7 +99,10 @@ src/
   components/       UI components and sections
   lib/              site data, quote state, validation, formatting
   server/           backend security modules (env, auth, csrf, rate-limit,
-                    session, totp, pending-login, validate, audit) with unit tests
+                    session, totp, pending-login, validate, audit,
+                    require-owner, quote-store) with unit tests
+  components/admin-dashboard.tsx   owner quote inbox / audit UI
+  app/admin/         owner dashboard page
 public/             static assets: favicon, OG image, manifest
 ```
 
@@ -105,7 +110,15 @@ public/             static assets: favicon, OG image, manifest
 
 Production runs on **Vercel** → https://banning-procurement-hub.vercel.app, connected to the GitHub repo so pushes to `main` auto-deploy. GitHub Actions runs the test suite (typecheck, unit tests, build) on every push. Build produces a server-ready bundle; the `/api` route handlers are server-only (`src/server/*` is not imported by any client component).
 
-Set the environment variables from `.env.example` (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `AUTH_SECRET`, `OWNER_*`, …) either in Vercel for the production deploy or in `.env.local` for `npm run dev`. `NEXT_PUBLIC_WEB3FORMS_KEY` is required for quote/contact form submissions (it is inlined at build time, so it must be set before `vercel build`).
+Set the environment variables from `.env.example` (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `AUTH_SECRET`, `OWNER_*`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, …) either in Vercel for the production deploy or in `.env.local` for `npm run dev`. `NEXT_PUBLIC_WEB3FORMS_KEY` is required for quote/contact form submissions (it is inlined at build time, so it must be set before `vercel build`).
+
+Live quotes + audit events persist to Supabase. First-time setup after creating the project:
+
+```bash
+# write SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY into .env.local
+$env:SUPABASE_DB_PASSWORD = "<postgres password>"   # throwaway; not stored
+npm run supabase:migrate                            # applies migrations/*
+```
 
 ### Upstash Redis provisioning
 

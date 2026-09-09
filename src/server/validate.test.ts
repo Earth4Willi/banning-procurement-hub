@@ -9,6 +9,7 @@ import {
   messageUpdateSchema,
   parseBody,
   productSchema,
+  quotePaidSchema,
   quoteSubmitSchema,
   quoteUpdateSchema,
 } from "./validate";
@@ -213,6 +214,63 @@ describe("customerUpdateSchema", () => {
 describe("quoteUpdateSchema", () => {
   it("accepts optional fields and rejects extras", () => {
     expect(quoteUpdateSchema.parse({ id: "q", status: "won" })).toEqual({ id: "q", status: "won" });
-    expect(() => quoteUpdateSchema.parse({ id: "q", items: [] })).toThrow();
+    expect(quoteUpdateSchema.parse({ id: "q", items: [] })).toEqual({ id: "q", items: [] });
+  });
+
+  it("accepts unitPrice in items", () => {
+    const parsed = quoteUpdateSchema.parse({
+      id: "q",
+      items: [{ slug: "cement", label: "Cement", quantity: 5, unitPrice: 120 }],
+    });
+    expect(parsed.items![0].unitPrice).toBe(120);
+  });
+
+  it("rejects negative unitPrice", () => {
+    expect(() =>
+      quoteUpdateSchema.parse({
+        id: "q",
+        items: [{ slug: "cement", label: "Cement", quantity: 5, unitPrice: -1 }],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects extra keys in items", () => {
+    expect(() =>
+      quoteUpdateSchema.parse({
+        id: "q",
+        items: [{ slug: "cement", label: "Cement", quantity: 5, badKey: true }],
+      }),
+    ).toThrow();
+  });
+
+  it("accepts validUntil as a date string", () => {
+    expect(quoteUpdateSchema.parse({ id: "q", validUntil: "2026-12-31" })).toEqual({
+      id: "q",
+      validUntil: "2026-12-31",
+    });
+  });
+
+  it("coerces empty validUntil to undefined", () => {
+    expect(quoteUpdateSchema.parse({ id: "q", validUntil: "" }).validUntil).toBeUndefined();
+  });
+});
+
+describe("quotePaidSchema", () => {
+  it("accepts a valid id and method", () => {
+    expect(quotePaidSchema.parse({ id: "q1", method: "cash" })).toEqual({ id: "q1", method: "cash" });
+  });
+
+  it("accepts all payment methods", () => {
+    expect(quotePaidSchema.parse({ id: "q1", method: "mobile_money" })).toEqual({ id: "q1", method: "mobile_money" });
+    expect(quotePaidSchema.parse({ id: "q1", method: "bank" })).toEqual({ id: "q1", method: "bank" });
+    expect(quotePaidSchema.parse({ id: "q1", method: "other" })).toEqual({ id: "q1", method: "other" });
+  });
+
+  it("rejects unknown payment methods", () => {
+    expect(() => quotePaidSchema.parse({ id: "q1", method: "crypto" })).toThrow();
+  });
+
+  it("rejects extra keys", () => {
+    expect(() => quotePaidSchema.parse({ id: "q1", method: "cash", extra: true })).toThrow();
   });
 });

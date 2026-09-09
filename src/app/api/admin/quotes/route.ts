@@ -2,10 +2,11 @@ import { randomBytes } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
-import { isQuoteStoreAvailable, listQuotes, persistQuote, updateQuote } from "@/server/quote-store";
+import { ensureQuoteToken, isQuoteStoreAvailable, listQuotes, persistQuote, updateQuote } from "@/server/quote-store";
 import { requireOwner } from "@/server/require-owner";
 import { manualQuoteSchema, parseBody, quoteUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
+import { computeTotals } from "@/lib/quote-document";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +62,7 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
       { status: 400 },
     );
   }
-  const ok = await updateQuote(body.id, {
+  const patch: Parameters<typeof updateQuote>[1] = {
     name: body.name,
     phone: body.phone,
     email: body.email,
@@ -69,7 +70,21 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     note: body.note,
     status: body.status,
     items: body.items,
-  });
+  };
+
+  let priced = false;
+  if (body.items?.some((item) => typeof item.unitPrice === "number")) {
+    const totals = computeTotals(body.items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice })));
+    const token = await ensureQuoteToken(body.id);
+    patch.totalAmount = totals.total;
+    patch.validUntil = body.validUntil;
+    if (token) patch.docToken = token;
+    priced = true;
+  } else if (body.validUntil !== undefined) {
+    patch.validUntil = body.validUntil;
+  }
+
+  const ok = await updateQuote(body.id, patch);
   if (!ok) {
     return NextResponse.json(
       { error: { code: "storage_unavailable", message: "Live database not configured — quote not updated." } },
@@ -77,5 +92,6 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("quote_edited", { id: body.id, reference: body.name });
+  if (priced) await audit("quote_priced", { id: body.id });
   return NextResponse.json({ ok: true });
 });

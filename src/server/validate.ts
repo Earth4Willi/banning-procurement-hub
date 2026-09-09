@@ -175,10 +175,12 @@ export const quoteUpdateSchema = z
           slug: z.string().trim().min(1).max(80),
           label: z.string().trim().min(1).max(120),
           quantity: z.number().int().min(1).max(9999),
-        }),
+          unitPrice: z.number().min(0).max(9_999_999).optional(),
+        }).strict(),
       )
       .max(200)
       .optional(),
+    validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("").transform(() => undefined)),
   })
   .strict();
 
@@ -214,3 +216,10 @@ export async function parseBody<T extends z.ZodType>(
   }
   return parsed.data;
 }
+
+export const quotePaidSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    method: z.enum(["cash", "mobile_money", "bank", "other"]),
+  })
+  .strict();

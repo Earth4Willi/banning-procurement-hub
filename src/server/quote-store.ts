@@ -1,9 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { getSupabaseClient } from "./audit";
 import type { QuoteSource } from "@/lib/catalog-types";
 
 export type QuoteStatus = "new" | "reviewed" | "won" | "lost";
 
-export type QuoteItem = { slug: string; label: string; quantity: number };
+export type QuoteItem = { slug: string; label: string; quantity: number; unitPrice?: number };
 
 export type QuoteRecord = {
   id: string;
@@ -17,6 +18,12 @@ export type QuoteRecord = {
   status: QuoteStatus;
   source: QuoteSource;
   created_at: string;
+  valid_until: string | null;
+  accepted_at: string | null;
+  paid_at: string | null;
+  payment_method: string | null;
+  total_amount: number | null;
+  doc_token: string | null;
 };
 
 export type QuoteInput = {
@@ -81,17 +88,30 @@ export async function listQuotes(limit = 100, phone?: string): Promise<QuoteReco
     console.warn(`[quote-store] list failed: ${error.message}`);
     return [];
   }
-  return (data ?? []) as unknown as QuoteRecord[];
+  return (data ?? []).map((row) => coerceQuote(row as Record<string, unknown>));
 }
 
 export async function updateQuote(
   id: string,
-  patch: Partial<Pick<QuoteRecord, "name" | "phone" | "email" | "area" | "note" | "items" | "status" | "source">>,
+  patch: Partial<Pick<QuoteRecord, "name" | "phone" | "email" | "area" | "note" | "items" | "status" | "source"> & { validUntil?: string | null; totalAmount?: number | null; docToken?: string | null }>,
 ): Promise<boolean> {
   try {
     const client = getSupabaseClient();
     if (!client) return false;
-    const { error } = await client.from("quotes").update(patch).eq("id", id);
+    const dbPatch: Record<string, unknown> = { ...patch };
+    if ("validUntil" in patch) {
+      dbPatch.valid_until = patch.validUntil;
+      delete dbPatch.validUntil;
+    }
+    if ("totalAmount" in patch) {
+      dbPatch.total_amount = patch.totalAmount;
+      delete dbPatch.totalAmount;
+    }
+    if ("docToken" in patch) {
+      dbPatch.doc_token = patch.docToken;
+      delete dbPatch.docToken;
+    }
+    const { error } = await client.from("quotes").update(dbPatch).eq("id", id);
     if (error) {
       console.warn(`[quote-store] update failed: ${error.message}`);
       return false;
@@ -101,6 +121,13 @@ export async function updateQuote(
     console.warn("[quote-store] unavailable:", error);
     return false;
   }
+}
+
+function coerceQuote(row: Record<string, unknown>): QuoteRecord {
+  return {
+    ...row,
+    total_amount: row.total_amount == null ? null : Number(row.total_amount),
+  } as unknown as QuoteRecord;
 }
 
 export async function setQuoteStatus(id: string, status: QuoteStatus): Promise<boolean> {
@@ -132,4 +159,62 @@ export async function listEvents(limit = 100): Promise<EventRecord[]> {
     return [];
   }
   return (data ?? []) as unknown as EventRecord[];
+}
+
+export async function getQuote(id: string): Promise<QuoteRecord | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.from("quotes").select("*").eq("id", id).maybeSingle();
+  if (error || !data) return null;
+  return coerceQuote(data as Record<string, unknown>);
+}
+
+export async function ensureQuoteToken(id: string): Promise<string | null> {
+  const docToken = randomBytes(16).toString("hex");
+  const ok = await updateQuote(id, { docToken });
+  return ok ? docToken : null;
+}
+
+export async function setQuoteAccepted(id: string): Promise<boolean> {
+  try {
+    const client = getSupabaseClient();
+    if (!client) return false;
+    const { error } = await client
+      .from("quotes")
+      .update({ accepted_at: new Date().toISOString(), status: "won" })
+      .eq("id", id);
+    if (error) {
+      console.warn(`[quote-store] accept failed: ${error.message}`);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function setQuotePaid(id: string, method: string): Promise<boolean> {
+  try {
+    const client = getSupabaseClient();
+    if (!client) return false;
+    const { error } = await client
+      .from("quotes")
+      .update({ paid_at: new Date().toISOString(), payment_method: method })
+      .eq("id", id);
+    if (error) {
+      console.warn(`[quote-store] paid failed: ${error.message}`);
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function findQuoteByToken(token: string): Promise<QuoteRecord | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  const { data, error } = await client.from("quotes").select("*").eq("doc_token", token).maybeSingle();
+  if (error || !data) return null;
+  return coerceQuote(data as Record<string, unknown>);
 }

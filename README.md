@@ -65,7 +65,7 @@ Each product also has a `stock` field: `"in"`, `"limited"` or `"out"`. The catal
 
 The `/products` page groups the catalogue by category with a sticky jump-nav; each category also has a dedicated page (`/products/<category-id>`).
 
-Pages are prerendered and need no runtime backend; the `/api` route handlers (quote submission, owner authentication) do need the environment variables above. Rate limiting degrades gracefully: if Redis is unreachable, requests flow through rather than the site erroring. Same for the owner sign-in: it cannot complete end-to-end until real `UPSTASH_REDIS_*` keys exist (sessions live in Redis), though the auth modules themselves are unit-tested.
+Pages are prerendered and need no runtime backend; the `/api` route handlers (quote submission, owner authentication) do need the environment variables above. Owner sessions and pending logins live in Upstash Redis, and the login flow is verified end-to-end against the live production site (wrong password → 401, TOTP verify → session cookie, sign-out → session revoked). Rate limiting degrades gracefully: if Redis is unreachable, requests flow through rather than the site erroring.
 
 ### Images
 
@@ -103,7 +103,21 @@ public/             static assets: favicon, OG image, manifest
 
 ## Deployment
 
-Build produces a server-ready bundle. Deploy to any Node-capable host (Vercel, Netlify, Railway) and set the environment variables from `.env.example` (`SUPABASE_URL`, `UPSTASH_REDIS_REST_URL`, `AUTH_SECRET`, `OWNER_*`, etc.). The route handlers need the service-role Supabase key, so they must never run in the browser bundle — they are server-only (`src/server/*` is not imported by any client component).
+Production runs on **Vercel** → https://banning-procurement-hub.vercel.app, connected to the GitHub repo so pushes to `main` auto-deploy. GitHub Actions runs the test suite (typecheck, unit tests, build) on every push. Build produces a server-ready bundle; the `/api` route handlers are server-only (`src/server/*` is not imported by any client component).
+
+Set the environment variables from `.env.example` (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `AUTH_SECRET`, `OWNER_*`, …) either in Vercel for the production deploy or in `.env.local` for `npm run dev`. `NEXT_PUBLIC_WEB3FORMS_KEY` is required for quote/contact form submissions (it is inlined at build time, so it must be set before `vercel build`).
+
+### Upstash Redis provisioning
+
+The production DB (`bph-prod`, Upstash account, `eu-west-1` — closest major region to Ghana) is provisioned and rotated with the Developer API:
+
+```bash
+$env:UPSTASH_API_KEY   = "<management api key>"
+$env:UPSTASH_API_EMAIL = "<upstash account email>"
+npm run upstash:provision:account   # creates/reuses bph-prod, writes .env.local, pings + SET/GET verifies
+```
+
+The key and email are read from the environment only — they are never stored or committed. `npm run upstash:provision` (the older `/start-redis` script) creates throwaway 72-hour trial instances for local dev if you ever need one.
 
 The security headers (CSP, HSTS, frame/embedding protections, MIME sniffing) are emitted by `next.config.mjs` `headers()`.
 

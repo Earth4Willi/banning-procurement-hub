@@ -1,11 +1,15 @@
 /** @type {import('next').NextConfig} */
+const isDev = process.env.NODE_ENV !== "production";
+
+// Dev (Turbopack / React): needs eval() for call-stack reconstruction and ws:
+// for HMR. Production stays strict — eval is never allowed.
 const ContentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self' https:",
-  "connect-src 'self' https:",
+  `connect-src 'self' https:${isDev ? " ws:" : ""}`,
   "form-action 'self' https://api.web3forms.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",

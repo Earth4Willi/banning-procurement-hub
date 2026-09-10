@@ -40,7 +40,14 @@ export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
   const hasPricing = quote.items.some((item) => typeof item.unitPrice === "number");
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="relative mx-auto max-w-2xl px-4 py-8">
+      {quote.paid_at && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="-rotate-12 border-4 border-red-600/50 px-10 py-2 font-display text-5xl font-black uppercase tracking-[0.3em] text-red-600/25">
+            Paid
+          </span>
+        </div>
+      )}
       <header className="mb-8 border-b border-slate-200 pb-4">
         <h1 className="text-2xl font-bold text-slate-900">{siteConfig.name}</h1>
         <p className="mt-1 text-sm text-slate-600">{siteConfig.address}</p>
@@ -48,7 +55,9 @@ export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
       </header>
 
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-slate-800">Quotation {quote.reference}</h2>
+        <h2 className="text-lg font-semibold text-slate-800">
+          {quote.paid_at ? "Receipt" : "Quotation"} {quote.reference}
+        </h2>
         <span className="rounded bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
           {statusLabel(quote.status)}
         </span>

@@ -1,3 +1,5 @@
+import { money } from "@/lib/quote-document";
+
 export type Session = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
@@ -9,7 +11,7 @@ export type Session = {
 export const STATUSES = ["new", "reviewed", "won", "lost"] as const;
 export type Status = (typeof STATUSES)[number];
 
-export type QuoteItem = { slug: string; label: string; quantity: number };
+export type QuoteItem = { slug: string; label: string; quantity: number; unitPrice?: number };
 
 export type QuoteRow = {
   id: string;
@@ -23,6 +25,12 @@ export type QuoteRow = {
   status: Status;
   source?: "web" | "whatsapp" | "contact";
   created_at: string;
+  valid_until: string | null;
+  accepted_at: string | null;
+  paid_at: string | null;
+  payment_method: string | null;
+  total_amount: number | null;
+  doc_token: string | null;
 };
 
 export function formatDate(iso: string): string {
@@ -30,7 +38,25 @@ export function formatDate(iso: string): string {
 }
 
 export function formatItems(items: QuoteItem[]): string {
-  return items.map((item) => `${item.label} ×${item.quantity}`).join(" · ");
+  return items
+    .map((item) => {
+      const line = `${item.label} ×${item.quantity}`;
+      return typeof item.unitPrice === "number" ? `${line} @ ${money(item.unitPrice)}` : line;
+    })
+    .join(" · ");
+}
+
+export function ctaToWhatsApp(phone: string, text: string): string {
+  return `https://wa.me/${phone.replace(/^0/, "233").replace(/[^0-9]/g, "")}?text=${encodeURIComponent(text)}`;
+}
+
+export async function copyText(value: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function truncate(value: string, max: number): string {

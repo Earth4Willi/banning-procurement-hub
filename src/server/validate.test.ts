@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  accountProfileSchema,
   adminQuoteStatusSchema,
   catalogItemIdSchema,
   categorySchema,
+  changePasswordSchema,
   contactSubmitSchema,
+  customerLoginSchema,
   customerUpdateSchema,
+  loginCredentialsSchema,
   manualQuoteSchema,
   messageUpdateSchema,
   parseBody,
@@ -12,6 +16,8 @@ import {
   quotePaidSchema,
   quoteSubmitSchema,
   quoteUpdateSchema,
+  registerSchema,
+  settingsUpdateSchema,
 } from "./validate";
 
 describe("parseBody", () => {
@@ -272,5 +278,217 @@ describe("quotePaidSchema", () => {
 
   it("rejects extra keys", () => {
     expect(() => quotePaidSchema.parse({ id: "q1", method: "cash", extra: true })).toThrow();
+  });
+});
+
+describe("registerSchema", () => {
+  it("passes a valid registration and normalizes email and phone", () => {
+    const parsed = registerSchema.parse({
+      name: "Ama",
+      email: " AMA@example.COM ",
+      phone: "0558850667",
+      password: "Hunter2pass",
+    });
+    expect(parsed.email).toBe("ama@example.com");
+    expect(parsed.phone).toBe("+233558850667");
+    expect(parsed.name).toBe("Ama");
+  });
+
+  it("accepts optional area and address", () => {
+    const parsed = registerSchema.parse({
+      name: "Ama",
+      email: "ama@example.com",
+      phone: "0558850667",
+      password: "Hunter2pass",
+      area: "Accra",
+      address: "123 Street",
+    });
+    expect(parsed.area).toBe("Accra");
+    expect(parsed.address).toBe("123 Street");
+    const minimal = registerSchema.parse({
+      name: "Kojo",
+      email: "kojo@example.com",
+      phone: "0241234567",
+      password: "Hunter2pass",
+    });
+    expect(minimal.area).toBeUndefined();
+    expect(minimal.address).toBeUndefined();
+  });
+
+  it("rejects passwords without an uppercase letter", () => {
+    expect(() =>
+      registerSchema.parse({ name: "Ama", email: "ama@example.com", phone: "0558850667", password: "hunter2pass" }),
+    ).toThrow();
+  });
+
+  it("rejects passwords without a digit", () => {
+    expect(() =>
+      registerSchema.parse({ name: "Ama", email: "ama@example.com", phone: "0558850667", password: "Hunterpass" }),
+    ).toThrow();
+  });
+
+  it("rejects passwords shorter than 8 characters", () => {
+    expect(() =>
+      registerSchema.parse({ name: "Ama", email: "ama@example.com", phone: "0558850667", password: "Hp2!" }),
+    ).toThrow();
+  });
+
+  it("rejects an address over 500 characters", () => {
+    expect(() =>
+      registerSchema.parse({
+        name: "Ama",
+        email: "ama@example.com",
+        phone: "0558850667",
+        password: "Hunter2pass",
+        address: "x".repeat(501),
+      }),
+    ).toThrow();
+  });
+});
+
+describe("customerLoginSchema", () => {
+  it("matches the login credentials shape", () => {
+    expect(customerLoginSchema).toBe(loginCredentialsSchema);
+    const parsed = customerLoginSchema.parse({ email: " AMA@example.COM ", password: "secret" });
+    expect(parsed.email).toBe("ama@example.com");
+  });
+
+  it("rejects a missing password", () => {
+    expect(() => customerLoginSchema.parse({ email: "ama@example.com" })).toThrow();
+  });
+});
+
+describe("accountProfileSchema", () => {
+  it("accepts an empty payload with all fields optional", () => {
+    expect(accountProfileSchema.parse({})).toEqual({});
+  });
+
+  it("normalizes phone and email when present", () => {
+    const parsed = accountProfileSchema.parse({
+      name: "Ama",
+      email: " AMA@example.COM ",
+      phone: "0558850667",
+      area: "Accra",
+      address: "",
+    });
+    expect(parsed.email).toBe("ama@example.com");
+    expect(parsed.phone).toBe("+233558850667");
+    expect(parsed.name).toBe("Ama");
+    expect(parsed.area).toBe("Accra");
+    expect(parsed.address).toBeUndefined();
+  });
+
+  it("rejects an invalid phone", () => {
+    expect(() => accountProfileSchema.parse({ phone: "not-a-phone" })).toThrow();
+  });
+});
+
+describe("changePasswordSchema", () => {
+  it("passes current and strong new password", () => {
+    expect(changePasswordSchema.parse({ currentPassword: "hunter2", newPassword: "Newpass123" })).toEqual({
+      currentPassword: "hunter2",
+      newPassword: "Newpass123",
+    });
+  });
+
+  it("rejects a weak new password", () => {
+    expect(() => changePasswordSchema.parse({ currentPassword: "hunter2", newPassword: "weakpass" })).toThrow();
+  });
+});
+
+describe("settingsUpdateSchema", () => {
+  it("accepts a full site payload", () => {
+    const parsed = settingsUpdateSchema.parse({
+      key: "site",
+      value: {
+        name: "Banning Procurement Hub",
+        tagline: "Your one-stop source for quality building materials across Ghana.",
+        phoneDisplay: "055 885 0667",
+        phoneIntl: "+233558850667",
+        whatsappNumber: "233558850667",
+        email: "banning173@gmail.com",
+        address: "Office location shared on request. Serving all 16 regions of Ghana.",
+        addressShort: "Accra, Ghana",
+        hours: { summary: "Mon to Sat, 8am to 6pm", detail: "Monday to Saturday: 8:00am to 6:00pm. Sunday: by appointment." },
+        mapEmbedUrl: "https://maps.google.com/maps?q=Accra",
+        responsePromise: "Quotes within 24 hours",
+        guarantee: "Every material is quality-checked before delivery. Replacements or refunds for genuine defects.",
+      },
+    });
+    expect(parsed.key).toBe("site");
+  });
+
+  it("rejects a site payload with a bad email", () => {
+    expect(() =>
+      settingsUpdateSchema.parse({
+        key: "site",
+        value: {
+          name: "Banning",
+          tagline: "",
+          phoneDisplay: "",
+          phoneIntl: "",
+          whatsappNumber: "",
+          email: "nope",
+          address: "",
+          addressShort: "",
+          hours: { summary: "", detail: "" },
+          mapEmbedUrl: "",
+          responsePromise: "",
+          guarantee: "",
+        },
+      }),
+    ).toThrow();
+  });
+
+  it("accepts a marquee payload with up to 12 short messages", () => {
+    expect(settingsUpdateSchema.parse({ key: "marquee", value: { messages: ["Quotes within 24 hours", "Delivered across Ghana"] } })).toEqual({
+      key: "marquee",
+      value: { messages: ["Quotes within 24 hours", "Delivered across Ghana"] },
+    });
+  });
+
+  it("rejects a marquee payload with too many or too long messages", () => {
+    expect(() => settingsUpdateSchema.parse({ key: "marquee", value: { messages: [] } })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "marquee", value: { messages: Array.from({ length: 13 }, (_, i) => `m${i}`) } })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "marquee", value: { messages: ["x".repeat(161)] } })).toThrow();
+  });
+
+  it("accepts a payments payload", () => {
+    expect(
+      settingsUpdateSchema.parse({
+        key: "payments",
+        value: { methods: ["mobile_money", "cash"], bank: { bankName: "GCB", accountName: "BPH", accountNumber: "100200300" } },
+      }),
+    ).toMatchObject({ key: "payments" });
+  });
+
+  it("rejects a payments payload with an unknown method or no methods", () => {
+    expect(() => settingsUpdateSchema.parse({ key: "payments", value: { methods: ["crypto"], bank: { bankName: "", accountName: "", accountNumber: "" } } })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "payments", value: { methods: [], bank: { bankName: "", accountName: "", accountNumber: "" } } })).toThrow();
+  });
+
+  it("rejects an account number over 60 characters", () => {
+    expect(() =>
+      settingsUpdateSchema.parse({
+        key: "payments",
+        value: { methods: ["cash"], bank: { bankName: "", accountName: "", accountNumber: "x".repeat(61) } },
+      }),
+    ).toThrow();
+  });
+
+  it("accepts a delivery payload with up to 40 areas", () => {
+    const parsed = settingsUpdateSchema.parse({ key: "delivery", value: { areas: ["Greater Accra", "Ashanti"] } });
+    expect(parsed).toEqual({ key: "delivery", value: { areas: ["Greater Accra", "Ashanti"] } });
+  });
+
+  it("rejects a delivery payload with too many or too long areas", () => {
+    expect(() => settingsUpdateSchema.parse({ key: "delivery", value: { areas: [] } })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "delivery", value: { areas: Array.from({ length: 41 }, (_, i) => `a${i}`) } })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "delivery", value: { areas: ["x".repeat(121)] } })).toThrow();
+  });
+
+  it("rejects an unknown key or a mismatched key/value", () => {
+    expect(() => settingsUpdateSchema.parse({ key: "banners", value: {} })).toThrow();
+    expect(() => settingsUpdateSchema.parse({ key: "marquee", value: { methods: ["cash"] } })).toThrow();
   });
 });

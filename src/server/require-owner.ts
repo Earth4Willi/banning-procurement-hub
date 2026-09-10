@@ -19,5 +19,6 @@ export async function requireOwner(request: NextRequest): Promise<OwnerPrincipal
   if (dev) return dev;
   const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
   if (!sessionId) return null;
-  return readSession(new RedisSessionStore(createRedis()), sessionId);
+  const principal = await readSession(new RedisSessionStore(createRedis()), sessionId);
+  return principal && principal.role === "owner" ? principal : null;
 }

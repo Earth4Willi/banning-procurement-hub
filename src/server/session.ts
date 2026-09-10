@@ -3,7 +3,15 @@ import type { Redis } from "@upstash/redis";
 import { getEnv } from "./env";
 
 export type OwnerPrincipal = { id: string; role: "owner"; email: string };
-export type SessionRecord = { principal: OwnerPrincipal; lastSeen: number };
+export type CustomerPrincipal = {
+  id: string;
+  role: "customer";
+  email: string;
+  name: string;
+  phone: string;
+};
+export type Principal = OwnerPrincipal | CustomerPrincipal;
+export type SessionRecord = { principal: Principal; lastSeen: number };
 
 export interface SessionStore {
   create(sessionId: string, record: SessionRecord, absTtlSeconds: number): Promise<void>;
@@ -56,7 +64,7 @@ export class RedisSessionStore implements SessionStore {
  * expiry is enforced here: reads older than the idle window delete the session.
  * Touching only slides lastSeen, it never re-arms the absolute TTL.
  */
-export async function createSession(store: SessionStore, principal: OwnerPrincipal): Promise<string> {
+export async function createSession(store: SessionStore, principal: Principal): Promise<string> {
   const sessionId = newSessionId();
   const env = getEnv();
   await store.create(sessionId, { principal, lastSeen: Date.now() }, env.SESSION_ABS_TTL_SECONDS);
@@ -66,7 +74,7 @@ export async function createSession(store: SessionStore, principal: OwnerPrincip
 export async function readSession(
   store: SessionStore,
   sessionId: string | null | undefined,
-): Promise<OwnerPrincipal | null> {
+): Promise<Principal | null> {
   if (!sessionId) return null;
   const env = getEnv();
   const record = await store.read(sessionId);
@@ -82,7 +90,7 @@ export async function readSession(
 export async function rotateSession(
   store: SessionStore,
   oldSessionId: string | null | undefined,
-  principal: OwnerPrincipal,
+  principal: Principal,
 ): Promise<string> {
   const newId = await createSession(store, principal);
   if (oldSessionId) await store.delete(oldSessionId);

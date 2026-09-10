@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createSession,
+  type CustomerPrincipal,
   type OwnerPrincipal,
   readSession,
   revokeSession,
@@ -38,15 +39,16 @@ class MemoryStore implements SessionStore {
   }
 }
 
-const principal: OwnerPrincipal = { id: "owner", role: "owner", email: "banning173@gmail.com" };
+const ownerPrincipal: OwnerPrincipal = { id: "owner", role: "owner", email: "banning173@gmail.com" };
+const customerPrincipal: CustomerPrincipal = { id: "c-1", role: "customer", email: "ama@test.com", name: "Ama", phone: "+233558850667" };
 
 describe("sessions", () => {
-  it("creates and reads back a session", async () => {
+  it("creates and reads back an owner session", async () => {
     setTestEnv();
     const store = new MemoryStore();
-    const id = await createSession(store, principal);
+    const id = await createSession(store, ownerPrincipal);
     expect(id).toBeTruthy();
-    await expect(readSession(store, id)).resolves.toEqual(principal);
+    await expect(readSession(store, id)).resolves.toEqual(ownerPrincipal);
   });
 
   it("returns null for a missing session id", async () => {
@@ -57,7 +59,7 @@ describe("sessions", () => {
   it("expires an idle session and deletes it", async () => {
     setTestEnv();
     const store = new MemoryStore();
-    await store.create("stale", { principal, lastSeen: Date.now() - 400_000 }, 3600);
+    await store.create("stale", { principal: ownerPrincipal, lastSeen: Date.now() - 400_000 }, 3600);
     await expect(readSession(store, "stale")).resolves.toBeNull();
     await expect(store.read("stale")).resolves.toBeNull();
   });
@@ -65,25 +67,25 @@ describe("sessions", () => {
   it("respects absolute expiry via the store TTL", async () => {
     setTestEnv();
     const store = new MemoryStore();
-    await store.create("short", { principal, lastSeen: Date.now() }, 1);
+    await store.create("short", { principal: ownerPrincipal, lastSeen: Date.now() }, 1);
     await new Promise((resolve) => setTimeout(resolve, 1050));
     await expect(readSession(store, "short")).resolves.toBeNull();
   });
 
-  it("rotates to a new id and preserves the principal", async () => {
+  it("rotates to a new id and preserves the owner principal", async () => {
     setTestEnv();
     const store = new MemoryStore();
-    const oldId = await createSession(store, principal);
-    const newId = await rotateSession(store, oldId, principal);
+    const oldId = await createSession(store, ownerPrincipal);
+    const newId = await rotateSession(store, oldId, ownerPrincipal);
     expect(newId).not.toBe(oldId);
     await expect(readSession(store, oldId)).resolves.toBeNull();
-    await expect(readSession(store, newId)).resolves.toEqual(principal);
+    await expect(readSession(store, newId)).resolves.toEqual(ownerPrincipal);
   });
 
   it("revokes a session", async () => {
     setTestEnv();
     const store = new MemoryStore();
-    const id = await createSession(store, principal);
+    const id = await createSession(store, ownerPrincipal);
     await revokeSession(store, id);
     await expect(readSession(store, id)).resolves.toBeNull();
   });
@@ -96,5 +98,29 @@ describe("sessions", () => {
     expect(config.secure).toBe(true);
     expect(config.maxAge).toBe(3600);
     expect(config.path).toBe("/");
+  });
+
+  it("creates and reads back a customer session round-trip", async () => {
+    setTestEnv();
+    const store = new MemoryStore();
+    const id = await createSession(store, customerPrincipal);
+    expect(id).toBeTruthy();
+    const read = await readSession(store, id);
+    expect(read).toEqual(customerPrincipal);
+    expect(read).not.toBeNull();
+    expect(read!.role).toBe("customer");
+  });
+
+  it("rotates to a new id and preserves the customer principal", async () => {
+    setTestEnv();
+    const store = new MemoryStore();
+    const oldId = await createSession(store, customerPrincipal);
+    const newId = await rotateSession(store, oldId, customerPrincipal);
+    expect(newId).not.toBe(oldId);
+    const oldRead = await readSession(store, oldId);
+    expect(oldRead).toBeNull();
+    const newRead = await readSession(store, newId);
+    expect(newRead).toEqual(customerPrincipal);
+    expect(newRead!.role).toBe("customer");
   });
 });

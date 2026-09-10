@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  deliverySettingsSchema,
+  marqueeSettingsSchema,
+  paymentSettingsSchema,
+  siteSettingsSchema,
+} from "@/lib/settings-types";
 import { badRequest } from "./http-error";
 
 export const BODY_LIMIT_BYTES = 16 * 1024;
@@ -223,3 +229,56 @@ export const quotePaidSchema = z
     method: z.enum(["cash", "mobile_money", "bank", "other"]),
   })
   .strict();
+
+export {
+  siteSettingsSchema,
+  marqueeSettingsSchema,
+  paymentSettingsSchema,
+  deliverySettingsSchema,
+} from "@/lib/settings-types";
+
+const strongPasswordSchema = z
+  .string()
+  .min(8)
+  .max(200)
+  .regex(
+    /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+    "Password must be 8-200 characters and include an uppercase letter, a lowercase letter and a number.",
+  );
+
+export const registerSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    email: emailSchema,
+    phone: phoneSchema,
+    password: strongPasswordSchema,
+    area: optionalText(120),
+    address: optionalText(500),
+  })
+  .strict();
+
+export const customerLoginSchema = loginCredentialsSchema;
+
+export const accountProfileSchema = z
+  .object({
+    name: optionalText(80),
+    email: emailSchema.optional(),
+    phone: phoneSchema.optional(),
+    area: optionalText(120),
+    address: optionalText(500),
+  })
+  .strict();
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(200),
+    newPassword: strongPasswordSchema,
+  })
+  .strict();
+
+export const settingsUpdateSchema = z.discriminatedUnion("key", [
+  z.object({ key: z.literal("site"), value: siteSettingsSchema }).strict(),
+  z.object({ key: z.literal("marquee"), value: marqueeSettingsSchema }).strict(),
+  z.object({ key: z.literal("payments"), value: paymentSettingsSchema }).strict(),
+  z.object({ key: z.literal("delivery"), value: deliverySettingsSchema }).strict(),
+]);

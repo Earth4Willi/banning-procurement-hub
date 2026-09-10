@@ -1299,12 +1299,12 @@ import { findShortLines } from "@/server/inventory";
 
 > **Design note:** This mirrors the *exact* same availability rule as the "won" transition (`acceptQuoteWithInventory`). The message uses the unit from the catalog so the customer sees the same unit they picked on the card.
 
-- [ ] **Step 2: Run typecheck**
+- [x] **Step 2: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/quote/route.ts
@@ -1323,7 +1323,7 @@ git commit -m "feat: quote submission validates stock availability against track
 - Consumes: `fetchProducts` from catalog-store; `applyQuantityChange`, `findShortLines` from inventory; `getSupabaseClient` from audit
 - Produces: `acceptQuoteWithInventory(id, changedBy?)` returns `{ ok: true }` or `{ ok: false, error, shortLines }` on short stock
 
-- [ ] **Step 1: Add inventory deduction function to quote-store.ts**
+- [x] **Step 1: Add inventory deduction function to quote-store.ts**
 
 Add the import at the top of quote-store.ts (next to the existing `getSupabaseClient` import):
 
@@ -1434,7 +1434,7 @@ export async function acceptQuoteWithInventory(
 }
 ```
 
-- [ ] **Step 2: Update the status route to use acceptQuoteWithInventory for "won" transitions**
+- [x] **Step 2: Update the status route to use acceptQuoteWithInventory for "won" transitions**
 
 In `src/app/api/admin/quotes/status/route.ts`, import `acceptQuoteWithInventory`:
 
@@ -1482,7 +1482,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 });
 ```
 
-- [ ] **Step 3: Write quote-store.test.ts degraded test for acceptQuoteWithInventory**
+- [x] **Step 3: Write quote-store.test.ts degraded test for acceptQuoteWithInventory**
 
 Add to the existing `quote-store (degraded, no live Supabase)` describe block:
 
@@ -1496,12 +1496,12 @@ it("acceptQuoteWithInventory degrades to error without throwing", async () => {
 });
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npx vitest run src/server/quote-store.test.ts`
 Expected: all tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/server/quote-store.ts src/app/api/admin/quotes/status/route.ts src/server/quote-store.test.ts

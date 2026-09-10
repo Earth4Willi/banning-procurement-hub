@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { getSupabaseClient } from "./audit";
+import { applyQuantityChange, findShortLines } from "./inventory";
 import type { QuoteSource } from "@/lib/catalog-types";
 
 export type QuoteStatus = "new" | "reviewed" | "won" | "lost";
@@ -221,6 +222,105 @@ export async function setQuoteAccepted(id: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export type AcceptResult =
+  | { ok: true }
+  | { ok: false; error: string; shortLines?: string[] };
+
+/**
+ * Accept a quote and deduct inventory for tracked items.
+ * Returns { ok: false, error, shortLines } if any tracked product has
+ * insufficient stock — no partial deductions are applied.
+ */
+export async function acceptQuoteWithInventory(
+  id: string,
+  changedBy: string = "system",
+): Promise<AcceptResult> {
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, error: "Database not available." };
+
+  // 1. Load the quote
+  const quote = await getQuote(id);
+  if (!quote) return { ok: false, error: "Quote not found." };
+  if (quote.status === "won") return { ok: true }; // already accepted
+
+  // 2. Load products (raw rows include the UUID id for history) and build lookup
+  const { data: productRows } = await client
+    .from("products")
+    .select("id, slug, name, unit, stock_quantity, track_inventory")
+    .order("sort_order", { ascending: true });
+  const rawProducts = productRows ?? [];
+
+  // 3. Pre-check with the same pure rule as the quote submission route.
+  //    Non-tracked items are never flagged; unknown slugs are best-effort.
+  const shortages = findShortLines(
+    quote.items,
+    rawProducts.map((p) => ({
+      slug: String(p.slug),
+      name: String(p.name),
+      unit: String(p.unit ?? ""),
+      trackInventory: Boolean(p.track_inventory),
+      stockQuantity: Number(p.stock_quantity ?? 0),
+    })),
+  );
+
+  if (shortages.length > 0) {
+    const shortLines = shortages.map((s) => {
+      const raw = rawProducts.find((r) => String(r.slug) === s.slug);
+      const unit = String(raw?.unit || "units");
+      return `${s.name}: ${s.available} ${unit} available, quote needs ${s.requested}`;
+    });
+    return {
+      ok: false,
+      error: `Cannot accept: insufficient stock for ${shortLines.length} item(s).`,
+      shortLines,
+    };
+  }
+
+  // 4. All clear — deduct inventory and log history
+  const productMap = new Map(rawProducts.map((p) => [String(p.slug), p]));
+  for (const item of quote.items) {
+    const product = productMap.get(item.slug);
+    if (!product || !product.track_inventory) continue;
+    if (item.quantity <= 0) continue;
+
+    const previousQuantity = Number(product.stock_quantity ?? 0);
+    const { newQuantity, quantityChanged } = applyQuantityChange(
+      previousQuantity,
+      -item.quantity,
+    );
+
+    // Update product stock
+    await client
+      .from("products")
+      .update({ stock_quantity: newQuantity })
+      .eq("slug", item.slug);
+
+    // Write inventory history (product_id is the UUID)
+    await client.from("inventory_history").insert({
+      product_id: String(product.id),
+      previous_quantity: previousQuantity,
+      quantity_changed: quantityChanged,
+      new_quantity: newQuantity,
+      change_type: "order",
+      reference_id: id,
+      changed_by: changedBy,
+    });
+  }
+
+  // 5. Mark quote as won
+  const { error } = await client
+    .from("quotes")
+    .update({ accepted_at: new Date().toISOString(), status: "won" })
+    .eq("id", id);
+
+  if (error) {
+    console.warn(`[quote-store] accept failed: ${error.message}`);
+    return { ok: false, error: "Failed to update quote status." };
+  }
+
+  return { ok: true };
 }
 
 export async function setQuotePaid(id: string, method: string): Promise<boolean> {

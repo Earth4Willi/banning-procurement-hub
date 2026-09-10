@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { verifySameOrigin } from "@/server/csrf";
-import { setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
+import { acceptQuoteWithInventory, setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
 import { requireOwner } from "@/server/require-owner";
 import { parseBody, adminQuoteStatusSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -21,14 +21,28 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   verifySameOrigin(request);
 
   const body = await parseBody(request, adminQuoteStatusSchema);
-  const updated = await setQuoteStatus(body.id, body.status as QuoteStatus);
+  const status = body.status as QuoteStatus;
+
+  if (status === "won") {
+    const result = await acceptQuoteWithInventory(body.id, principal.email ?? "owner");
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: { code: "stock_unavailable", message: result.error, details: result.shortLines } },
+        { status: 400 },
+      );
+    }
+    await audit("quote_status_updated", { id: body.id, status: "won" });
+    return NextResponse.json({ ok: true });
+  }
+
+  const updated = await setQuoteStatus(body.id, status);
   if (!updated) {
     return NextResponse.json(
       { error: { code: "update_failed", message: "Quote status could not be updated." } },
       { status: 502 },
     );
   }
-  await audit("quote_status_updated", { id: body.id, status: body.status });
+  await audit("quote_status_updated", { id: body.id, status });
 
   return NextResponse.json({ ok: true });
 });

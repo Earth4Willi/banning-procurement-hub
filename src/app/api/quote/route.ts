@@ -2,7 +2,10 @@ import { randomBytes } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
+import { fetchProducts } from "@/server/catalog-store";
 import { verifySameOrigin } from "@/server/csrf";
+import { badRequest } from "@/server/http-error";
+import { findShortLines } from "@/server/inventory";
 import { persistQuote } from "@/server/quote-store";
 import { requireCustomer } from "@/server/require-customer";
 import { clientIp, enforceRateLimit } from "@/server/rate-limit";
@@ -30,6 +33,19 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   verifySameOrigin(request);
 
   const body = await parseBody(request, quoteSubmitSchema);
+
+  // Stock validation: check tracked items against available quantity
+  const products = await fetchProducts();
+  const shortages = findShortLines(body.items, products);
+  if (shortages.length > 0) {
+    const line = shortages[0];
+    const unit = products.find((p) => p.slug === line.slug)?.unit || "units";
+    throw badRequest(
+      "stock_unavailable",
+      `Only ${line.available} ${unit} are currently available for ${line.name}.`,
+    );
+  }
+
   const reference = randomBytes(6).toString("hex");
 
   let userId: string | null = null;

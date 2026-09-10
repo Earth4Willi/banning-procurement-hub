@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetEnvCache } from "./env";
 import {
+  acceptQuoteWithInventory,
   isQuoteStoreAvailable,
   listEvents,
   listQuotes,
@@ -85,6 +86,14 @@ describe("quote-store (degraded, no live Supabase)", () => {
 
   it("setQuoteStatus degrades to false without throwing", async () => {
     await expect(setQuoteStatus("some-id", "reviewed")).resolves.toBe(false);
+  });
+
+  it("acceptQuoteWithInventory degrades to error without throwing", async () => {
+    const result = await acceptQuoteWithInventory("some-id", "owner@test.com");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBeTruthy();
+    }
   });
 });
 

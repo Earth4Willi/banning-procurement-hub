@@ -17,3 +17,19 @@ Banning Procurement Hub is a website for a Ghana-based construction and real-est
 | Text Dark | `#111A14` |
 
 The palette is a deep-to-light green primary range (evoking growth/construction/trust) paired with a warm gold accent for CTAs and highlights, set against a soft cream background rather than stark white. The plan recommends defining these as CSS custom properties (e.g. `--color-primary`, `--color-accent`, `--color-surface`) for easy theming later.
+**Admin Model (decision — saved for future reference)**
+
+The client (owner) is the only person managing the admin dashboard for now. Keep the
+single-owner model: no sub-admin/super-admin roles. Admin routes stay gated by
+`requireOwner` (`src/server/require-owner.ts`); the dashboard is owner-only.
+
+Consequences other sessions should respect:
+- No admin_users table, no sub-admin roles, no role hierarchy (design this only if the
+  admin model grows).
+- Owner credentials live in env (`OWNER_EMAIL` / `OWNER_PASSWORD_HASH` /
+  `OWNER_TOTP_SECRET`) with TOTP 2FA. There is currently no in-app owner
+  password/2FA rotation screen; recovery = rotate env vars + redeploy.
+- The avatar/profile-photo upload feature was removed from the admin sidebar
+  (placeholder removed); server endpoint `/api/admin/profile/image` is inert but kept.
+- Browser image decode of uploaded profile photos was unreliable ? feature dropped
+  rather than debugged further.

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SignOut } from "@phosphor-icons/react";
+import { ArrowSquareOut, SignOut } from "@phosphor-icons/react";
 import { useSession } from "@/lib/use-session";
 import { SidebarNav, signOutFlow, type AdminView } from "./sidebar";
 import { MessagesView } from "./messages-view";
@@ -54,7 +54,7 @@ export default function AdminShell() {
 
   useEffect(() => {
     if (session.status === "signed-out") {
-      router.replace("/admin/login");
+      router.replace("/");
     }
   }, [session.status, router]);
 
@@ -160,42 +160,57 @@ function MobilePillNav(props: {
   const { active, onNavigate, badges, session, router } = props;
 
   return (
-    <nav
-      className="sticky top-0 z-30 flex items-center gap-2 overflow-x-auto border-b border-primary/10 bg-surface/80 px-4 py-2 backdrop-blur lg:hidden"
-      aria-label="Admin navigation"
-    >
-      {VIEWS.map((view) => {
-        const isActive = active === view;
-        const badge = badges[view];
-        return (
-          <button
-            key={view}
-            type="button"
-            onClick={() => onNavigate(view)}
-            aria-current={isActive ? "page" : undefined}
-            className={`relative shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
-              isActive
-                ? "bg-[#0d3d1a] text-white"
-                : "text-ink-muted hover:bg-surface-alt hover:text-ink"
-            }`}
+    <div className="sticky top-0 z-30 border-b border-primary/10 bg-surface/80 backdrop-blur lg:hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-2" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+        <span className="truncate font-display text-sm font-semibold tracking-tight text-ink">
+          Banning Procurement Hub
+        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          <a
+            href="/"
+            className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
+            aria-label="Back to site"
+            title="Back to site"
           >
-            {view}
-            {badge ? (
-              <span className="ml-1 inline-flex size-4 items-center justify-center rounded-full bg-accent font-mono text-[9px] font-bold text-[#0d3d1a]">
-                {badge}
-              </span>
-            ) : null}
+            <ArrowSquareOut weight="duotone" size={16} aria-hidden="true" />
+          </a>
+          <button
+            type="button"
+            onClick={() => signOutFlow(session, router)}
+            className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <SignOut weight="duotone" size={16} aria-hidden="true" />
           </button>
-        );
-      })}
-      <button
-        type="button"
-        onClick={() => signOutFlow(session, router)}
-        className="ml-auto shrink-0 inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
-        aria-label="Sign out"
-      >
-        <SignOut weight="duotone" size={16} aria-hidden="true" />
-      </button>
-    </nav>
+        </div>
+      </div>
+      <nav className="flex items-center gap-2 overflow-x-auto px-4 pb-2" aria-label="Admin navigation">
+        {VIEWS.map((view) => {
+          const isActive = active === view;
+          const badge = badges[view];
+          return (
+            <button
+              key={view}
+              type="button"
+              onClick={() => onNavigate(view)}
+              aria-current={isActive ? "page" : undefined}
+              className={`relative shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
+                isActive
+                  ? "bg-[#0d3d1a] text-white"
+                  : "text-ink-muted hover:bg-surface-alt hover:text-ink"
+              }`}
+            >
+              {view}
+              {badge ? (
+                <span className="ml-1 inline-flex size-4 items-center justify-center rounded-full bg-accent font-mono text-[9px] font-bold text-[#0d3d1a]">
+                  {badge}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </nav>
+    </div>
   );
 }

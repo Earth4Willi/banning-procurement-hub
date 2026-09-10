@@ -11,16 +11,10 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   return (
-    <section className="py-20 lg:py-28" aria-label="Owner dashboard">
-      <div className="mx-auto max-w-[1200px] px-4 md:px-6">
-        <Suspense
-          fallback={
-            <p className="p-6 text-sm text-ink-muted">Loading admin…</p>
-          }
-        >
-          <AdminShell />
-        </Suspense>
-      </div>
-    </section>
+    <Suspense
+      fallback={<p className="p-6 text-sm text-ink-muted">Loading admin…</p>}
+    >
+      <AdminShell />
+    </Suspense>
   );
 }

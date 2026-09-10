@@ -52,15 +52,6 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
-/* Designed blue-grid overlay for the owner dashboard hero */
-.dashboard-grid-bg {
-  background-image:
-    linear-gradient(to right, rgba(240, 180, 41, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(240, 180, 41, 0.08) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(to left, transparent 4%, black 32%);
-}
-
 /* Logo: light-mode white-background lockup by default */
 .logo-light-mode { display: inline-block; }
 .logo-dark-mode { display: none; }

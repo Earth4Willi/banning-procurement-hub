@@ -1,18 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Camera,
-  ChatCircleText,
-  Gear,
-  SignOut,
-  SquaresFour,
-  UsersThree,
-} from "@phosphor-icons/react";
+import { ArrowSquareOut, ChatCircleText, Gear, SignOut, SquaresFour, UsersThree } from "@phosphor-icons/react";
 import type { Session } from "./helpers";
-import { AVATAR_TYPES, readImageSize, validateImageClient } from "./avatar";
 
 export type AdminView = "messages" | "customers" | "materials" | "settings";
 
@@ -39,99 +31,30 @@ export function SidebarNav(props: {
   const { session, active, onNavigate, badges } = props;
   const router = useRouter();
   const pathname = usePathname();
-  const [avatarSrc, setAvatarSrc] = useState<string>(session.avatarUrl ?? "/owner-hero.jpg");
-  const [avatarBusy, setAvatarBusy] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   const firstName = session.email?.split("@")[0] ?? "owner";
 
-  const handleAvatarPick = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    const rejected = validateImageClient(file);
-    if (rejected) {
-      setAvatarError(rejected);
-      return;
-    }
-    const dimensions = await readImageSize(file).catch(() => null);
-    if (!dimensions) {
-      setAvatarError("Could not read that image. Try a JPEG, PNG, or WebP file.");
-      return;
-    }
-    if (dimensions.width < 300 || dimensions.height < 300) {
-      setAvatarError(`Pick an image at least 300×300 pixels (this one is ${dimensions.width}×${dimensions.height}).`);
-      return;
-    }
-    setAvatarBusy(true);
-    setAvatarError(null);
-    try {
-      const body = new FormData();
-      body.append("file", file);
-      const res = await fetch("/api/admin/profile/image", { method: "POST", body, credentials: "same-origin" });
-      const data = (await res.json().catch(() => null)) as { url?: string; error?: { message?: string } } | null;
-      if (res.ok && data?.url) {
-        setAvatarSrc(`${data.url}?v=${Date.now()}`);
-        void session.refresh();
-      } else {
-        setAvatarError(data?.error?.message ?? "Upload failed. Try again.");
-      }
-    } catch {
-      setAvatarError("Upload failed. Try again.");
-    } finally {
-      setAvatarBusy(false);
-    }
-  };
-
   return (
-    <nav className="sticky top-0 flex h-dvh flex-col overflow-y-auto bg-[#0d3d1a] text-white" aria-label="Admin navigation">
-      <div className="dashboard-grid-bg relative">
-        <div className="relative z-10 flex items-center gap-3 p-5">
-          <div className="relative shrink-0">
-            <img
-              src={avatarSrc}
-              alt="Owner profile photo"
-              width={64}
-              height={64}
-              onError={(event) => {
-                if (event.currentTarget.src !== "/owner-hero.jpg") event.currentTarget.src = "/owner-hero.jpg";
-              }}
-              className="size-14 rounded-full object-cover ring-2 ring-accent/70"
-            />
-            <button
-              type="button"
-              onClick={() => avatarInputRef.current?.click()}
-              disabled={avatarBusy}
-              aria-label="Upload profile picture"
-              title="Upload profile picture"
-              className="absolute -bottom-1 -right-1 inline-flex size-7 items-center justify-center rounded-full bg-accent text-[#0d3d1a] shadow-md transition-colors hover:bg-accent-light disabled:opacity-50"
-            >
-              <Camera weight="duotone" size={13} aria-hidden="true" />
-            </button>
-            <input
-              ref={avatarInputRef}
-              type="file"
-              accept={AVATAR_TYPES.join(",")}
-              onChange={(event) => void handleAvatarPick(event)}
-              className="hidden"
-            />
-          </div>
-          <div className="min-w-0">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">
-              Banning Procurement
-            </p>
-            <h1 className="truncate font-display text-base font-semibold tracking-tight text-white">
+    <nav
+      className="sticky top-0 flex h-dvh flex-col overflow-y-auto text-white"
+      aria-label="Admin navigation"
+      style={{
+        backgroundImage:
+          "linear-gradient(to bottom, rgb(13 61 26 / 0.94) 0%, rgb(10 42 19 / 0.97) 60%, rgb(7 31 14 / 0.98) 100%), url(/owner-hero.jpg)",
+        backgroundSize: "cover",
+        backgroundPosition: "top center",
+      }}
+    >
+      <div className="relative">
+        <div className="relative z-10 flex items-center gap-4 p-5">
+          <div className="min-w-0 flex-1">
+            <p className="font-display text-sm font-bold tracking-tight text-accent">Banning Procurement Hub</p>
+            <h1 className="mt-0.5 break-words font-display text-lg font-semibold leading-snug tracking-tight text-white">
               Welcome back, {firstName}
             </h1>
-            <p className="truncate text-xs text-white/70">{session.email}</p>
+            <p className="mt-0.5 break-all text-xs leading-snug text-white/70">{session.email}</p>
           </div>
         </div>
-        {avatarError ? (
-          <p role="alert" className="relative z-10 px-5 pb-3 text-xs font-medium text-accent-light">
-            {avatarError}
-          </p>
-        ) : null}
       </div>
 
       <ul className="mt-2 flex flex-col gap-1 px-3">
@@ -165,7 +88,14 @@ export function SidebarNav(props: {
         })}
       </ul>
 
-      <div className="mt-auto p-3">
+      <div className="mt-auto space-y-1 p-3">
+        <a
+          href="/"
+          className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-medium text-white/75 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          <ArrowSquareOut weight="duotone" size={18} aria-hidden="true" />
+          Back to site
+        </a>
         <button
           type="button"
           onClick={() => signOutFlow(session, router)}

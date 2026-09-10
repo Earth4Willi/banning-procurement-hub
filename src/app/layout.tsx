@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Manrope, Outfit } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { WhatsAppFloat } from "@/components/whatsapp-float";
-import { ScrollTop } from "@/components/scroll-top";
 import { QuoteProvider } from "@/lib/quote-context";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
@@ -59,11 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <QuoteProvider>
-          <Header />
-          <main id="main-content">{children}</main>
-          <Footer />
-          <WhatsAppFloat />
-          <ScrollTop />
+          {children}
         </QuoteProvider>
       </body>
     </html>

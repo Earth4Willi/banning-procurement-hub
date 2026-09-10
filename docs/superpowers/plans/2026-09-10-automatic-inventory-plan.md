@@ -2106,7 +2106,7 @@ git commit -m "feat: admin inventory overview view + low-stock alerts in materia
 **Interfaces:**
 - Consumes: `InventoryView` component; extends `AdminView` union + `ICONS` record (sidebar iterates `Object.entries(ICONS)`)
 
-- [ ] **Step 1: Add "inventory" to the AdminView union in sidebar.tsx**
+- [x] **Step 1: Add "inventory" to the AdminView union in sidebar.tsx**
 
 Change line 18:
 
@@ -2114,7 +2114,7 @@ Change line 18:
 export type AdminView = "messages" | "customers" | "materials" | "settings" | "inventory";
 ```
 
-- [ ] **Step 2: Add the icon to the ICONS record in sidebar.tsx**
+- [x] **Step 2: Add the icon to the ICONS record in sidebar.tsx**
 
 Add `Package` to the phosphor-icons import (line 6-14):
 
@@ -2145,7 +2145,7 @@ const ICONS: Record<AdminView, typeof ChatCircleText> = {
 
 The sidebar nav renders automatically from the ICONS record — no `<li>`/link edits needed.
 
-- [ ] **Step 3: Add Inventory to VIEWS + render switch in admin-shell.tsx**
+- [x] **Step 3: Add Inventory to VIEWS + render switch in admin-shell.tsx**
 
 In `admin-shell.tsx` line 14, add `"inventory"` to the VIEWS array:
 
@@ -2168,12 +2168,12 @@ case "inventory":
 
 The mobile pill nav (line 188-213) iterates `VIEWS`, so Inventory appears there automatically too.
 
-- [ ] **Step 4: Run typecheck**
+- [x] **Step 4: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/admin/sidebar.tsx src/components/admin/admin-shell.tsx

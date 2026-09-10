@@ -3,15 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowSquareOut, ChatCircleText, Gear, SignOut, SquaresFour, UsersThree } from "@phosphor-icons/react";
+import { ArrowSquareOut, ChatCircleText, Gear, Package, SignOut, SquaresFour, UsersThree } from "@phosphor-icons/react";
 import type { Session } from "./helpers";
 
-export type AdminView = "messages" | "customers" | "materials" | "settings";
+export type AdminView = "messages" | "customers" | "materials" | "settings" | "inventory";
 
 const ICONS: Record<AdminView, typeof ChatCircleText> = {
   messages: ChatCircleText,
   customers: UsersThree,
   materials: SquaresFour,
+  inventory: Package,
   settings: Gear,
 };
 

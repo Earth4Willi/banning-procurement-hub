@@ -8,10 +8,11 @@ import { SidebarNav, signOutFlow, type AdminView } from "./sidebar";
 import { MessagesView } from "./messages-view";
 import { CustomersView } from "./customers-view";
 import { MaterialsView } from "./materials-view";
+import { InventoryView } from "./inventory-view";
 import { SettingsView } from "./settings-view";
 import type { Session } from "./helpers";
 
-const VIEWS: AdminView[] = ["messages", "customers", "materials", "settings"];
+const VIEWS: AdminView[] = ["messages", "customers", "materials", "inventory", "settings"];
 
 export default function AdminShell() {
   const session = useSession();
@@ -86,6 +87,8 @@ export default function AdminShell() {
             onNeedRefresh={refreshBadges}
           />
         );
+      case "inventory":
+        return <InventoryView session={session} />;
       case "settings":
         return (
           <SettingsView

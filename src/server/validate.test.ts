@@ -92,6 +92,36 @@ describe("quoteSubmitSchema", () => {
   it("rejects a non-Ghana phone", () => {
     expect(() => quoteSubmitSchema.parse({ ...valid, phone: "+1 202 555 0100" })).toThrow();
   });
+
+  it("accepts an optional delivery address up to 500 characters", () => {
+    const parsed = quoteSubmitSchema.parse({
+      ...valid,
+      deliveryAddress: "House 12, Spintex Road, Accra",
+    });
+    expect(parsed.deliveryAddress).toBe("House 12, Spintex Road, Accra");
+    const maxAddress = quoteSubmitSchema.parse({ ...valid, deliveryAddress: "x".repeat(500) });
+    expect(maxAddress.deliveryAddress).toHaveLength(500);
+  });
+
+  it("rejects a delivery address over 500 characters", () => {
+    expect(() => quoteSubmitSchema.parse({ ...valid, deliveryAddress: "x".repeat(501) })).toThrow();
+  });
+
+  it("coerces an empty delivery address to undefined", () => {
+    expect(quoteSubmitSchema.parse({ ...valid, deliveryAddress: "" }).deliveryAddress).toBeUndefined();
+  });
+
+  it("accepts each intended payment method and coerces empty to undefined", () => {
+    for (const method of ["cash", "mobile_money", "bank", "other"] as const) {
+      expect(quoteSubmitSchema.parse({ ...valid, intendedPaymentMethod: method }).intendedPaymentMethod).toBe(method);
+    }
+    expect(quoteSubmitSchema.parse({ ...valid, intendedPaymentMethod: "" }).intendedPaymentMethod).toBeUndefined();
+    expect(quoteSubmitSchema.parse({ ...valid }).intendedPaymentMethod).toBeUndefined();
+  });
+
+  it("rejects an unknown intended payment method", () => {
+    expect(() => quoteSubmitSchema.parse({ ...valid, intendedPaymentMethod: "crypto" })).toThrow();
+  });
 });
 
 describe("contactSubmitSchema", () => {

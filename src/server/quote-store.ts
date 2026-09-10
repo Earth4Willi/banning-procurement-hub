@@ -24,6 +24,9 @@ export type QuoteRecord = {
   payment_method: string | null;
   total_amount: number | null;
   doc_token: string | null;
+  user_id: string | null;
+  delivery_address: string | null;
+  intended_payment_method: string | null;
 };
 
 export type QuoteInput = {
@@ -35,6 +38,9 @@ export type QuoteInput = {
   note?: string;
   items: QuoteItem[];
   source?: QuoteSource;
+  userId?: string | null;
+  deliveryAddress?: string;
+  intendedPaymentMethod?: string;
 };
 
 export type EventRecord = {
@@ -66,6 +72,9 @@ export async function persistQuote(input: QuoteInput): Promise<boolean> {
       note: input.note ?? null,
       items: input.items,
       source: input.source ?? "web",
+      user_id: input.userId ?? null,
+      delivery_address: input.deliveryAddress ?? null,
+      intended_payment_method: input.intendedPaymentMethod ?? null,
     });
     if (error) {
       console.warn(`[quote-store] insert failed: ${error.message}`);
@@ -126,8 +135,27 @@ export async function updateQuote(
 function coerceQuote(row: Record<string, unknown>): QuoteRecord {
   return {
     ...row,
+    user_id: row.user_id == null ? null : String(row.user_id),
+    delivery_address: row.delivery_address == null ? null : String(row.delivery_address),
+    intended_payment_method: row.intended_payment_method == null ? null : String(row.intended_payment_method),
     total_amount: row.total_amount == null ? null : Number(row.total_amount),
   } as unknown as QuoteRecord;
+}
+
+export async function listQuotesByUser(userId: string, limit = 100): Promise<QuoteRecord[]> {
+  const client = getSupabaseClient();
+  if (!client) return [];
+  const { data, error } = await client
+    .from("quotes")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.warn(`[quote-store] user list failed: ${error.message}`);
+    return [];
+  }
+  return (data ?? []).map((row) => coerceQuote(row as Record<string, unknown>));
 }
 
 export async function setQuoteStatus(id: string, status: QuoteStatus): Promise<boolean> {

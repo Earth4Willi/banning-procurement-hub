@@ -42,6 +42,16 @@ export const quoteSubmitSchema = z
     email: emailSchema.optional().or(z.literal("").transform(() => undefined)),
     area: z.string().trim().min(1).max(120),
     note: z.string().trim().max(2000).optional().or(z.literal("").transform(() => undefined)),
+    deliveryAddress: z
+      .string()
+      .trim()
+      .max(500)
+      .optional()
+      .transform((value) => (value === undefined || value === "" ? undefined : value)),
+    intendedPaymentMethod: z
+      .enum(["cash", "mobile_money", "bank", "other"])
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
     items: z
       .array(
         z.object({

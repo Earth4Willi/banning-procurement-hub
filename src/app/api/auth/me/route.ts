@@ -3,6 +3,7 @@ import { devOwnerPrincipal } from "@/server/dev-owner";
 import { avatarPublicUrl } from "@/server/profile-image";
 import { createRedis } from "@/server/redis";
 import { readSession, RedisSessionStore, SESSION_COOKIE } from "@/server/session";
+import { findUserById } from "@/server/user-store";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
@@ -23,6 +24,17 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
   const principal = await readSession(new RedisSessionStore(createRedis()), sessionId);
   if (!principal) {
     return NextResponse.json({ error: { code: "unauthenticated", message: "Not signed in." } }, { status: 401 });
+  }
+  if (principal.role === "customer") {
+    const profile = await findUserById(principal.id);
+    return NextResponse.json({
+      role: "customer",
+      email: principal.email,
+      name: principal.name,
+      phone: principal.phone,
+      area: profile?.area ?? "",
+      address: profile?.address ?? "",
+    });
   }
   return NextResponse.json({ email: principal.email, role: principal.role, avatarUrl });
 });

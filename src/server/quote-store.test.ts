@@ -4,6 +4,7 @@ import {
   isQuoteStoreAvailable,
   listEvents,
   listQuotes,
+  listQuotesByUser,
   persistQuote,
   setQuoteStatus,
 } from "./quote-store";
@@ -49,6 +50,25 @@ describe("quote-store (degraded, no live Supabase)", () => {
   it("listQuotes and listEvents return empty arrays without throwing", async () => {
     await expect(listQuotes()).resolves.toEqual([]);
     await expect(listEvents()).resolves.toEqual([]);
+  });
+
+  it("listQuotesByUser returns an empty array for any user without throwing", async () => {
+    await expect(listQuotesByUser("u1", 100)).resolves.toEqual([]);
+  });
+
+  it("persistQuote accepts customer attribution and degrades to false", async () => {
+    await expect(
+      persistQuote({
+        reference: "abc123",
+        name: "Ama Asante",
+        phone: "+233241234567",
+        area: "Accra",
+        items: [{ slug: "cement-42-5", label: "Ghacem Supacem 42.5R", quantity: 50 }],
+        userId: "u1",
+        deliveryAddress: "123 Street, Accra",
+        intendedPaymentMethod: "mobile_money",
+      }),
+    ).resolves.toBe(false);
   });
 
   it("setQuoteStatus degrades to false without throwing", async () => {

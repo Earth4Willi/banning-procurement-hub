@@ -62,6 +62,62 @@ export async function findUserByEmail(email: string): Promise<CustomerUser | nul
   );
 }
 
+export type CustomerUserWithPassword = CustomerUser & { password_hash: string };
+
+export async function findUserByEmailWithPassword(email: string): Promise<CustomerUserWithPassword | null> {
+  try {
+    const client = getSupabaseClient();
+    if (!client) return null;
+    const { data, error } = await client
+      .from("users")
+      .select("id, email, phone, name, area, address, password_hash")
+      .eq("email", email)
+      .maybeSingle();
+    if (error) {
+      console.warn(`[user-store] find failed: ${error.message}`);
+      return null;
+    }
+    if (!data) return null;
+    return mapUserWithPassword(data as unknown as Record<string, unknown>);
+  } catch (error) {
+    console.warn("[user-store] unavailable:", error);
+    return null;
+  }
+}
+
+export async function findUserByIdWithPassword(id: string): Promise<CustomerUserWithPassword | null> {
+  try {
+    const client = getSupabaseClient();
+    if (!client) return null;
+    const { data, error } = await client
+      .from("users")
+      .select("id, email, phone, name, area, address, password_hash")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) {
+      console.warn(`[user-store] find failed: ${error.message}`);
+      return null;
+    }
+    if (!data) return null;
+    return mapUserWithPassword(data as unknown as Record<string, unknown>);
+  } catch (error) {
+    console.warn("[user-store] unavailable:", error);
+    return null;
+  }
+}
+
+function mapUserWithPassword(row: Record<string, unknown>): CustomerUserWithPassword {
+  return {
+    id: String(row.id),
+    email: String(row.email),
+    phone: String(row.phone),
+    name: String(row.name ?? ""),
+    area: String(row.area ?? ""),
+    address: String(row.address ?? ""),
+    password_hash: String(row.password_hash ?? ""),
+  };
+}
+
 export async function findUserByPhone(phone: string): Promise<CustomerUser | null> {
   return findUser(async (client) =>
     client.from("users").select("id, email, phone, name, area, address").eq("phone", phone).maybeSingle(),

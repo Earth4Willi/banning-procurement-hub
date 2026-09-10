@@ -9,6 +9,7 @@ import {
   Plus,
   Trash,
   UploadSimple,
+  Warning,
   X,
 } from "@phosphor-icons/react";
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
@@ -606,9 +607,17 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
                         {product.trackInventory ? (
-                          <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stockStatus)}`}>
-                            {stockStatusLabel(product.stockStatus)} ({product.stockQuantity})
-                          </span>
+                          <>
+                            <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stockStatus)}`}>
+                              {stockStatusLabel(product.stockStatus)} ({product.stockQuantity})
+                            </span>
+                            {product.stockStatus === "limited" ? (
+                              <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-700">
+                                <Warning weight="duotone" size={10} aria-hidden="true" />
+                                {product.stockQuantity} left / {product.lowStockThreshold} threshold
+                              </div>
+                            ) : null}
+                          </>
                         ) : (
                           <span className="rounded-full bg-violet-600/15 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-violet-700">
                             Request

@@ -1780,7 +1780,7 @@ git commit -m "feat: admin inventory API — summary, manual adjust, history log
 **Interfaces:**
 - Consumes: `api` helper from helpers; `CatalogProduct` type
 
-- [ ] **Step 1: Create `src/components/admin/inventory-view.tsx`**
+- [x] **Step 1: Create `src/components/admin/inventory-view.tsx`**
 
 This is a standalone admin view accessible via `?view=inventory` in the admin shell. It shows the summary counts, product inventory table, and full history.
 
@@ -2063,7 +2063,7 @@ export function InventoryView(props: { session: Session }) {
 }
 ```
 
-- [ ] **Step 2: Add low-stock alerts to materials-view.tsx product table**
+- [x] **Step 2: Add low-stock alerts to materials-view.tsx product table**
 
 In the products table body row (around line 572-646), inside the `<td>` for status (the new inventory-aware `<td>` from Task 7), add a low-stock alert badge below the status pill when `product.trackInventory && product.stockStatus === "limited"`:
 
@@ -2083,12 +2083,12 @@ Import `Warning` from phosphor-icons at the top of materials-view.tsx:
 import { ..., Warning } from "@phosphor-icons/react";
 ```
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/admin/inventory-view.tsx src/components/admin/materials-view.tsx

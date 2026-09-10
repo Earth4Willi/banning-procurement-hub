@@ -419,7 +419,7 @@ git commit -m "feat: add stockQuantity/threshold/trackInventory to static Produc
 **Interfaces:**
 - Produces: `products` table gains `stock_quantity`, `low_stock_threshold`, `track_inventory` columns; `stock` column dropped; `inventory_history` table created
 
-- [ ] **Step 1: Write the migration**
+- [x] **Step 1: Write the migration**
 
 ```sql
 -- 0005_inventory.sql — Automatic inventory & stock status system
@@ -517,7 +517,7 @@ WHERE NOT EXISTS (
 );
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add supabase/migrations/0005_inventory.sql

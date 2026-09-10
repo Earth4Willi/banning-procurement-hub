@@ -13,6 +13,7 @@ import {
   Info,
   SignIn,
   SignOut,
+  User,
 } from "@phosphor-icons/react";
 
 const PRIMARY = [
@@ -27,12 +28,12 @@ const SECONDARY = [
 ];
 
 type Props = {
-  signedIn?: boolean;
+  role?: "owner" | "customer";
   onOpenSignIn?: () => void;
   onSignOut?: () => void;
 };
 
-export function MobileMenu({ signedIn = false, onOpenSignIn, onSignOut }: Props) {
+export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -97,32 +98,76 @@ export function MobileMenu({ signedIn = false, onOpenSignIn, onSignOut }: Props)
               style={{ maxHeight: "min(60vh, 500px)" }}
             >
               <nav className="flex flex-col gap-1 p-3" aria-label="Mobile nav">
-                <button
-                  type="button"
-                  onClick={() => {
-                    close();
-                    if (signedIn) onSignOut?.();
-                    else onOpenSignIn?.();
-                  }}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
-                >
-                  {signedIn ? (
-                    <SignOut weight="duotone" size={20} className="shrink-0 text-accent-dark" />
-                  ) : (
-                    <SignIn weight="duotone" size={20} className="shrink-0 text-ink-muted" />
-                  )}
-                  {signedIn ? "Owner · Sign out" : "Sign in"}
-                </button>
+                {role === "customer" && (
+                  <>
+                    <a
+                      href="/account"
+                      onClick={close}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                    >
+                      <User weight="duotone" size={20} className="shrink-0 text-accent-dark" />
+                      My account
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        onSignOut?.();
+                      }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                    >
+                      <SignOut weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                      Sign out
+                    </button>
+                  </>
+                )}
 
-                {signedIn && (
-                  <a
-                    href="/admin"
-                    onClick={close}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
-                  >
-                    <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
-                    Admin dashboard
-                  </a>
+                {role === "owner" && (
+                  <>
+                    <a
+                      href="/admin"
+                      onClick={close}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                    >
+                      <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                      Admin dashboard
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        onSignOut?.();
+                      }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                    >
+                      <SignOut weight="duotone" size={20} className="shrink-0 text-accent-dark" />
+                      Owner · Sign out
+                    </button>
+                  </>
+                )}
+
+                {!role && (
+                  <>
+                    <a
+                      href="/login"
+                      onClick={close}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
+                    >
+                      <SignIn weight="duotone" size={20} className="shrink-0 text-accent-dark" />
+                      Customer sign in
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        close();
+                        onOpenSignIn?.();
+                      }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
+                    >
+                      <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                      Owner sign in
+                    </button>
+                  </>
                 )}
 
                 <div className="my-1 border-t border-primary/10" />

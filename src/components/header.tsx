@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Gauge, Quotes, SignIn, SignOut } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Gauge, Quotes, SignIn, SignOut, User } from "@phosphor-icons/react";
 import { siteConfig, stats } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 import { formatItemCount } from "@/lib/format";
@@ -49,8 +50,19 @@ function TickerBand() {
 export function Header() {
   const { count } = useQuote();
   const session = useSession();
+  const pathname = usePathname();
+  const lastPath = useRef(pathname);
   const [signInOpen, setSignInOpen] = useState(false);
   const openSignIn = () => setSignInOpen(true);
+
+  useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    void session.refresh();
+  }, [pathname, session.refresh]);
+
+  const customerSignedIn = session.status === "signed-in" && session.role === "customer";
+  const ownerSignedIn = session.status === "signed-in" && session.role === "owner";
 
   return (
     <>
@@ -75,7 +87,7 @@ export function Header() {
             </a>
             <ThemeToggle compact />
             <MobileMenu
-              signedIn={session.status === "signed-in"}
+              role={session.status === "signed-in" ? (session.role ?? "customer") : undefined}
               onOpenSignIn={openSignIn}
               onSignOut={() => void session.signOut()}
             />
@@ -110,7 +122,26 @@ export function Header() {
 
           {/* Right-side actions pinned to absolute right */}
           <div className="ml-auto flex shrink-0 items-center gap-2 pr-4 sm:pr-6">
-            {session.status === "signed-in" ? (
+            {customerSignedIn ? (
+              <>
+                <a
+                  href="/account"
+                  className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
+                >
+                  <User weight="duotone" size={14} aria-hidden="true" />
+                  My account
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void session.signOut()}
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className="hidden h-9 w-9 items-center justify-center rounded-[10px] text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink sm:inline-flex"
+                >
+                  <SignOut weight="duotone" size={16} aria-hidden="true" />
+                </button>
+              </>
+            ) : ownerSignedIn ? (
               <>
                 <a
                   href="/admin"
@@ -130,14 +161,22 @@ export function Header() {
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                onClick={() => setSignInOpen(true)}
-                className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
-              >
-                <SignIn weight="duotone" size={14} aria-hidden="true" />
-                Sign in
-              </button>
+              <>
+                <a
+                  href="/login"
+                  className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
+                >
+                  <SignIn weight="duotone" size={14} aria-hidden="true" />
+                  Sign in
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setSignInOpen(true)}
+                  className="hidden items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink sm:inline-flex"
+                >
+                  Owner sign in
+                </button>
+              </>
             )}
             <a
               href="/quote"

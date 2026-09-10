@@ -6,6 +6,7 @@ type SessionState = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
   avatarUrl?: string;
+  role?: "owner" | "customer";
   error?: string;
 };
 
@@ -25,8 +26,8 @@ export function useSession() {
     try {
       const res = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (res.ok) {
-        const data = (await res.json()) as { email?: string; avatarUrl?: string };
-        setState({ status: "signed-in", email: data.email, avatarUrl: data.avatarUrl });
+        const data = (await res.json()) as { email?: string; avatarUrl?: string; role?: "owner" | "customer" };
+        setState({ status: "signed-in", email: data.email, avatarUrl: data.avatarUrl, role: data.role });
       } else {
         setState({ status: "signed-out" });
       }
@@ -81,12 +82,13 @@ export function useSession() {
       }
       const me = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (me.ok) {
-        const data = (await me.json()) as { email?: string; avatarUrl?: string };
+        const data = (await me.json()) as { email?: string; avatarUrl?: string; role?: "owner" | "customer" };
         setState((s) => ({
           ...s,
           status: "signed-in",
           email: s.email ?? data.email,
           avatarUrl: s.avatarUrl ?? data.avatarUrl,
+          role: s.role ?? data.role,
         }));
       } else {
         setState((s) => ({ ...s, status: "signed-in" }));

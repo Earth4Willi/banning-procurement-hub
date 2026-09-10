@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import pg from "pg";
@@ -28,17 +28,41 @@ const client = new pg.Client({
   ssl: { rejectUnauthorized: false },
 });
 
-const migrationPath = resolve(__dirname, "..", "supabase", "migrations", "0001_init.sql");
-const sql = readFileSync(migrationPath, "utf8");
+const migrationsDir = resolve(__dirname, "..", "supabase", "migrations");
+const onlyPrefix = process.argv[2];
+const files = readdirSync(migrationsDir)
+  .filter((name) => name.endsWith(".sql"))
+  .sort()
+  .filter((name) => !onlyPrefix || name.startsWith(onlyPrefix));
+
+const tablesToCount = {
+  "0001_init.sql": ["quotes", "security_events"],
+  "0002_cms.sql": ["categories", "products", "messages", "customers"],
+  "0003_quote_documents.sql": [],
+  "0004_phase3.sql": ["users", "site_settings"],
+};
 
 try {
   await client.connect();
-  await client.query(sql);
-  const quotes = await client.query("select count(*)::int as n from public.quotes");
-  const events = await client.query("select count(*)::int as n from public.security_events");
-  console.log(
-    `Migration applied. quotes=${quotes.rows[0].n} security_events=${events.rows[0].n}`,
-  );
+  for (const file of files) {
+    const sql = readFileSync(resolve(migrationsDir, file), "utf8");
+    await client.query(sql);
+    const counts = [];
+    for (const table of tablesToCount[file] ?? []) {
+      const { rows } = await client.query(
+        `select to_regclass('public.${table}') is not null as exists, count(*)::int as n from public.${table}`,
+      );
+      counts.push(`${table}=${rows[0].n}`);
+    }
+    if (file.startsWith("0003")) {
+      const { rows } = await client.query(
+        "select count(*)::int as n from information_schema.columns where table_schema = 'public' and table_name = 'quotes' and column_name = 'doc_token'",
+      );
+      counts.push(`quotes.doc_token=${rows[0].n}`);
+    }
+    console.log(`applied ${file}${counts.length ? ` (${counts.join(", ")})` : ""}`);
+  }
+  console.log(`Migration run complete (${files.length} file${files.length === 1 ? "" : "s"}).`);
 } finally {
   await client.end();
 }

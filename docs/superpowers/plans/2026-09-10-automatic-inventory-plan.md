@@ -805,12 +805,12 @@ describe("productSchema (inventory fields)", () => {
 });
 ```
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run: `npx vitest run src/server/validate.test.ts`
 Expected: all tests PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/server/validate.ts src/server/validate.test.ts
@@ -827,7 +827,7 @@ git commit -m "feat: productSchema accepts stockQuantity/threshold/trackInventor
 **Interfaces:**
 - Consumes: updated `productSchema` (new fields); updated `createProduct`/`updateProduct` (new input shape)
 
-- [ ] **Step 1: Update POST handler to pass new fields**
+- [x] **Step 1: Update POST handler to pass new fields**
 
 In the `POST` handler, change the `createProduct` call from:
 ```ts
@@ -868,16 +868,16 @@ const ok = await createProduct({
 });
 ```
 
-- [ ] **Step 2: Update PUT handler to pass new fields**
+- [x] **Step 2: Update PUT handler to pass new fields**
 
 Same change for `updateProduct` — replace `stock: body.stock` with `stockQuantity: body.stockQuantity, lowStockThreshold: body.lowStockThreshold, trackInventory: body.trackInventory`.
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/admin/catalog/products/route.ts

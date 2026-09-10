@@ -212,6 +212,60 @@ describe("catalog schemas", () => {
     expect(() => productSchema.parse({ slug: "Bad Slug!", categoryId: "c", name: "n" })).toThrow();
   });
 
+  it("productSchema passes inventory fields when provided", () => {
+    const parsed = productSchema.parse({
+      slug: "ghacem-supacem-42-5",
+      categoryId: "cement",
+      name: "Ghacem Supacem 42.5",
+      stockQuantity: 50,
+      lowStockThreshold: 5,
+      trackInventory: false,
+    });
+    expect(parsed.stockQuantity).toBe(50);
+    expect(parsed.lowStockThreshold).toBe(5);
+    expect(parsed.trackInventory).toBe(false);
+  });
+
+  it("productSchema defaults stockQuantity to 0 when omitted", () => {
+    const parsed = productSchema.parse({
+      slug: "x",
+      categoryId: "c",
+      name: "n",
+      stockQuantity: undefined,
+    });
+    expect(parsed.stockQuantity).toBe(0);
+  });
+
+  it("productSchema defaults lowStockThreshold to 10 when omitted", () => {
+    const parsed = productSchema.parse({
+      slug: "x",
+      categoryId: "c",
+      name: "n",
+      lowStockThreshold: undefined,
+    });
+    expect(parsed.lowStockThreshold).toBe(10);
+  });
+
+  it("productSchema defaults trackInventory to true when omitted", () => {
+    const parsed = productSchema.parse({
+      slug: "x",
+      categoryId: "c",
+      name: "n",
+      trackInventory: undefined,
+    });
+    expect(parsed.trackInventory).toBe(true);
+  });
+
+  it("productSchema rejects negative stockQuantity", () => {
+    expect(() =>
+      productSchema.parse({ slug: "x", categoryId: "c", name: "n", stockQuantity: -1 }),
+    ).toThrow();
+  });
+
+  it("productSchema rejects legacy stock field", () => {
+    expect(() => productSchema.parse({ slug: "x", categoryId: "c", name: "n", stock: "in" })).toThrow();
+  });
+
   it("categorySchema passes and defaults", () => {
     const parsed = categorySchema.parse({ id: "roofing", name: "Roofing" });
     expect(parsed.sortOrder).toBe(0);

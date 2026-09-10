@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { findQuoteByToken, isQuoteStoreAvailable } from "@/server/quote-store";
 import { audit } from "@/server/audit";
 import { getSettings } from "@/server/settings-store";
-import { computeTotals, formatValidUntil, money } from "@/lib/quote-document";
+import { computeTotals, formatValidUntil, money, round2 } from "@/lib/quote-document";
 import type { BankDetails } from "@/lib/settings-types";
 
 export const runtime = "nodejs";
@@ -25,8 +25,6 @@ function esc(value: unknown): string {
     }
   });
 }
-
-const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
 
 export async function GET(
   _request: Request,
@@ -123,7 +121,7 @@ export async function GET(
       <div class="brand-sub">Office location shared on request · Serving all 16 regions of Ghana</div>
       <div class="brand-sub">banning173@gmail.com · 055 885 0667</div>
     </div>
-    <span class="pill">${paidLabel}</span>
+    <span class="pill">${esc(paidLabel)}</span>
   </header>
 
   <h1 class="doc-title">${esc(quote.paid_at ? "Receipt" : "Quotation")} ${esc(quote.reference)}</h1>
@@ -159,7 +157,7 @@ export async function GET(
 
   <p class="foot">
     ${quote.created_at ? `Issued ${new Date(quote.created_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}` : "Issue date unavailable"}
-    ${quote.valid_until ? ` · Valid until ${formatValidUntil(quote.valid_until)}` : ""}
+    ${quote.valid_until ? ` · Valid until ${esc(formatValidUntil(quote.valid_until))}` : ""}
     ${quote.paid_at ? ` · Paid on ${new Date(quote.paid_at).toLocaleDateString("en-GB", { dateStyle: "medium" })}${quote.payment_method ? ` via ${esc(quote.payment_method.replace("_", " "))}` : ""}` : ""}
   </p>
   <p class="foot">This document was issued by Banning Procurement Hub. For questions, reply to the email or call 055 885 0667.</p>

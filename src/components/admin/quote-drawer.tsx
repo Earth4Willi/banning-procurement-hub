@@ -85,11 +85,11 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
   }, [open, quote.id]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || quote.payment_method !== "bank") return;
     api<{ payments: { bank: BankDetails } }>("/api/admin/settings?key=payments")
       .then((data) => setBankDetails(data.payments?.bank))
       .catch(() => {});
-  }, [open]);
+  }, [open, quote.payment_method]);
 
   useEffect(() => {
     if (!open) return;

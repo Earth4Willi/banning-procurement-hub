@@ -1,16 +1,13 @@
 import { money, formatValidUntil } from "@/lib/quote-document";
+import type { BankDetails } from "@/lib/settings-types";
 import { siteConfig } from "@/lib/site";
+
+export type { BankDetails };
 
 export type QuoteDocumentItem = {
   label: string;
   quantity: number;
   unitPrice?: number;
-};
-
-export type BankDetails = {
-  bankName: string;
-  accountName: string;
-  accountNumber: string;
 };
 
 export type QuoteDocumentQuote = {

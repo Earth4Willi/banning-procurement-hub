@@ -1,6 +1,6 @@
 export const VAT_RATE = 0.15;
 
-const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
+export const round2 = (n: number): number => Math.round((n + Number.EPSILON) * 100) / 100;
 
 export function money(n: number): string {
   return `GH₵ ${n.toLocaleString("en-GB", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

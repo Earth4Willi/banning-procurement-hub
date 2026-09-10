@@ -1141,7 +1141,7 @@ git commit -m "feat: admin materials form uses trackInventory/quantity/threshold
 - Consumes: `Product` with `stockStatus`, `stockQuantity`, `trackInventory`; `useQuote` for add
 - Produces: badge shows quantity count; out-of-stock/on-request → "Request Quote" link
 
-- [ ] **Step 1: Update imports**
+- [x] **Step 1: Update imports**
 
 `siteConfig` is already imported at line 6 (`import { siteConfig } from "@/lib/site";` — keep it, `whatsappNumber` is used in Step 3). Only change the type import, which currently reads `import type { Product, StockStatus } from "@/lib/site";`. `Product` no longer has `stock` after Task 2, and `StockStatus` moves to catalog-types, so:
 ```ts
@@ -1155,7 +1155,7 @@ import { siteConfig } from "@/lib/site";
 import type { StockStatus } from "@/lib/catalog-types";
 ```
 
-- [ ] **Step 2: Replace the stock badge label maps and badge rendering**
+- [x] **Step 2: Replace the stock badge label maps and badge rendering**
 
 Replace the entire badge section (lines 13-68). New approach: derive status from `stockStatus` and show quantity:
 
@@ -1209,7 +1209,7 @@ In the JSX badge `<span>` (line 64-68), replace:
 </span>
 ```
 
-- [ ] **Step 3: Replace the Add to quote button**
+- [x] **Step 3: Replace the Add to quote button**
 
 Replace the button (lines 94-119). When out-of-stock or on-request, show a WhatsApp "Request Quote" link instead of a disabled button:
 
@@ -1247,12 +1247,12 @@ Replace the button (lines 94-119). When out-of-stock or on-request, show a Whats
 )}
 ```
 
-- [ ] **Step 4: Run typecheck**
+- [x] **Step 4: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/product-card.tsx

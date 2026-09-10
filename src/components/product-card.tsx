@@ -12,15 +12,9 @@ type Props = {
 };
 
 const STOCK_LABEL: Record<StockStatus, string> = {
-  in: "In stock",
-  limited: "Limited",
-  out: "Out of stock",
-};
-
-const AVAILABILITY_LABEL: Record<StockStatus, string> = {
-  in: "Available",
-  limited: "Low stock",
-  out: "Unavailable",
+  in: "In Stock",
+  limited: "Limited Stock",
+  out: "Out of Stock",
 };
 
 const STOCK_BADGE_CLASSES: Record<StockStatus, string> = {
@@ -29,13 +23,31 @@ const STOCK_BADGE_CLASSES: Record<StockStatus, string> = {
   out: "bg-ink/85 text-white",
 };
 
+const ON_REQUEST_BADGE = "bg-violet-600/90 text-white";
+
 export function ProductCard({ product }: Props) {
   const { add } = useQuote();
   const [added, setAdded] = useState(false);
   const timerRef = useRef<number | null>(null);
-  const outOfStock = product.stockStatus === "out";
-  const availabilityLabel =
-    product.kind === "measure" ? AVAILABILITY_LABEL[product.stockStatus] : STOCK_LABEL[product.stockStatus];
+  const outOfStock = !product.trackInventory
+    ? false
+    : product.stockStatus === "out";
+  const isOnRequest = !product.trackInventory;
+  const badgeClass = isOnRequest
+    ? ON_REQUEST_BADGE
+    : product.stockStatus === "in"
+      ? STOCK_BADGE_CLASSES.in
+      : product.stockStatus === "limited"
+        ? STOCK_BADGE_CLASSES.limited
+        : STOCK_BADGE_CLASSES.out;
+
+  const badgeText = isOnRequest
+    ? "Available on Request"
+    : product.stockStatus === "in"
+      ? `${STOCK_LABEL.in} — ${product.stockQuantity} available`
+      : product.stockStatus === "limited"
+        ? `${STOCK_LABEL.limited} — only ${product.stockQuantity} left`
+        : STOCK_LABEL.out;
 
   useEffect(() => {
     return () => {
@@ -63,9 +75,9 @@ export function ProductCard({ product }: Props) {
         />
         <span aria-hidden="true" className="shine-sweep" />
         <span
-          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stockStatus]}`}
+          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${badgeClass}`}
         >
-          {availabilityLabel}
+          {badgeText}
         </span>
       </div>
       <div className="flex flex-1 flex-col p-3 sm:p-4">
@@ -92,32 +104,37 @@ export function ProductCard({ product }: Props) {
           <span className="size-1.5 rounded-full bg-accent" aria-hidden="true" />
           {siteConfig.responsePromise}
         </p>
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={outOfStock}
-          aria-disabled={outOfStock}
-          className={`mt-3 inline-flex items-center justify-center gap-2 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold transition-[background-color,color,transform] duration-200 active:scale-[0.98] sm:px-3 sm:py-2 ${
-            outOfStock
-              ? "cursor-not-allowed bg-ink/10 text-ink-muted"
-              : added
+        {outOfStock || isOnRequest ? (
+          <a
+            href={`https://wa.me/${siteConfig.whatsappNumber}?text=${encodeURIComponent(`Hi, I'd like to enquire about ${product.name}. Is this available?`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center justify-center gap-2 rounded-[10px] bg-violet-600/15 px-2.5 py-1.5 text-xs font-semibold text-violet-700 transition-colors hover:bg-violet-600/25 sm:px-3 sm:py-2"
+          >
+            Request Quote
+          </a>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAdd}
+            className={`mt-3 inline-flex items-center justify-center gap-2 rounded-[10px] px-2.5 py-1.5 text-xs font-semibold transition-[background-color,color,transform] duration-200 active:scale-[0.98] sm:px-3 sm:py-2 ${
+              added
                 ? "add-pulse bg-accent text-[#0d3d1a]"
                 : "bg-accent text-[#0d3d1a] hover:bg-accent-light"
-          }`}
-        >
-          <span aria-live="polite">
-            {added ? (
-              <>
-                <Check weight="duotone" size={14} className="pop-in inline" aria-hidden="true" />
-                Added
-              </>
-            ) : outOfStock ? (
-              "Unavailable"
-            ) : (
-              "Add to quote"
-            )}
-          </span>
-        </button>
+            }`}
+          >
+            <span aria-live="polite">
+              {added ? (
+                <>
+                  <Check weight="duotone" size={14} className="pop-in inline" aria-hidden="true" />
+                  Added
+                </>
+              ) : (
+                "Add to quote"
+              )}
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

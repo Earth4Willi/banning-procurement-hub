@@ -73,8 +73,8 @@ export async function persistQuote(input: QuoteInput): Promise<boolean> {
       items: input.items,
       source: input.source ?? "web",
       user_id: input.userId ?? null,
-      delivery_address: input.deliveryAddress ?? null,
-      intended_payment_method: input.intendedPaymentMethod ?? null,
+      delivery_address: input.deliveryAddress ?? "",
+      intended_payment_method: input.intendedPaymentMethod ?? "",
     });
     if (error) {
       console.warn(`[quote-store] insert failed: ${error.message}`);

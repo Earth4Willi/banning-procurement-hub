@@ -8,6 +8,7 @@ import { SidebarNav, signOutFlow, type AdminView } from "./sidebar";
 import { MessagesView } from "./messages-view";
 import { CustomersView } from "./customers-view";
 import { MaterialsView } from "./materials-view";
+import type { Session } from "./helpers";
 
 const VIEWS: AdminView[] = ["messages", "customers", "materials"];
 
@@ -108,7 +109,7 @@ export default function AdminShell() {
 }
 
 function ShellLayout(props: {
-  session: { status: string; signOut: () => Promise<void>; email?: string; avatarUrl?: string };
+  session: Session;
   active: AdminView;
   onNavigate: (view: AdminView) => void;
   badges: Partial<Record<AdminView, number>>;
@@ -121,7 +122,7 @@ function ShellLayout(props: {
     <div className="flex min-h-dvh">
       <aside className="fixed inset-y-0 left-0 z-40 w-64 hidden lg:block">
         <SidebarNav
-          session={session as never}
+          session={session}
           active={active}
           onNavigate={onNavigate}
           badges={badges}
@@ -145,7 +146,7 @@ function MobilePillNav(props: {
   active: AdminView;
   onNavigate: (view: AdminView) => void;
   badges: Partial<Record<AdminView, number>>;
-  session: { status: string; signOut: () => Promise<void>; email?: string; avatarUrl?: string };
+  session: Session;
   router: ReturnType<typeof useRouter>;
 }) {
   const { active, onNavigate, badges, session, router } = props;
@@ -181,7 +182,7 @@ function MobilePillNav(props: {
       })}
       <button
         type="button"
-        onClick={() => signOutFlow(session as never, router)}
+        onClick={() => signOutFlow(session, router)}
         className="ml-auto shrink-0 inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
         aria-label="Sign out"
       >

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Camera,
-  ChartBar,
   ChatCircleText,
   SignOut,
   SquaresFour,
@@ -14,10 +13,9 @@ import {
 import type { Session } from "./helpers";
 import { AVATAR_TYPES, readImageSize, validateImageClient } from "./avatar";
 
-export type AdminView = "analytics" | "messages" | "customers" | "materials";
+export type AdminView = "messages" | "customers" | "materials";
 
-const ICONS: Record<AdminView, typeof ChartBar> = {
-  analytics: ChartBar,
+const ICONS: Record<AdminView, typeof ChatCircleText> = {
   messages: ChatCircleText,
   customers: UsersThree,
   materials: SquaresFour,

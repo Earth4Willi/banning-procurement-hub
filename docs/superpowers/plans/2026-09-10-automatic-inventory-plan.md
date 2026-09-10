@@ -1521,7 +1521,7 @@ git commit -m "feat: acceptQuoteWithInventory deducts stock on won transition, r
 **Interfaces:**
 - Consumes: `fetchProducts`, `updateProduct` from catalog-store; `getSupabaseClient` from audit; `requireOwner`; `parseBody`; `audit`; `withErrorHandling`
 
-- [ ] **Step 1: Create `src/app/api/admin/inventory/route.ts`**
+- [x] **Step 1: Create `src/app/api/admin/inventory/route.ts`**
 
 ```ts
 import type { NextRequest } from "next/server";
@@ -1687,7 +1687,7 @@ export const PATCH = withErrorHandling(async (request: NextRequest) => {
 });
 ```
 
-- [ ] **Step 2: Create `src/app/api/admin/inventory/history/route.ts`**
+- [x] **Step 2: Create `src/app/api/admin/inventory/history/route.ts`**
 
 ```ts
 import type { NextRequest } from "next/server";
@@ -1757,12 +1757,12 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 });
 ```
 
-- [ ] **Step 3: Run typecheck**
+- [x] **Step 3: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/app/api/admin/inventory/route.ts src/app/api/admin/inventory/history/route.ts

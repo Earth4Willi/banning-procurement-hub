@@ -153,19 +153,8 @@ describe("AccountView", () => {
     expect((container.querySelector('input[name="profile-name"]') as HTMLInputElement).value).toBe("Ama Osei");
   });
 
-  it("shows a sign-in prompt with a /login link when signed out", async () => {
-    installFetch({
-      "/api/auth/me": { status: 401, body: { error: { code: "unauthenticated", message: "Not signed in." } } },
-    });
-    mount(<AccountView />);
-    await flush();
-
-    expect(container.textContent).toContain("Sign in to view your orders");
-    expect(container.querySelector('a[href="/login"]')).not.toBeNull();
-  });
-
-  it("shows an owner guard pointing to the dashboard when the session is an owner", async () => {
-    installFetch({
+  it("shows an owner guard pointing to the dashboard when the session is an owner, without fetching account data", async () => {
+    const fetchMock = installFetch({
       "/api/auth/me": { status: 200, body: { role: "owner", email: "owner@example.com" } },
     });
     mount(<AccountView />);
@@ -173,6 +162,20 @@ describe("AccountView", () => {
 
     expect(container.textContent).toContain("This area is for customers");
     expect(container.querySelector('a[href="/admin"]')).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith("/api/auth/me", expect.objectContaining({ credentials: "same-origin" }));
+  });
+
+  it("shows the sign-in prompt for a signed-out visitor without fetching account data", async () => {
+    const fetchMock = installFetch({
+      "/api/auth/me": { status: 401, body: { error: { code: "unauthenticated", message: "Not signed in." } } },
+    });
+    mount(<AccountView />);
+    await flush();
+
+    expect(container.textContent).toContain("Sign in to view your orders");
+    expect(container.querySelector('a[href="/login"]')).not.toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("renders orders from /api/account/orders with items, totals, status and doc link", async () => {

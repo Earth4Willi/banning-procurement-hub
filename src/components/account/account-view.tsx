@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CaretRight, CircleNotch, MapPin, ShieldCheck, SignIn, UserCircle } from "@phosphor-icons/react";
-import { api } from "@/components/admin/helpers";
-import { formatDate, formatItems, statusPill } from "@/components/admin/helpers";
+import { api, formatDate, formatItems, inputClass, statusPill } from "@/components/admin/helpers";
 import { money } from "@/lib/quote-document";
 import { useSession } from "@/lib/use-session";
 import { siteConfig } from "@/lib/site";
@@ -46,13 +45,6 @@ type Order = {
   doc_link: string | null;
 };
 
-const inputClass = (hasError: boolean) =>
-  `w-full rounded-[10px] border bg-surface px-4 py-3 text-base text-ink outline-none transition-colors focus:ring-2 ${
-    hasError
-      ? "border-red-600 focus:border-red-600 focus:ring-red-600/40"
-      : "border-primary/20 focus:border-primary focus:ring-accent/60"
-  }`;
-
 const buttonClass =
   "inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2.5 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -72,6 +64,7 @@ export function AccountView() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (session.status !== "signed-in" || session.role !== "customer") return;
     let cancelled = false;
     void (async () => {
       try {
@@ -91,7 +84,7 @@ export function AccountView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [session.status, session.role]);
 
   useEffect(() => {
     setSaved(null);

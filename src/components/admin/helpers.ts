@@ -11,6 +11,14 @@ export type Session = {
 export const STATUSES = ["new", "reviewed", "won", "lost"] as const;
 export type Status = (typeof STATUSES)[number];
 
+export function inputClass(hasError: boolean): string {
+  return `w-full rounded-[10px] border bg-surface px-4 py-3 text-base text-ink outline-none transition-colors focus:ring-2 ${
+    hasError
+      ? "border-red-600 focus:border-red-600 focus:ring-red-600/40"
+      : "border-primary/20 focus:border-primary focus:ring-accent/60"
+  }`;
+}
+
 export type QuoteItem = { slug: string; label: string; quantity: number; unitPrice?: number };
 
 export type QuoteRow = {

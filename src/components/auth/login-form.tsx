@@ -3,17 +3,10 @@
 import { useState } from "react";
 import { LinkSimple, SignIn } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { api } from "@/components/admin/helpers";
+import { api, inputClass } from "@/components/admin/helpers";
 import { validateLogin, type LoginFieldErrors } from "@/lib/validation";
 
 const EMPTY = { email: "", password: "" };
-
-const inputClass = (hasError: boolean) =>
-  `w-full rounded-[10px] border bg-surface px-4 py-3 text-base text-ink outline-none transition-colors focus:ring-2 ${
-    hasError
-      ? "border-red-600 focus:border-red-600 focus:ring-red-600/40"
-      : "border-primary/20 focus:border-primary focus:ring-accent/60"
-  }`;
 
 export function LoginForm() {
   const router = useRouter();

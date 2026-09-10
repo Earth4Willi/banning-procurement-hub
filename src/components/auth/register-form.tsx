@@ -3,18 +3,11 @@
 import { useState } from "react";
 import { LockKey, SignIn } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { api } from "@/components/admin/helpers";
+import { api, inputClass } from "@/components/admin/helpers";
 import { siteConfig } from "@/lib/site";
 import { validateRegister, type RegisterFieldErrors } from "@/lib/validation";
 
 const EMPTY = { name: "", phone: "", email: "", area: "", address: "", password: "", confirmPassword: "" };
-
-const inputClass = (hasError: boolean) =>
-  `w-full rounded-[10px] border bg-surface px-4 py-3 text-base text-ink outline-none transition-colors focus:ring-2 ${
-    hasError
-      ? "border-red-600 focus:border-red-600 focus:ring-red-600/40"
-      : "border-primary/20 focus:border-primary focus:ring-accent/60"
-  }`;
 
 export function RegisterForm() {
   const router = useRouter();

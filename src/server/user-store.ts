@@ -152,16 +152,13 @@ export async function updateCustomerProfile(id: string, patch: Partial<CustomerU
   try {
     const client = getSupabaseClient();
     if (!client) return false;
+    const dbPatch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    for (const field of ["name", "email", "phone", "area", "address"] as const) {
+      if (patch[field] !== undefined) dbPatch[field] = patch[field];
+    }
     const { error } = await client
       .from("users")
-      .update({
-        name: patch.name,
-        email: patch.email,
-        phone: patch.phone,
-        area: patch.area,
-        address: patch.address,
-        updated_at: new Date().toISOString(),
-      })
+      .update(dbPatch)
       .eq("id", id);
     if (error) {
       console.warn(`[user-store] update failed: ${error.message}`);

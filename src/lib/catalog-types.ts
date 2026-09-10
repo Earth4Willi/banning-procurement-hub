@@ -24,7 +24,10 @@ export type CatalogProduct = {
   image: string;
   imageUrl?: string;
   description: string;
-  stock: StockStatus;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  trackInventory: boolean;
+  stockStatus: StockStatus;
   pricingMode: PricingMode;
   kind: ProductKind;
   visible?: boolean;

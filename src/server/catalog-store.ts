@@ -1,6 +1,7 @@
 import { categories as staticCategories, products as staticProducts } from "@/lib/site";
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
 import { getSupabaseClient } from "./audit";
+import { computeProductStatus } from "./inventory";
 
 /**
  * DB-first catalog reads with the static `site.ts` data as a transparent
@@ -22,10 +23,25 @@ function mapCategory(row: Record<string, unknown>): CatalogCategory {
 }
 
 function mapProduct(row: Record<string, unknown>): CatalogProduct {
-  const stock = row.stock?.toString();
   const pricingMode = row.pricing_mode?.toString();
   const kind = row.kind?.toString();
   const visible = row.visible === null || row.visible === undefined ? true : Boolean(row.visible);
+  const stockQuantity = Number(row.stock_quantity ?? 0);
+  const lowStockThreshold = Number(row.low_stock_threshold ?? 10);
+  const trackInventory = Boolean(row.track_inventory ?? true);
+
+  const statusInfo = computeProductStatus({
+    trackInventory,
+    stockQuantity,
+    lowStockThreshold,
+  });
+
+  // Map status to legacy StockStatus for backward compat
+  const stockStatus: CatalogProduct["stockStatus"] =
+    statusInfo.status === "in_stock" ? "in"
+    : statusInfo.status === "limited" ? "limited"
+    : "out";
+
   return {
     slug: String(row.slug),
     categoryId: String(row.category_id),
@@ -36,7 +52,10 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
     image: String(row.image_url ?? ""),
     imageUrl: row.image_url ? String(row.image_url) : undefined,
     description: String(row.description ?? ""),
-    stock: stock === "limited" || stock === "out" ? stock : "in",
+    stockQuantity,
+    lowStockThreshold,
+    trackInventory,
+    stockStatus,
     pricingMode: pricingMode === "fixed" ? "fixed" : "quote",
     kind: kind === "measure" ? "measure" : "unit",
     visible,
@@ -66,7 +85,7 @@ export async function fetchProducts(): Promise<CatalogProduct[]> {
   try {
     const { data, error } = await client
       .from("products")
-      .select("slug, category_id, name, brand, unit, unit_price, image_url, description, stock, pricing_mode, kind, visible, sort_order")
+      .select("slug, category_id, name, brand, unit, unit_price, image_url, description, stock_quantity, low_stock_threshold, track_inventory, pricing_mode, kind, visible, sort_order")
       .order("sort_order", { ascending: true });
     if (error || !data || data.length === 0) return staticProducts;
     return (data as unknown as Record<string, unknown>[]).map(mapProduct);
@@ -99,7 +118,9 @@ export type ProductInput = {
   unitPrice?: string;
   image?: string;
   description?: string;
-  stock?: CatalogProduct["stock"];
+  stockQuantity?: number;
+  lowStockThreshold?: number;
+  trackInventory?: boolean;
   pricingMode?: CatalogProduct["pricingMode"];
   kind?: CatalogProduct["kind"];
   visible?: boolean;
@@ -166,7 +187,9 @@ export async function createProduct(input: ProductInput): Promise<boolean> {
     unit_price: input.unitPrice ?? "",
     image_url: input.image ?? "",
     description: input.description ?? "",
-    stock: input.stock,
+    stock_quantity: input.stockQuantity ?? 0,
+    low_stock_threshold: input.lowStockThreshold ?? 10,
+    track_inventory: input.trackInventory ?? true,
     pricing_mode: input.pricingMode,
     kind: input.kind,
     visible: input.visible ?? true,
@@ -190,7 +213,9 @@ export async function updateProduct(slug: string, patch: Partial<ProductInput>):
     unit_price: patch.unitPrice ?? undefined,
     image_url: patch.image ?? undefined,
     description: patch.description ?? undefined,
-    stock: patch.stock,
+    stock_quantity: patch.stockQuantity,
+    low_stock_threshold: patch.lowStockThreshold,
+    track_inventory: patch.trackInventory,
     pricing_mode: patch.pricingMode,
     kind: patch.kind,
     visible: patch.visible,

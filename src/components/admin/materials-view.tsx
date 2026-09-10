@@ -78,15 +78,15 @@ function inputClass(error?: string): string {
   }`;
 }
 
-function stockLabel(stock: CatalogProduct["stock"]): string {
-  if (stock === "in") return "In stock";
-  if (stock === "limited") return "Limited";
+function stockLabel(stockStatus: CatalogProduct["stockStatus"]): string {
+  if (stockStatus === "in") return "In stock";
+  if (stockStatus === "limited") return "Limited";
   return "Out of stock";
 }
 
-function stockPill(stock: CatalogProduct["stock"]): string {
-  if (stock === "in") return "bg-emerald-600/15 text-emerald-700";
-  if (stock === "limited") return "bg-amber-600/15 text-amber-700";
+function stockPill(stockStatus: CatalogProduct["stockStatus"]): string {
+  if (stockStatus === "in") return "bg-emerald-600/15 text-emerald-700";
+  if (stockStatus === "limited") return "bg-amber-600/15 text-amber-700";
   return "bg-rose-600/15 text-rose-700";
 }
 
@@ -181,7 +181,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
           unitPrice: product.unitPrice,
           imageUrl: product.imageUrl ?? product.image ?? "",
           description: product.description,
-          stock: product.stock,
+          stock: product.stockStatus,
           pricingMode: product.pricingMode,
           kind: product.kind,
           visible: product.visible ?? true,
@@ -397,7 +397,10 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
             unitPrice: product.unitPrice,
             imageUrl: product.imageUrl ?? product.image ?? "",
             description: product.description,
-            stock: product.stock,
+            stockStatus: product.stockStatus,
+            stockQuantity: product.stockQuantity,
+            lowStockThreshold: product.lowStockThreshold,
+            trackInventory: product.trackInventory,
             pricingMode: product.pricingMode,
             kind: product.kind,
             visible: nextVisible,
@@ -597,8 +600,8 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                         : "Price on request"}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stock)}`}>
-                          {stockLabel(product.stock)}
+                        <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stockStatus)}`}>
+                          {stockLabel(product.stockStatus)}
                         </span>
                       </td>
                       <td className="px-4 py-3">

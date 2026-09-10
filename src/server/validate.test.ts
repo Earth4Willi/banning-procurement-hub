@@ -200,7 +200,9 @@ describe("catalog schemas", () => {
       unitPrice: "GH¢ 98.00",
     });
     expect(parsed.slug).toBe("ghacem-supacem");
-    expect(parsed.stock).toBe("in");
+    expect(parsed.stockQuantity).toBe(0);
+    expect(parsed.lowStockThreshold).toBe(10);
+    expect(parsed.trackInventory).toBe(true);
     expect(parsed.pricingMode).toBe("quote");
     expect(parsed.brand).toBeUndefined();
   });

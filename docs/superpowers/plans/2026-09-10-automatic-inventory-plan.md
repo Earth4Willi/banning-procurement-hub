@@ -536,7 +536,7 @@ git commit -m "feat: add inventory migration (0005) — stock_quantity, threshol
 - Consumes: `getStockStatus`, `computeProductStatus` from `src/server/inventory.ts`
 - Produces: `CatalogProduct` type gains `stockQuantity`, `lowStockThreshold`, `trackInventory`, `stockStatus`; `mapProduct` reads new DB columns and computes status; `ProductInput` accepts new fields; `createProduct`/`updateProduct` write new columns
 
-- [ ] **Step 1: Update CatalogProduct type in catalog-types.ts**
+- [x] **Step 1: Update CatalogProduct type in catalog-types.ts**
 
 Replace `stock: StockStatus` with computed + inventory fields:
 
@@ -566,7 +566,7 @@ export type CatalogProduct = {
 };
 ```
 
-- [ ] **Step 2: Update ProductInput in catalog-store.ts**
+- [x] **Step 2: Update ProductInput in catalog-store.ts**
 
 Replace `stock?: CatalogProduct["stock"]` with:
 
@@ -590,7 +590,7 @@ export type ProductInput = {
 };
 ```
 
-- [ ] **Step 3: Update mapProduct in catalog-store.ts**
+- [x] **Step 3: Update mapProduct in catalog-store.ts**
 
 Replace the existing `mapProduct` function:
 
@@ -639,7 +639,7 @@ function mapProduct(row: Record<string, unknown>): CatalogProduct {
 }
 ```
 
-- [ ] **Step 4: Update fetchProducts select clause**
+- [x] **Step 4: Update fetchProducts select clause**
 
 In `fetchProducts`, change the select string from:
 ```ts
@@ -650,7 +650,7 @@ to:
 .select("slug, category_id, name, brand, unit, unit_price, image_url, description, stock_quantity, low_stock_threshold, track_inventory, pricing_mode, kind, visible, sort_order")
 ```
 
-- [ ] **Step 5: Update createProduct to write new columns**
+- [x] **Step 5: Update createProduct to write new columns**
 
 In `createProduct`, replace `stock: input.stock` with:
 ```ts
@@ -659,7 +659,7 @@ low_stock_threshold: input.lowStockThreshold ?? 10,
 track_inventory: input.trackInventory ?? true,
 ```
 
-- [ ] **Step 6: Update updateProduct to write new columns**
+- [x] **Step 6: Update updateProduct to write new columns**
 
 In `updateProduct`, replace `stock: patch.stock` with:
 ```ts
@@ -668,7 +668,7 @@ low_stock_threshold: patch.lowStockThreshold,
 track_inventory: patch.trackInventory,
 ```
 
-- [ ] **Step 7: Update the static→catalog mapper in `src/lib/catalog-context.tsx`**
+- [x] **Step 7: Update the static→catalog mapper in `src/lib/catalog-context.tsx`**
 
 In `mapSiteProducts` (around line 27-43), replace `stock: p.stock` with:
 ```ts
@@ -678,17 +678,17 @@ trackInventory: p.trackInventory,
 stockStatus: p.stockStatus,
 ```
 
-- [ ] **Step 8: Update component test fixtures that still use `stock`**
+- [x] **Step 8: Update component test fixtures that still use `stock`**
 
 - `src/components/product-search.test.tsx` (around line 77): in the mocked `/api/catalog` product, replace `stock: "in"` with `stockQuantity: 100, lowStockThreshold: 10, trackInventory: true, stockStatus: "in"`.
 - `src/components/sections/category-grid.test.tsx` (around line 88): in the `PRODUCT` fixture, replace `stock: "in"` with `stockQuantity: 100, lowStockThreshold: 10, trackInventory: true, stockStatus: "in"`.
 
-- [ ] **Step 9: Run typecheck**
+- [x] **Step 9: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS (fix any type errors from the `stock` → `stockStatus` rename propagation)
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/lib/catalog-types.ts src/server/catalog-store.ts src/lib/catalog-context.tsx src/components/product-search.test.tsx src/components/sections/category-grid.test.tsx
@@ -707,7 +707,7 @@ git commit -m "refactor: CatalogProduct uses stockQuantity/computed stockStatus 
 - Consumes: new ProductInput type shape
 - Produces: `productSchema` accepts `stockQuantity`, `lowStockThreshold`, `trackInventory`; rejects `stock`
 
-- [ ] **Step 1: Update productSchema in validate.ts**
+- [x] **Step 1: Update productSchema in validate.ts**
 
 Replace the `stock` field with inventory fields:
 
@@ -739,7 +739,7 @@ export const productSchema = z
   .strict();
 ```
 
-- [ ] **Step 2: Update the existing productSchema test + add inventory tests in validate.test.ts**
+- [x] **Step 2: Update the existing productSchema test + add inventory tests in validate.test.ts**
 
 First update the existing "productSchema passes a full product and defaults omission" test (around line 195-206): it asserts `expect(parsed.stock).toBe("in")`. `stock` no longer exists — replace that assertion with the new defaults:
 

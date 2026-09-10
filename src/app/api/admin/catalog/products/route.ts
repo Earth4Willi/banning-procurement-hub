@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { createProduct, deleteProduct, fetchProducts, updateProduct } from "@/server/catalog-store";
 import { requireOwner } from "@/server/require-owner";
+import { revalidatePublic } from "@/server/revalidate";
 import { catalogItemIdSchema, parseBody, productSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
@@ -53,6 +54,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("catalog_product_created", { slug: body.slug, categoryId: body.categoryId });
+  revalidatePublic();
   return NextResponse.json({ ok: true }, { status: 201 });
 });
 
@@ -81,6 +83,7 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("catalog_product_updated", { slug: body.slug });
+  revalidatePublic();
   return NextResponse.json({ ok: true });
 });
 
@@ -96,5 +99,6 @@ export const DELETE = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("catalog_product_deleted", { slug: body.id });
+  revalidatePublic();
   return NextResponse.json({ ok: true });
 });

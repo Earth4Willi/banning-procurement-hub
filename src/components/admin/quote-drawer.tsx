@@ -6,6 +6,7 @@ import type { QuoteRow, Status } from "./helpers";
 import { STATUSES, api, copyText, ctaToWhatsApp } from "./helpers";
 import { buildQuoteSummary, computeTotals, formatValidUntil, money } from "@/lib/quote-document";
 import { ClientQuoteDocument, type ClientQuoteDocumentQuote } from "./client-quote-document";
+import type { BankDetails } from "./quote-document";
 
 const PAYMENT_METHODS = ["cash", "mobile_money", "bank", "other"] as const;
 const METHOD_LABELS: Record<string, string> = {
@@ -54,6 +55,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
   const [previewOpen, setPreviewOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [bankDetails, setBankDetails] = useState<BankDetails | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +83,13 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
     setError(null);
     setNotice(null);
   }, [open, quote.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    api<{ payments: { bank: BankDetails } }>("/api/admin/settings?key=payments")
+      .then((data) => setBankDetails(data.payments?.bank))
+      .catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -534,7 +543,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
                 <X weight="duotone" size={16} aria-hidden="true" />
               </button>
             </div>
-            <ClientQuoteDocument quote={previewQuote} />
+            <ClientQuoteDocument quote={previewQuote} bankDetails={bankDetails} />
             {form.validUntil ? (
               <p className="no-print px-4 pb-2 text-center text-xs text-slate-500">Valid until {formatValidUntil(form.validUntil)} is set on the document when saved.</p>
             ) : null}

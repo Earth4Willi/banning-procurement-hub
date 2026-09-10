@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Copy } from "@phosphor-icons/react";
-import { QuoteDocument, type QuoteDocumentQuote } from "./quote-document";
+import { QuoteDocument, type BankDetails, type QuoteDocumentQuote } from "./quote-document";
 import { PrintButton } from "./print-button";
 import { api, copyText } from "./helpers";
 
 export type ClientQuoteDocumentQuote = QuoteDocumentQuote & { id: string };
 
-export function ClientQuoteDocument({ quote }: { quote: ClientQuoteDocumentQuote }) {
+export function ClientQuoteDocument({ quote, bankDetails }: { quote: ClientQuoteDocumentQuote; bankDetails?: BankDetails }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +30,7 @@ export function ClientQuoteDocument({ quote }: { quote: ClientQuoteDocumentQuote
 
   return (
     <div className="print-area">
-      <QuoteDocument quote={quote} />
+      <QuoteDocument quote={quote} bankDetails={bankDetails} />
       <div className="no-print mt-6 flex flex-wrap items-center gap-3">
         <PrintButton />
         <button

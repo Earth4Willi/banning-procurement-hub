@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Camera,
   ChatCircleText,
+  Gear,
   SignOut,
   SquaresFour,
   UsersThree,
@@ -13,12 +14,13 @@ import {
 import type { Session } from "./helpers";
 import { AVATAR_TYPES, readImageSize, validateImageClient } from "./avatar";
 
-export type AdminView = "messages" | "customers" | "materials";
+export type AdminView = "messages" | "customers" | "materials" | "settings";
 
 const ICONS: Record<AdminView, typeof ChatCircleText> = {
   messages: ChatCircleText,
   customers: UsersThree,
   materials: SquaresFour,
+  settings: Gear,
 };
 
 export function signOutFlow(session: Session, router: ReturnType<typeof useRouter>): void {

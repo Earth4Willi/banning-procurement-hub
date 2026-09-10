@@ -7,6 +7,12 @@ export type QuoteDocumentItem = {
   unitPrice?: number;
 };
 
+export type BankDetails = {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+};
+
 export type QuoteDocumentQuote = {
   reference: string;
   name: string;
@@ -36,8 +42,9 @@ function statusLabel(status: string): string {
   }
 }
 
-export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
+export function QuoteDocument({ quote, bankDetails }: { quote: QuoteDocumentQuote; bankDetails?: BankDetails }) {
   const hasPricing = quote.items.some((item) => typeof item.unitPrice === "number");
+  const showBankBlock = quote.payment_method === "bank" && bankDetails && (bankDetails.bankName || bankDetails.accountName || bankDetails.accountNumber);
 
   return (
     <div className="relative mx-auto max-w-2xl px-4 py-8">
@@ -125,6 +132,15 @@ export function QuoteDocument({ quote }: { quote: QuoteDocumentQuote }) {
               <span>{money(quote.total_amount)}</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {showBankBlock && (
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-sm font-semibold text-slate-800">Bank Transfer</h3>
+          <p className="mt-1 text-sm text-slate-600">
+            Bank: {bankDetails.bankName} &middot; Account name: {bankDetails.accountName} &middot; Account number: {bankDetails.accountNumber}
+          </p>
         </div>
       )}
 

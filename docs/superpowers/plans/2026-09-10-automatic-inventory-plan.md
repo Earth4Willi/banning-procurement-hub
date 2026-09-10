@@ -35,7 +35,7 @@
 **Interfaces:**
 - Produces: `getStockStatus(quantity, threshold)`, `applyQuantityChange(prev, change)`, `computeProductStatus(product)`, `findShortLines(items, products)`, types `StockStatusValue`, `InventoryInfo`, `ShortLine`
 
-- [ ] **Step 1: Create the inventory module**
+- [x] **Step 1: Create the inventory module**
 
 ```ts
 // src/server/inventory.ts
@@ -158,7 +158,7 @@ export function findShortLines(
 }
 ```
 
-- [ ] **Step 2: Write the failing test for getStockStatus**
+- [x] **Step 2: Write the failing test for getStockStatus**
 
 Create `src/server/inventory.test.ts`:
 
@@ -302,12 +302,12 @@ describe("findShortLines", () => {
 });
 ```
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run: `npx vitest run src/server/inventory.test.ts`
 Expected: all tests PASS
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/server/inventory.ts src/server/inventory.test.ts

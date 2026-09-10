@@ -896,7 +896,7 @@ git commit -m "refactor: catalog products API passes stockQuantity/threshold/tra
 **Interfaces:**
 - Consumes: `CatalogProduct` with `stockQuantity`, `lowStockThreshold`, `trackInventory`, `stockStatus`; computed `stockLabel`/`stockPill` from status
 
-- [ ] **Step 1: Update ProductForm type**
+- [x] **Step 1: Update ProductForm type**
 
 Replace `stock: "in" | "limited" | "out"` with:
 ```ts
@@ -919,7 +919,7 @@ type ProductForm = {
 };
 ```
 
-- [ ] **Step 2: Update EMPTY_PRODUCT default**
+- [x] **Step 2: Update EMPTY_PRODUCT default**
 
 ```ts
 const EMPTY_PRODUCT: ProductForm = {
@@ -941,7 +941,7 @@ const EMPTY_PRODUCT: ProductForm = {
 };
 ```
 
-- [ ] **Step 3: Update stockLabel/stockPill helper functions**
+- [x] **Step 3: Update stockLabel/stockPill helper functions**
 
 Replace the existing helpers (around lines 81-91):
 
@@ -959,7 +959,7 @@ function stockPill(status: CatalogProduct["stockStatus"]): string {
 }
 ```
 
-- [ ] **Step 4: Update openProductModal and toggleProductVisible to use new fields**
+- [x] **Step 4: Update openProductModal and toggleProductVisible to use new fields**
 
 In the `openProductModal` callback (around line 184), change:
 ```ts
@@ -979,7 +979,7 @@ lowStockThreshold: product.lowStockThreshold,
 trackInventory: product.trackInventory,
 ```
 
-- [ ] **Step 5: Add the unit suggestion dropdown (spec: Unit field becomes a dropdown)**
+- [x] **Step 5: Add the unit suggestion dropdown (spec: Unit field becomes a dropdown)**
 
 The spec requires the Unit field to be a dropdown (Bag, Piece, Pack, Box, Roll, Metre, Bucket, Load, Truck, Ton, Other). Because existing rows carry descriptive units ("bag (50kg)", "trip (tipper)", "box (4 pcs)"), use an `<input list>` datalist — suggested options with free-text still allowed, so nothing existing breaks.
 
@@ -1029,7 +1029,7 @@ Replace lines 841-852 (the current Unit input in the two-column grid):
 </div>
 ```
 
-- [ ] **Step 6: Replace the Stock dropdown in the modal**
+- [x] **Step 6: Replace the Stock dropdown in the modal**
 
 Replace lines 897-923 (the `grid grid-cols-2 gap-4` containing Stock + Sort Order) with:
 
@@ -1096,7 +1096,7 @@ Replace lines 897-923 (the `grid grid-cols-2 gap-4` containing Stock + Sort Orde
 ) : null}
 ```
 
-- [ ] **Step 7: Update the products table Stock column**
+- [x] **Step 7: Update the products table Stock column**
 
 Replace lines 599-603 (the Stock `<td>`):
 
@@ -1114,16 +1114,16 @@ Replace lines 599-603 (the Stock `<td>`):
 </td>
 ```
 
-- [ ] **Step 8: Update the table header**
+- [x] **Step 8: Update the table header**
 
 Rename the `<th>` from "Stock" to "Inventory" (around line 565).
 
-- [ ] **Step 9: Run typecheck**
+- [x] **Step 9: Run typecheck**
 
 Run: `npx tsc --noEmit`
 Expected: PASS
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/components/admin/materials-view.tsx

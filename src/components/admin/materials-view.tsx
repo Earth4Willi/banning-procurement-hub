@@ -27,7 +27,9 @@ type ProductForm = {
   unitPrice: string;
   imageUrl: string;
   description: string;
-  stock: "in" | "limited" | "out";
+  stockQuantity: number;
+  lowStockThreshold: number;
+  trackInventory: boolean;
   pricingMode: "fixed" | "quote";
   kind: "unit" | "measure";
   visible: boolean;
@@ -53,7 +55,9 @@ const EMPTY_PRODUCT: ProductForm = {
   unitPrice: "",
   imageUrl: "",
   description: "",
-  stock: "in",
+  stockQuantity: 0,
+  lowStockThreshold: 10,
+  trackInventory: true,
   pricingMode: "quote",
   kind: "unit",
   visible: true,
@@ -78,10 +82,10 @@ function inputClass(error?: string): string {
   }`;
 }
 
-function stockLabel(stockStatus: CatalogProduct["stockStatus"]): string {
-  if (stockStatus === "in") return "In stock";
-  if (stockStatus === "limited") return "Limited";
-  return "Out of stock";
+function stockStatusLabel(status: CatalogProduct["stockStatus"]): string {
+  if (status === "in") return "In Stock";
+  if (status === "limited") return "Limited";
+  return "Out of Stock";
 }
 
 function stockPill(stockStatus: CatalogProduct["stockStatus"]): string {
@@ -181,7 +185,9 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
           unitPrice: product.unitPrice,
           imageUrl: product.imageUrl ?? product.image ?? "",
           description: product.description,
-          stock: product.stockStatus,
+          stockQuantity: product.stockQuantity,
+          lowStockThreshold: product.lowStockThreshold,
+          trackInventory: product.trackInventory,
           pricingMode: product.pricingMode,
           kind: product.kind,
           visible: product.visible ?? true,
@@ -397,7 +403,6 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
             unitPrice: product.unitPrice,
             imageUrl: product.imageUrl ?? product.image ?? "",
             description: product.description,
-            stockStatus: product.stockStatus,
             stockQuantity: product.stockQuantity,
             lowStockThreshold: product.lowStockThreshold,
             trackInventory: product.trackInventory,
@@ -565,7 +570,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     <th className="px-4 py-3 font-medium">Name</th>
                     <th className="px-4 py-3 font-medium">Category</th>
                     <th className="px-4 py-3 font-medium">Price</th>
-                    <th className="px-4 py-3 font-medium">Stock</th>
+                    <th className="px-4 py-3 font-medium">Inventory</th>
                     <th className="px-4 py-3 font-medium">Visible</th>
                     <th className="px-4 py-3 font-medium">Sort</th>
                     <th className="px-4 py-3 font-medium">Actions</th>
@@ -600,9 +605,15 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                         : "Price on request"}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
-                        <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stockStatus)}`}>
-                          {stockLabel(product.stockStatus)}
-                        </span>
+                        {product.trackInventory ? (
+                          <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stockStatus)}`}>
+                            {stockStatusLabel(product.stockStatus)} ({product.stockQuantity})
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-violet-600/15 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-violet-700">
+                            Request
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <span
@@ -845,12 +856,26 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                   <input
                     id="p-unit"
                     type="text"
+                    list="unit-options"
                     maxLength={30}
                     value={productForm.unit}
                     onChange={(e) => setProductForm((f) => ({ ...f, unit: e.target.value }))}
                     placeholder="e.g. bag, kg, metre"
                     className={`mt-2 ${inputClass(formErrors.unit)}`}
                   />
+                  <datalist id="unit-options">
+                    <option value="Bag" />
+                    <option value="Piece" />
+                    <option value="Pack" />
+                    <option value="Box" />
+                    <option value="Roll" />
+                    <option value="Metre" />
+                    <option value="Bucket" />
+                    <option value="Load" />
+                    <option value="Truck" />
+                    <option value="Ton" />
+                    <option value="Other" />
+                  </datalist>
                   {formErrors.unit ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.unit}</p> : null}
                 </div>
                 <div>
@@ -899,17 +924,20 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="p-stock" className="text-sm font-medium text-ink">Stock</label>
-                  <select
-                    id="p-stock"
-                    value={productForm.stock}
-                    onChange={(e) => setProductForm((f) => ({ ...f, stock: e.target.value as "in" | "limited" | "out" }))}
-                    className={`mt-2 ${inputClass(formErrors.stock)}`}
-                  >
-                    <option value="in">In stock</option>
-                    <option value="limited">Limited</option>
-                    <option value="out">Out of stock</option>
-                  </select>
+                  <label className="inline-flex items-center gap-2 text-sm text-ink">
+                    <input
+                      type="checkbox"
+                      checked={productForm.trackInventory}
+                      onChange={(e) => setProductForm((f) => ({ ...f, trackInventory: e.target.checked }))}
+                      className="size-4 rounded border-primary/30 accent-[#0d3d1a]"
+                    />
+                    Track inventory
+                  </label>
+                  <p className="mt-1 text-xs text-ink-muted">
+                    {productForm.trackInventory
+                      ? "Status is computed from quantity automatically."
+                      : "Shown as Available on Request on the site."}
+                  </p>
                 </div>
                 <div>
                   <label htmlFor="p-sort" className="text-sm font-medium text-ink">Sort order</label>
@@ -924,6 +952,36 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                   />
                 </div>
               </div>
+
+              {productForm.trackInventory ? (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="p-qty" className="text-sm font-medium text-ink">Available quantity</label>
+                    <input
+                      id="p-qty"
+                      type="number"
+                      min={0}
+                      value={productForm.stockQuantity}
+                      onChange={(e) => setProductForm((f) => ({ ...f, stockQuantity: Math.max(0, Number(e.target.value) || 0) }))}
+                      className={`mt-2 ${inputClass(formErrors.stockQuantity)}`}
+                    />
+                    {formErrors.stockQuantity ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.stockQuantity}</p> : null}
+                  </div>
+                  <div>
+                    <label htmlFor="p-threshold" className="text-sm font-medium text-ink">Low stock threshold</label>
+                    <input
+                      id="p-threshold"
+                      type="number"
+                      min={0}
+                      value={productForm.lowStockThreshold}
+                      onChange={(e) => setProductForm((f) => ({ ...f, lowStockThreshold: Math.max(0, Number(e.target.value) || 0) }))}
+                      className={`mt-2 ${inputClass(formErrors.lowStockThreshold)}`}
+                    />
+                    <p className="mt-1 text-xs text-ink-muted">Default: 10. Items at or below this show as Limited.</p>
+                    {formErrors.lowStockThreshold ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.lowStockThreshold}</p> : null}
+                  </div>
+                </div>
+              ) : null}
 
               <div>
                 <label htmlFor="p-image" className="text-sm font-medium text-ink">Image URL</label>

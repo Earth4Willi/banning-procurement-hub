@@ -934,7 +934,9 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     placeholder="https://…"
                     className={`flex-1 ${inputClass(formErrors.imageUrl)}`}
                   />
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt">
+                  <label
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                  >
                     <UploadSimple weight="duotone" size={14} aria-hidden="true" />
                     Upload
                     <input
@@ -949,6 +951,15 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                       }}
                     />
                   </label>
+                  {productForm.imageUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setProductForm((f) => ({ ...f, imageUrl: "" }))}
+                      className="inline-flex items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
                 </div>
                 {formErrors.imageUrl ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.imageUrl}</p> : null}
               </div>
@@ -1082,7 +1093,9 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     placeholder="https://…"
                     className={`flex-1 ${inputClass(formErrors.imageUrl)}`}
                   />
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt">
+                  <label
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                  >
                     <UploadSimple weight="duotone" size={14} aria-hidden="true" />
                     Upload
                     <input
@@ -1097,6 +1110,15 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                       }}
                     />
                   </label>
+                  {categoryForm.imageUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => setCategoryForm((f) => ({ ...f, imageUrl: "" }))}
+                      className="inline-flex items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
                 </div>
                 {formErrors.imageUrl ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.imageUrl}</p> : null}
               </div>

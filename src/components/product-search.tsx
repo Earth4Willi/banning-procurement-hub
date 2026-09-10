@@ -1,25 +1,56 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { products, getCategory } from "@/lib/site";
+import { products as staticProducts, getCategory } from "@/lib/site";
+import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
 import { ProductCard } from "@/components/product-card";
 
 export function ProductSearch() {
   const [query, setQuery] = useState("");
+  const [catalog, setCatalog] = useState<{
+    products: CatalogProduct[];
+    categories: CatalogCategory[];
+  } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/catalog", { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { products?: CatalogProduct[]; categories?: CatalogCategory[] } | null) => {
+        if (cancelled || !data?.products || data.products.length === 0) return;
+        setCatalog({ products: data.products, categories: data.categories ?? [] });
+      })
+      .catch(() => {
+        /* keep static fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const products = catalog?.products ?? staticProducts;
+  const categories = catalog?.categories ?? [];
+
+  const categoryNames = useMemo(() => {
+    const names = new Map<string, string>();
+    for (const category of categories) names.set(category.id, category.name);
+    return names;
+  }, [categories]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
     return products.filter((product) => {
-      const category = getCategory(product.categoryId);
+      const category =
+        categoryNames.get(product.categoryId) ?? getCategory(product.categoryId)?.name ?? "";
       return (
         product.name.toLowerCase().includes(q) ||
         product.brand.toLowerCase().includes(q) ||
-        (category?.name.toLowerCase().includes(q) ?? false)
+        category.toLowerCase().includes(q)
       );
     });
-  }, [query]);
+  }, [query, products, categoryNames]);
 
   const searching = query.trim().length > 0;
 

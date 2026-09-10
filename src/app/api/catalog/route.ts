@@ -3,8 +3,21 @@ import { fetchCategories, fetchProducts } from "@/server/catalog-store";
 export const dynamic = "force-static";
 export const revalidate = 60;
 
-export async function GET() {
-  const [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
+function visibleOnly<T extends { visible?: boolean }>(items: T[]): T[] {
+  return items.filter((item) => item.visible !== false);
+}
+
+export async function GET(request: Request) {
+  const kind = new URL(request.url).searchParams.get("kind") ?? "catalog";
+  if (kind !== "catalog") {
+    return Response.json(
+      { error: { code: "unknown_kind", message: `Unsupported catalog kind: ${kind}` } },
+      { status: 400 },
+    );
+  }
+  const [allCategories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const categories = visibleOnly(allCategories);
+  const products = visibleOnly(allProducts);
   return Response.json({
     categories,
     products,

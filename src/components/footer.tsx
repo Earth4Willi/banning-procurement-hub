@@ -1,12 +1,34 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Phone, WhatsappLogo, EnvelopeSimple, MapPin } from "@phosphor-icons/react";
-import { categories, siteConfig, certifications } from "@/lib/site";
+import { categories as staticCategories, siteConfig, certifications } from "@/lib/site";
+import type { CatalogCategory } from "@/lib/catalog-types";
 import { BrandLogo } from "./brand-logo";
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const [catalogCategories, setCatalogCategories] = useState<CatalogCategory[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/catalog", { credentials: "same-origin" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { categories?: CatalogCategory[] } | null) => {
+        if (!cancelled && data?.categories && data.categories.length > 0) {
+          setCatalogCategories(data.categories);
+        }
+      })
+      .catch(() => {
+        /* keep static fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const whatsappMsg = encodeURIComponent("Hello Banning Procurement Hub, I would like a quote.");
+  const navCategories = catalogCategories ?? staticCategories;
 
   return (
     <footer className="border-t border-primary/10 bg-surface-alt">
@@ -45,7 +67,7 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ink">Categories</h3>
             <ul className="space-y-2.5">
-              {categories.map((cat) => (
+              {navCategories.map((cat) => (
                 <li key={cat.id}>
                   <a href={`/products/${cat.id}`} className="text-sm text-ink-muted transition-colors hover:text-ink">
                     {cat.name}

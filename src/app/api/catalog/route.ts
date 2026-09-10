@@ -7,14 +7,7 @@ function visibleOnly<T extends { visible?: boolean }>(items: T[]): T[] {
   return items.filter((item) => item.visible !== false);
 }
 
-export async function GET(request: Request) {
-  const kind = new URL(request.url).searchParams.get("kind") ?? "catalog";
-  if (kind !== "catalog") {
-    return Response.json(
-      { error: { code: "unknown_kind", message: `Unsupported catalog kind: ${kind}` } },
-      { status: 400 },
-    );
-  }
+export async function GET() {
   const [allCategories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
   const categories = visibleOnly(allCategories);
   const products = visibleOnly(allProducts);

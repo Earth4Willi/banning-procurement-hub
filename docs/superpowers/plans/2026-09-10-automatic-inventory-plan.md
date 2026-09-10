@@ -2192,7 +2192,7 @@ git commit -m "feat: add Inventory view to admin shell navigation"
 **Interfaces:**
 - Consumes: `POST` handler from `./route`; `new NextRequest` (already proven in `require-owner.test.ts`); mocks for `catalog-store`, `audit`, `csrf`, `rate-limit`, `require-customer`, `quote-store`
 
-- [ ] **Step 1: Create the quote route test**
+- [x] **Step 1: Create the quote route test**
 
 ```ts
 import { NextRequest } from "next/server";
@@ -2316,12 +2316,12 @@ describe("quote route stock validation", () => {
 
 > **Note:** `fetchProducts` is hoisted above the `vi.mock` factory so the mock can read it. If degraded-mode behavior changes later, update the mock, not the route.
 
-- [ ] **Step 2: Run test**
+- [x] **Step 2: Run test**
 
 Run: `npx vitest run src/app/api/quote/route.test.ts`
 Expected: all 3 tests PASS
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/app/api/quote/route.test.ts

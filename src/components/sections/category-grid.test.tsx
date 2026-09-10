@@ -132,15 +132,16 @@ describe("CategoryGrid", () => {
 
 describe("buildCategoryCounts", () => {
   it("excludes hidden products from a visible category's count", () => {
-    const counts = buildCategoryCounts(
-      [CATEGORY],
-      [PRODUCT(), PRODUCT({ slug: "b", visible: false }), PRODUCT({ slug: "c" })],
-    );
+    const counts = buildCategoryCounts([
+      PRODUCT(),
+      PRODUCT({ slug: "b", visible: false }),
+      PRODUCT({ slug: "c" }),
+    ]);
     expect(counts.get("cement")).toBe(2);
   });
 
-  it("still keys counts for products whose category was filtered upstream", () => {
-    const counts = buildCategoryCounts([CATEGORY], [PRODUCT({ slug: "c", categoryId: "secret" })]);
+  it("keys counts per categoryId; category visibility is filtered upstream", () => {
+    const counts = buildCategoryCounts([PRODUCT({ slug: "c", categoryId: "secret" })]);
     expect(counts.get("secret")).toBe(1);
   });
 });

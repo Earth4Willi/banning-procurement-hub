@@ -2,12 +2,9 @@ import { fetchCategories, fetchProducts } from "@/server/catalog-store";
 import { CategoryCard } from "@/components/category-card";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
-import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
+import type { CatalogProduct } from "@/lib/catalog-types";
 
-export function buildCategoryCounts(
-  categories: CatalogCategory[],
-  products: CatalogProduct[],
-): Map<string, number> {
+export function buildCategoryCounts(products: CatalogProduct[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const product of products) {
     if (product.visible === false) continue;
@@ -22,7 +19,7 @@ export async function CategoryGrid() {
     fetchProducts(),
   ]);
   const visibleCategories = fetchedCategories.filter((category) => category.visible !== false);
-  const counts = buildCategoryCounts(visibleCategories, fetchedProducts);
+  const counts = buildCategoryCounts(fetchedProducts);
 
   return (
     <section className="py-24 lg:py-28" aria-label="Shop by material">

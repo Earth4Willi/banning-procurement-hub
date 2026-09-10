@@ -7,8 +7,6 @@ import { QuoteProvider } from "@/lib/quote-context";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-type Route = { status?: number; body: unknown };
-
 function fakeResponse(status: number, body: unknown): Response {
   return {
     ok: status >= 200 && status < 300,
@@ -73,12 +71,12 @@ describe("ProductSearch", () => {
           name: "Mango Board 2x4",
           brand: "Wurst",
           unit: "length",
-          unitPrice: 45,
+          unitPrice: "GH₵ 45",
           image: "/products/mango.svg",
           description: "",
           stock: "in",
           pricingMode: "fixed",
-          kind: "length",
+          kind: "unit",
           visible: true,
         },
       ],

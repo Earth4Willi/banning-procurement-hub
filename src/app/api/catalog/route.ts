@@ -21,6 +21,6 @@ export async function GET(request: Request) {
   return Response.json({
     categories,
     products,
-    dbAvailable: categories.length > 0 && products.length > 0,
+    dbAvailable: allCategories.length > 0 && allProducts.length > 0,
   });
 }

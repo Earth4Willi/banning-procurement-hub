@@ -325,7 +325,7 @@ git commit -m "feat: add pure inventory helpers (getStockStatus, applyQuantityCh
 **Interfaces:**
 - Produces: `Product` type gains `stockQuantity: number`, `lowStockThreshold: number`, `trackInventory: boolean`; `stock` field renamed to `stockStatus` (computed)
 
-- [ ] **Step 1: Update the Product type in site.ts**
+- [x] **Step 1: Update the Product type in site.ts**
 
 Replace `stock: StockStatus` with computed fields. The `Product` type becomes:
 
@@ -354,7 +354,7 @@ Remove the standalone `StockStatus` type from site.ts (it will live in catalog-t
 import type { StockStatus } from "@/lib/catalog-types";
 ```
 
-- [ ] **Step 2: Update all 28 static products in site.ts**
+- [x] **Step 2: Update all 28 static products in site.ts**
 
 For each product, replace `stock: "in"` / `"limited"` / `"out"` with the new fields. Mapping:
 
@@ -375,7 +375,7 @@ to:
 { slug: "dangote-cement-42-5", ..., stockQuantity: 100, lowStockThreshold: 10, trackInventory: true, stockStatus: "in", pricingMode: "fixed", kind: "unit" },
 ```
 
-- [ ] **Step 3: Update site.test.ts — the stock-status test**
+- [x] **Step 3: Update site.test.ts — the stock-status test**
 
 Replace the test at line 56-65 ("tags every product with a valid stock status covering all three states"):
 
@@ -395,12 +395,12 @@ it("tags every product with computed stockStatus and inventory fields", () => {
 });
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run: `npx vitest run src/lib/site.test.ts`
 Expected: all tests PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/lib/site.ts src/lib/site.test.ts

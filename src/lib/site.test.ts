@@ -53,15 +53,18 @@ describe("site data", () => {
     expect(getProduct("nope")).toBeUndefined();
   });
 
-  it("tags every product with a valid stock status covering all three states", () => {
+  it("tags every product with computed stockStatus and inventory fields", () => {
     expect(products.length).toBe(28);
-    const statuses = products.map((p) => p.stock);
     for (const p of products) {
-      expect(["in", "limited", "out"]).toContain(p.stock);
+      expect(["in", "limited", "out"]).toContain(p.stockStatus);
+      expect(p.stockQuantity).toBeGreaterThanOrEqual(0);
+      expect(p.lowStockThreshold).toBeGreaterThanOrEqual(0);
+      expect(typeof p.trackInventory).toBe("boolean");
     }
-    for (const s of ["in", "limited", "out"] as const) {
-      expect(statuses).toContain(s);
-    }
+    const statuses = products.map((p) => p.stockStatus);
+    expect(statuses).toContain("in");
+    expect(statuses).toContain("limited");
+    expect(statuses).toContain("out");
   });
 
   it("assigns every product a valid pricing mode with both modes represented", () => {

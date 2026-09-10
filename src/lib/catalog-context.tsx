@@ -34,7 +34,7 @@ function mapSiteProducts(): CatalogProduct[] {
     unitPrice: p.unitPrice,
     image: p.image,
     description: p.description,
-    stock: p.stock,
+    stock: p.stockStatus,
     pricingMode: p.pricingMode,
     kind: p.kind,
     sortOrder: 0,

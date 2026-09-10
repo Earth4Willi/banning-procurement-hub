@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check } from "@phosphor-icons/react";
-import type { Product, StockStatus } from "@/lib/site";
+import type { Product } from "@/lib/site";
+import type { StockStatus } from "@/lib/catalog-types";
 import { siteConfig } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
 
@@ -32,9 +33,9 @@ export function ProductCard({ product }: Props) {
   const { add } = useQuote();
   const [added, setAdded] = useState(false);
   const timerRef = useRef<number | null>(null);
-  const outOfStock = product.stock === "out";
+  const outOfStock = product.stockStatus === "out";
   const availabilityLabel =
-    product.kind === "measure" ? AVAILABILITY_LABEL[product.stock] : STOCK_LABEL[product.stock];
+    product.kind === "measure" ? AVAILABILITY_LABEL[product.stockStatus] : STOCK_LABEL[product.stockStatus];
 
   useEffect(() => {
     return () => {
@@ -62,7 +63,7 @@ export function ProductCard({ product }: Props) {
         />
         <span aria-hidden="true" className="shine-sweep" />
         <span
-          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stock]}`}
+          className={`absolute left-3 top-3 rounded-[6px] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider ${STOCK_BADGE_CLASSES[product.stockStatus]}`}
         >
           {availabilityLabel}
         </span>

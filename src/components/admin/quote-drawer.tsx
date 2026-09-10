@@ -107,7 +107,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
       items.map((item) => ({
         label: item.label,
         quantity: item.quantity,
-        unitPrice: item.price === "" ? undefined : Number(item.price),
+        unitPrice: item.price !== "" && Number.isFinite(Number(item.price)) ? Number(item.price) : undefined,
       })),
     [items],
   );
@@ -228,7 +228,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
       accepted_at: quote.accepted_at,
       paid_at: paidAt,
       payment_method: paymentMethod,
-      total_amount: anyPriced ? totals.total : quote.total_amount,
+      total_amount: anyPriced ? totals.total : null,
     }),
     [quote, form, docItems, status, paidAt, paymentMethod, anyPriced, totals],
   );
@@ -433,7 +433,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
               {paidAt ? (
                 <span className="inline-flex items-center gap-2 rounded-[10px] border border-emerald-600/30 bg-emerald-600/10 px-4 py-2 text-sm font-semibold text-emerald-700">
                   <Check weight="duotone" size={15} aria-hidden="true" />
-                  Paid{paymentMethod ? ` · ${METHOD_LABELS[paymentMethod] as string}` : ""}
+                  Paid{paymentMethod ? ` · ${METHOD_LABELS[paymentMethod]}` : ""}
                 </span>
               ) : paidOpen ? (
                 <div className="inline-flex flex-wrap items-center gap-2">
@@ -520,7 +520,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
             onClick={() => setPreviewOpen(false)}
             className="backdrop-in absolute inset-0 z-0"
           />
-          <div className="no-print dialog-in relative z-10 mb-8 w-full max-w-3xl rounded-2xl border border-primary/10 bg-white p-2 shadow-2xl sm:p-4">
+          <div className="dialog-in relative z-10 mb-8 w-full max-w-3xl rounded-2xl border border-primary/10 bg-white p-2 shadow-2xl sm:p-4">
             <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-3">
               <h3 className="font-display text-base font-semibold tracking-tight text-slate-900">
                 {paidAt ? "Receipt preview" : "Quote document preview"}

@@ -665,7 +665,10 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
           open
           onClose={() => setDrawerQuote(null)}
           onSaved={() => void refreshActive()}
-          onNeedRefresh={onNeedRefresh}
+          onNeedRefresh={() => {
+            onNeedRefresh();
+            void refreshActive();
+          }}
         />
       ) : null}
     </div>

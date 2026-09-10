@@ -57,7 +57,7 @@ export async function registerCustomer(opts: {
   });
 
   if (!user) {
-    throw new HttpError(500, "internal", "Something went wrong.");
+    throw new HttpError(503, "storage_unavailable", "Live database not configured — account not created.");
   }
 
   await autoAdoptQuotes(phone, user.id);

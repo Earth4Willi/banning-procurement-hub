@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { categories, getCategory, productsByCategory } from "@/lib/site";
+import { fetchCategories, fetchProducts } from "@/server/catalog-store";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/reveal";
+
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ category: string }>;
 };
 
-export function generateStaticParams() {
-  return categories.map((c) => ({ category: c.id }));
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
-  const cat = getCategory(category);
+  const categories = await fetchCategories();
+  const cat = categories.find((c) => c.id === category);
   return {
     title: cat ? `${cat.name} Materials` : "Materials",
     description: cat ? `Buy ${cat.name.toLowerCase()} in Ghana. ${cat.description}` : undefined,
@@ -26,10 +25,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  const cat = getCategory(category);
+  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const cat = categories.find((c) => c.id === category);
   if (!cat) notFound();
 
-  const products = productsByCategory(cat.id);
+  const products = allProducts.filter((p) => p.categoryId === cat.id);
 
   return (
     <>

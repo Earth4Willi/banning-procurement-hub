@@ -3,7 +3,8 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, Trash } from "@phosphor-icons/react";
-import { getProduct, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
+import { useCatalog } from "@/lib/catalog-context";
 import { useQuote } from "@/lib/quote-context";
 import { buildQuoteMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 import type { QuoteContact } from "@/lib/whatsapp";
@@ -29,6 +30,7 @@ function formatMoney(value: number): string {
 
 export function QuoteBuilder() {
   const { items, count, remove, setQty, clear } = useQuote();
+  const { products: catalogProducts } = useCatalog();
   const [contact, setContact] = useState<QuoteContact>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [status, setStatus] = useState<string | null>(null);
@@ -42,11 +44,11 @@ export function QuoteBuilder() {
     () =>
       items
         .map((item) => {
-          const product = getProduct(item.productId);
+          const product = catalogProducts.find((p) => p.slug === item.productId);
           return product ? { ...item, product } : null;
         })
         .filter((line): line is NonNullable<typeof line> => line !== null),
-    [items]
+    [items, catalogProducts]
   );
 
   if (count === 0) {

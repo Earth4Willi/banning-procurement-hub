@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
 import { ProductSearch } from "@/components/product-search";
-import { categories, productsByCategory } from "@/lib/site";
+import { fetchCategories, fetchProducts } from "@/server/catalog-store";
 import { ProductCard } from "@/components/product-card";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Browse Building Materials",
@@ -12,7 +14,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/products/" },
 };
 
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const productsByCategory = (id: string) =>
+    allProducts.filter((p) => p.categoryId === id);
+
   return (
     <>
       <section className="pb-4 pt-14 lg:pt-28" aria-label="Catalogue overview">

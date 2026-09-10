@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site";
 import { SectionHeading } from "@/components/section-heading";
 import { QuoteBuilder } from "@/components/quote-builder";
+import { CatalogProvider } from "@/lib/catalog-context";
 
 export const metadata: Metadata = {
   title: "Get a Quote",
@@ -25,7 +26,9 @@ export default function QuotePage() {
             {siteConfig.responsePromise}
           </p>
           <div className="mt-10">
-            <QuoteBuilder />
+            <CatalogProvider>
+              <QuoteBuilder />
+            </CatalogProvider>
           </div>
         </div>
       </section>

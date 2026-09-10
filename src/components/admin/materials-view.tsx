@@ -14,7 +14,7 @@ import {
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
 import { money } from "@/lib/quote-document";
 import type { Session } from "./helpers";
-import { api, formatDate } from "./helpers";
+import { api } from "./helpers";
 
 type MaterialsTab = "products" | "categories";
 
@@ -456,6 +456,33 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
     [onNeedRefresh],
   );
 
+  const showCategory = useCallback(
+    async (category: CatalogCategory) => {
+      setBusyId(category.id);
+      try {
+        await api<{ ok: true }>("/api/admin/catalog/categories", {
+          method: "PUT",
+          body: JSON.stringify({
+            id: category.id,
+            name: category.name,
+            short: category.short,
+            description: category.description,
+            imageUrl: category.imageUrl ?? category.image ?? "",
+            visible: true,
+            sortOrder: category.sortOrder ?? 0,
+          }),
+        });
+        setCategories((rows) => rows.map((row) => (row.id === category.id ? { ...row, visible: true } : row)));
+        onNeedRefresh();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Could not show the category.");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [onNeedRefresh],
+  );
+
   if (session.status === "loading") {
     return <p className="text-sm text-ink-muted">Checking session…</p>;
   }
@@ -565,9 +592,9 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                         {catName.get(product.categoryId) ?? product.categoryId}
                       </td>
                       <td className="px-4 py-3 text-xs text-ink-muted">
-                        {product.pricingMode === "fixed" && product.unitPrice
-                          ? `${money(Number(product.unitPrice))}/${product.unit || "unit"}`
-                          : "Price on request"}
+{product.pricingMode === "fixed" && product.unitPrice && !Number.isNaN(Number(product.unitPrice))
+                        ? `${money(Number(product.unitPrice))}/${product.unit || "unit"}`
+                        : "Price on request"}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3">
                         <span className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider ${stockPill(product.stock)}`}>
@@ -695,12 +722,16 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                           </button>
                           <button
                             type="button"
-                            onClick={() => void hideCategory(category)}
+                            onClick={() => void (category.visible !== false ? hideCategory(category) : showCategory(category))}
                             disabled={busyId === category.id}
-                            title="Hide category"
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-red-500/40 hover:text-red-700 disabled:opacity-50"
+                            title={category.visible !== false ? "Hide category" : "Show category"}
+                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a] disabled:opacity-50"
                           >
-                            <EyeSlash weight="duotone" size={14} aria-hidden="true" />
+                            {category.visible !== false ? (
+                              <EyeSlash weight="duotone" size={14} aria-hidden="true" />
+                            ) : (
+                              <Eye weight="duotone" size={14} aria-hidden="true" />
+                            )}
                           </button>
                         </div>
                       </td>

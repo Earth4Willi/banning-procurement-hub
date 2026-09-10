@@ -106,7 +106,7 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
   }, [selectedPhone, loadHistory]);
 
   const saveCustomer = useCallback(
-    async (patch: { notes?: string; status?: string }) => {
+    async (patch: { notes?: string; status?: CustomerStatus }) => {
       if (!selected) return;
       setBusy(true);
       setSaveError(null);

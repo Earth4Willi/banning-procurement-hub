@@ -20,20 +20,48 @@ const NAV = [
 ];
 
 const regionsStat = stats.find((s) => s.value === "16");
-const TICKER = [
+const FALLBACK_TICKER = [
   siteConfig.responsePromise,
   regionsStat ? `Delivered across all ${regionsStat.value} regions` : "Delivered across Ghana",
 ];
 
+type SettingsMarquee = { marquee?: { messages?: string[] } };
+
+/** Reads the DB-backed marquee messages once on mount; falls back to static copy. */
+function useMarqueeMessages(): string[] {
+  const [messages, setMessages] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/settings", { credentials: "same-origin" })
+      .then((res) => (res.ok ? (res.json() as Promise<SettingsMarquee>) : null))
+      .then((data) => {
+        if (cancelled) return;
+        const raw = data?.marquee?.messages;
+        const clean = Array.isArray(raw) ? raw.map((m) => m.trim()).filter(Boolean) : [];
+        if (clean.length > 0) setMessages(clean);
+      })
+      .catch(() => {
+        /* keep static fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return messages && messages.length > 0 ? messages : FALLBACK_TICKER;
+}
+
 function TickerBand() {
+  const messages = useMarqueeMessages();
   return (
     <div className="relative overflow-hidden bg-accent">
       <div className="ticker-track flex w-max items-center text-[#0d3d1a]">
         {[0, 1].map((dup) => (
           <div key={dup} aria-hidden={dup === 1} className="flex shrink-0 items-center gap-8 pr-8">
-            {TICKER.map((msg) => (
+            {messages.map((msg, index) => (
               <span
-                key={msg}
+                key={`${dup}-${index}`}
                 className="flex items-center gap-2 whitespace-nowrap font-mono text-[11px] font-semibold uppercase tracking-wider"
               >
                 <span className="size-1 rounded-full bg-primary" aria-hidden="true" />

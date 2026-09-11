@@ -7,8 +7,12 @@ import { STATUSES, api, copyText, ctaToWhatsApp } from "./helpers";
 import { buildQuoteSummary, computeTotals, formatValidUntil, money } from "@/lib/quote-document";
 import { ClientQuoteDocument, type ClientQuoteDocumentQuote } from "./client-quote-document";
 import type { BankDetails } from "./quote-document";
+import { useDeliveryAreas } from "@/hooks/use-delivery-areas";
+import type { QuoteFieldErrors } from "@/lib/validation";
+import { validateQuoteContact } from "@/lib/validation";
 
 const PAYMENT_METHODS = ["cash", "mobile_money", "bank", "other"] as const;
+const OTHER_AREA = "Other (type below)";
 const METHOD_LABELS: Record<string, string> = {
   cash: "Cash",
   mobile_money: "Mobile money",
@@ -47,6 +51,9 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
   const [status, setStatus] = useState<Status>("new");
   const [paidAt, setPaidAt] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const deliveryAreas = useDeliveryAreas();
+  const [areaIsCustom, setAreaIsCustom] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<QuoteFieldErrors>({});
 
   const [saving, setSaving] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
@@ -59,11 +66,13 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
 
   useEffect(() => {
     if (!open) return;
+    const area = quote.area ?? "";
+    setAreaIsCustom(area !== "" && !deliveryAreas.includes(area));
     setForm({
       name: quote.name,
       phone: quote.phone,
       email: quote.email ?? "",
-      area: quote.area,
+      area,
       note: quote.note ?? "",
       validUntil: quote.valid_until ?? "",
     });
@@ -78,6 +87,7 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
     setStatus(quote.status);
     setPaidAt(quote.paid_at);
     setPaymentMethod(quote.payment_method);
+    setFieldErrors({});
     setPaidOpen(false);
     setPreviewOpen(false);
     setError(null);
@@ -100,7 +110,19 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
     return () => window.removeEventListener("keydown", onKey);
   }, [open, previewOpen, onClose]);
 
-  const updateForm = (field: keyof DraftForm, value: string) => setForm((f) => ({ ...f, [field]: value }));
+  const updateForm = (field: keyof DraftForm, value: string) => {
+    const next = { ...form, [field]: value };
+    setForm(next);
+    if (field === "note" || field === "validUntil") return;
+    const errors = validateQuoteContact({ name: next.name, phone: next.phone, email: next.email, area: next.area });
+    setFieldErrors((prev) => {
+      const copy = { ...prev };
+      const key = field as keyof QuoteFieldErrors;
+      if (errors[key]) copy[key] = errors[key];
+      else delete copy[key];
+      return copy;
+    });
+  };
 
   const updateItem = (index: number, patch: Partial<DraftItem>) =>
     setItems((rows) => rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -124,6 +146,12 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
   const totals = useMemo(() => computeTotals(docItems), [docItems]);
 
   const saveEdits = async () => {
+    const errors = validateQuoteContact({ name: form.name, phone: form.phone, email: form.email, area: form.area });
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setError(errors.area ?? errors.phone ?? errors.name ?? errors.email ?? "Fix the highlighted fields before saving.");
+      return;
+    }
     setSaving(true);
     setError(null);
     setNotice(null);
@@ -291,19 +319,83 @@ export function QuoteDrawer({ quote, open, onClose, onSaved, onNeedRefresh }: Pr
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <label className="block">
                 <span className="text-xs font-medium text-ink-muted">Name</span>
-                <input type="text" value={form.name} onChange={(e) => updateForm("name", e.target.value)} maxLength={80} className={`mt-1 ${inputClass()}`} />
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => updateForm("name", e.target.value)}
+                  maxLength={80}
+                  aria-invalid={fieldErrors.name ? true : undefined}
+                  className={`mt-1 ${inputClass(fieldErrors.name)}`}
+                />
+                {fieldErrors.name ? (
+                  <span role="alert" className="mt-1 block text-xs text-red-700">{fieldErrors.name}</span>
+                ) : null}
               </label>
               <label className="block">
                 <span className="text-xs font-medium text-ink-muted">Phone</span>
-                <input type="tel" value={form.phone} onChange={(e) => updateForm("phone", e.target.value)} maxLength={20} className={`mt-1 ${inputClass()}`} />
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => updateForm("phone", e.target.value)}
+                  maxLength={20}
+                  aria-invalid={fieldErrors.phone ? true : undefined}
+                  className={`mt-1 ${inputClass(fieldErrors.phone)}`}
+                />
+                {fieldErrors.phone ? (
+                  <span role="alert" className="mt-1 block text-xs text-red-700">{fieldErrors.phone}</span>
+                ) : null}
               </label>
               <label className="block">
                 <span className="text-xs font-medium text-ink-muted">Email</span>
-                <input type="email" value={form.email} onChange={(e) => updateForm("email", e.target.value)} maxLength={254} className={`mt-1 ${inputClass()}`} />
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => updateForm("email", e.target.value)}
+                  maxLength={254}
+                  aria-invalid={fieldErrors.email ? true : undefined}
+                  className={`mt-1 ${inputClass(fieldErrors.email)}`}
+                />
+                {fieldErrors.email ? (
+                  <span role="alert" className="mt-1 block text-xs text-red-700">{fieldErrors.email}</span>
+                ) : null}
               </label>
               <label className="block">
                 <span className="text-xs font-medium text-ink-muted">Delivery area</span>
-                <input type="text" value={form.area} onChange={(e) => updateForm("area", e.target.value)} maxLength={120} className={`mt-1 ${inputClass()}`} />
+                <select
+                  value={areaIsCustom ? OTHER_AREA : form.area}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === OTHER_AREA) {
+                      setAreaIsCustom(true);
+                      updateForm("area", "");
+                    } else {
+                      setAreaIsCustom(false);
+                      updateForm("area", value);
+                    }
+                  }}
+                  aria-invalid={fieldErrors.area ? true : undefined}
+                  className={`mt-1 ${inputClass(fieldErrors.area)}`}
+                >
+                  <option value="" disabled>Select…</option>
+                  {deliveryAreas.map((area) => (
+                    <option key={area} value={area}>{area}</option>
+                  ))}
+                  <option value={OTHER_AREA}>Other (type below)</option>
+                </select>
+                {areaIsCustom ? (
+                  <input
+                    type="text"
+                    aria-label="Custom delivery area"
+                    value={form.area}
+                    onChange={(e) => updateForm("area", e.target.value)}
+                    maxLength={120}
+                    placeholder="Type an area not listed…"
+                    className={`mt-1 ${inputClass(fieldErrors.area)}`}
+                  />
+                ) : null}
+                {fieldErrors.area ? (
+                  <span role="alert" className="mt-1 block text-xs text-red-700">{fieldErrors.area}</span>
+                ) : null}
               </label>
               <label className="block sm:col-span-2">
                 <span className="text-xs font-medium text-ink-muted">Note</span>

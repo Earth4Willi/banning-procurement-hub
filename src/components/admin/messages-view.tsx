@@ -13,13 +13,14 @@ import {
   X,
 } from "@phosphor-icons/react";
 import type { MessageRecord } from "@/lib/catalog-types";
-import { siteConfig } from "@/lib/site";
 import type { QuoteContact } from "@/lib/validation";
 import { validateQuoteContact } from "@/lib/validation";
+import { useDeliveryAreas } from "@/hooks/use-delivery-areas";
 import { buildQuoteSummary, computeTotals } from "@/lib/quote-document";
 import type { QuoteRow, Session, Status } from "./helpers";
 import { STATUSES, api, buildCsv, ctaToWhatsApp, formatDate, formatItems, statusPill, truncate } from "./helpers";
 import { QuoteDrawer } from "./quote-drawer";
+import { AdminTableSkeleton, MessagesListSkeleton } from "@/components/skeletons/admin";
 
 type MessagesTab = "quotes" | "contact";
 
@@ -29,6 +30,7 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
   const { session, tab, onNeedRefresh } = props;
   const router = useRouter();
   const pathname = usePathname();
+  const deliveryAreas = useDeliveryAreas();
 
   const [active, setActive] = useState<MessagesTab>(tab);
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
@@ -399,7 +401,7 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                     <option value="" disabled>
                       Select your area…
                     </option>
-                    {siteConfig.deliveryAreas.map((area) => (
+                    {deliveryAreas.map((area) => (
                       <option key={area} value={area}>
                         {area}
                       </option>
@@ -444,7 +446,7 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
           ) : null}
 
           {loading ? (
-            <p className="text-sm text-ink-muted">Loading quotes…</p>
+            <AdminTableSkeleton columns={6} />
           ) : quotes.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-primary/20 bg-surface p-10 text-center text-sm text-ink-muted">
               No quotes yet. Quote requests land here the moment they come in — or add one above.
@@ -544,7 +546,7 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
           </div>
 
           {loading ? (
-            <p className="text-sm text-ink-muted">Loading messages…</p>
+            <MessagesListSkeleton />
           ) : messages.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-primary/20 bg-surface p-10 text-center text-sm text-ink-muted">
               No contact messages yet. Submissions from the contact form appear here.

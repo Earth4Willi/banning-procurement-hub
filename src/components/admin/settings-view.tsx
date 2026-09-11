@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp, Plus, TrashSimple } from "@phosphor-icons/react";
 import type { BankDetails, DeliverySettings, MarqueeSettings, PaymentSettings, SettingsMap, SiteSettingsContent } from "@/lib/settings-types";
 import { api, inputClass } from "./helpers";
 import type { Session } from "./helpers";
+import { SettingsFormSkeleton } from "@/components/skeletons/admin";
 
 type SaveState = { status: "idle" | "saving" | "saved"; message: string | null };
 
@@ -44,7 +45,7 @@ export function SettingsView(props: { session: Session; onNeedRefresh: () => voi
   }, [session.status]);
 
   if (loading) {
-    return <p className="text-sm text-ink-muted">Loading settings…</p>;
+    return <SettingsFormSkeleton />;
   }
 
   if (error || !data) {

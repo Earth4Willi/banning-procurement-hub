@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import AdminShell from "@/components/admin/admin-shell";
+import { AdminShellSkeleton } from "@/components/skeletons/admin";
 
 export const metadata: Metadata = {
   title: "Owner Dashboard",
@@ -11,9 +12,7 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   return (
-    <Suspense
-      fallback={<p className="p-6 text-sm text-ink-muted">Loading admin…</p>}
-    >
+    <Suspense fallback={<AdminShellSkeleton />}>
       <AdminShell />
     </Suspense>
   );

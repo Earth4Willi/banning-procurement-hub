@@ -15,9 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ProductsPage() {
-  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const [fetchedCategories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const categories = fetchedCategories.filter((category) => category.visible !== false);
   const productsByCategory = (id: string) =>
-    allProducts.filter((p) => p.categoryId === id);
+    allProducts.filter((p) => p.categoryId === id && p.visible !== false);
 
   return (
     <>

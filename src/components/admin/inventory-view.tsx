@@ -5,6 +5,7 @@ import { ArrowClockwise, Warning } from "@phosphor-icons/react";
 import type { CatalogProduct } from "@/lib/catalog-types";
 import type { Session } from "./helpers";
 import { api } from "./helpers";
+import { AdminTableSkeleton } from "@/components/skeletons/admin";
 
 type InventorySummary = {
   total: number;
@@ -166,7 +167,7 @@ export function InventoryView(props: { session: Session }) {
 
       {/* Products table */}
       {loading ? (
-        <p className="text-sm text-ink-muted">Loading inventory…</p>
+        <AdminTableSkeleton columns={5} />
       ) : (
         <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-surface">
           <table className="w-full min-w-[700px] text-left text-sm">

@@ -6,6 +6,7 @@ import type { CustomerRecord } from "@/lib/catalog-types";
 import { computeTotals, buildQuoteSummary } from "@/lib/quote-document";
 import type { QuoteRow, Session } from "./helpers";
 import { api, ctaToWhatsApp, formatDate, formatItems, statusPill, truncate } from "./helpers";
+import { AdminTableSkeleton, QuoteHistorySkeleton } from "@/components/skeletons/admin";
 
 export const CUSTOMER_STATUSES = ["new", "active", "repeat", "inactive"] as const;
 type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
@@ -200,7 +201,7 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
           </div>
 
           {loading ? (
-            <p className="px-4 pb-6 pt-2 text-sm text-ink-muted">Loading customers…</p>
+            <AdminTableSkeleton columns={5} framed={false} />
           ) : filtered.length === 0 ? (
             <div className="px-4 pb-6 pt-2">
               <div className="rounded-2xl border border-dashed border-primary/20 bg-surface p-8 text-center text-sm text-ink-muted">
@@ -377,7 +378,7 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
             <div className="rounded-2xl border border-primary/10 bg-surface p-5">
               <h3 className="font-display text-lg font-semibold tracking-tight text-ink">Quote history</h3>
               {historyLoading ? (
-                <p className="mt-3 text-sm text-ink-muted">Loading quote history…</p>
+                <QuoteHistorySkeleton />
               ) : historyError ? (
                 <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-700" role="alert">
                   {historyError}

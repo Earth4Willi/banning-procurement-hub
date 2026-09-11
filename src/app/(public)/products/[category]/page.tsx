@@ -14,8 +14,8 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
-  const categories = await fetchCategories();
-  const cat = categories.find((c) => c.id === category);
+  const fetchedCategories = await fetchCategories();
+  const cat = fetchedCategories.find((c) => c.id === category && c.visible !== false);
   return {
     title: cat ? `${cat.name} Materials` : "Materials",
     description: cat ? `Buy ${cat.name.toLowerCase()} in Ghana. ${cat.description}` : undefined,
@@ -25,11 +25,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  const [categories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const [fetchedCategories, allProducts] = await Promise.all([fetchCategories(), fetchProducts()]);
+  const categories = fetchedCategories.filter((c) => c.visible !== false);
   const cat = categories.find((c) => c.id === category);
   if (!cat) notFound();
 
-  const products = allProducts.filter((p) => p.categoryId === cat.id);
+  const products = allProducts.filter((p) => p.categoryId === cat.id && p.visible !== false);
 
   return (
     <>

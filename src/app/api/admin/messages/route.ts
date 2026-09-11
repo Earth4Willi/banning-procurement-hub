@@ -52,8 +52,16 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     })) && ok;
   }
   if (!ok) {
+    const configured = await isMessageStoreAvailable();
     return NextResponse.json(
-      { error: { code: "storage_unavailable", message: "Live database not configured — message not updated." } },
+      {
+        error: {
+          code: "storage_unavailable",
+          message: configured
+            ? "The message could not be updated — check the server logs for details."
+            : "Live database not configured — message not updated.",
+        },
+      },
       { status: 503 },
     );
   }
@@ -67,8 +75,16 @@ export const DELETE = withErrorHandling(async (request: NextRequest) => {
   const body = await parseBody(request, catalogItemIdSchema);
   const ok = await deleteMessage(body.id);
   if (!ok) {
+    const configured = await isMessageStoreAvailable();
     return NextResponse.json(
-      { error: { code: "storage_unavailable", message: "Live database not configured — message not deleted." } },
+      {
+        error: {
+          code: "storage_unavailable",
+          message: configured
+            ? "The message could not be deleted — check the server logs for details."
+            : "Live database not configured — message not deleted.",
+        },
+      },
       { status: 503 },
     );
   }

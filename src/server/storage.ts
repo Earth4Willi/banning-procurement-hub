@@ -30,8 +30,22 @@ export function storagePublicUrl(bucket: string, path: string): string {
 }
 
 export async function ensureBucket(client: SupabaseClient, bucket: string): Promise<void> {
-  const { data: existing } = await client.storage.getBucket(bucket);
-  if (existing) return;
+  const { data: existing, error: getError } = await client.storage.getBucket(bucket);
+  if (existing) {
+    // The bucket already exists. A pre-existing bucket may not be public, which
+    // silently breaks the public object URL — force it public before uploading.
+    if (!existing.public) {
+      const { error } = await client.storage.updateBucket(bucket, { public: true });
+      if (error) {
+        console.warn(`[storage] bucket "${bucket}" is private and could not be made public:`, error);
+        throw new Error(`The "${bucket}" storage bucket exists but is not public, and it could not be updated. Ask an admin to make it public.`);
+      }
+    }
+    return;
+  }
+  if (getError && !/not found|does not exist|404/i.test(getError.message ?? "")) {
+    throw getError;
+  }
   const { error } = await client.storage.createBucket(bucket, { public: true });
   if (error && !/already exist/i.test(error.message)) {
     throw error;
@@ -63,7 +77,10 @@ export async function uploadToStorage(input: UploadInput): Promise<UploadResult>
     const { error } = await client.storage
       .from(input.bucket)
       .upload(input.path, input.data, { upsert: true, contentType: input.type });
-    if (error) return { ok: false, reason: `Upload failed: ${error.message}` };
+    if (error) {
+      console.warn(`[storage] upload failed (${input.bucket}/${input.path}):`, error.message);
+      return { ok: false, reason: `Upload failed: ${error.message}` };
+    }
     const url = storagePublicUrl(input.bucket, input.path);
     if (!url) return { ok: false, reason: "Live storage is not configured." };
     return { ok: true, url };

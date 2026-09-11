@@ -39,8 +39,16 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     status: body.status,
   });
   if (!ok) {
+    const configured = await isMessageStoreAvailable();
     return NextResponse.json(
-      { error: { code: "storage_unavailable", message: "Live database not configured — customer not updated." } },
+      {
+        error: {
+          code: "storage_unavailable",
+          message: configured
+            ? "The customer could not be updated — check the server logs for details."
+            : "Live database not configured — customer not updated.",
+        },
+      },
       { status: 503 },
     );
   }

@@ -14,8 +14,14 @@ import {
 } from "@phosphor-icons/react";
 import type { CatalogCategory, CatalogProduct } from "@/lib/catalog-types";
 import { money } from "@/lib/quote-document";
+import {
+  AFRICAN_CONSTRUCTION_BRAND_GROUPS,
+  ALL_BRAND_OPTIONS,
+  OTHER_BRAND,
+} from "@/lib/brand-constants";
 import type { Session } from "./helpers";
 import { api } from "./helpers";
+import { AdminTableSkeleton } from "@/components/skeletons/admin";
 
 type MaterialsTab = "products" | "categories";
 
@@ -89,6 +95,47 @@ function stockStatusLabel(status: CatalogProduct["stockStatus"]): string {
   return "Out of Stock";
 }
 
+/**
+ * Live thumbnail for a pasted image URL. Loads the image from the URL directly
+ * so the admin sees immediately whether the link resolves, instead of having to
+ * save the product first.
+ */
+function ImageUrlPreview({ url }: { url: string }) {
+  const [state, setState] = useState<"loading" | "ok" | "error">("loading");
+
+  useEffect(() => {
+    setState("loading");
+  }, [url]);
+
+  if (!url) return null;
+
+  return (
+    <div className="mt-2 inline-flex items-start gap-2">
+      <div className="relative h-20 w-20 overflow-hidden rounded-[10px] border border-primary/15 bg-surface-alt">
+        {state === "ok" ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt="Image preview"
+            className="h-full w-full object-cover"
+            onLoad={() => setState("ok")}
+            onError={() => setState("error")}
+          />
+        ) : state === "loading" ? (
+          <span className="flex h-full w-full items-center justify-center text-[10px] text-ink-muted">Loading…</span>
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-[10px] text-ink-muted">No preview</span>
+        )}
+      </div>
+      <span className="pt-1.5 text-xs text-ink-muted">
+        {state === "error"
+          ? "Couldn’t load that image — check the URL or upload the file instead."
+          : "Image loads from this URL."}
+      </span>
+    </div>
+  );
+}
+
 function stockPill(stockStatus: CatalogProduct["stockStatus"]): string {
   if (stockStatus === "in") return "bg-emerald-600/15 text-emerald-700";
   if (stockStatus === "limited") return "bg-amber-600/15 text-amber-700";
@@ -125,6 +172,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
   const [formError, setFormError] = useState<string | null>(null);
 
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [brandIsCustom, setBrandIsCustom] = useState(false);
 
   useEffect(() => {
     setActive(tab);
@@ -177,6 +225,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
     (product?: CatalogProduct) => {
       if (product) {
         setEditSlug(product.slug);
+        setBrandIsCustom(product.brand ? !ALL_BRAND_OPTIONS.includes(product.brand) : false);
         setProductForm({
           slug: product.slug,
           categoryId: product.categoryId,
@@ -196,6 +245,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
         });
       } else {
         setEditSlug(null);
+        setBrandIsCustom(false);
         setProductForm({
           ...EMPTY_PRODUCT,
           categoryId: categories.length > 0 ? categories[0].id : "",
@@ -557,7 +607,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
           </div>
 
           {loading ? (
-            <p className="text-sm text-ink-muted">Loading products…</p>
+            <AdminTableSkeleton columns={6} />
           ) : products.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-primary/20 bg-surface p-10 text-center text-sm text-ink-muted">
               No products yet. Add your first product above.
@@ -689,7 +739,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
           </div>
 
           {loading ? (
-            <p className="text-sm text-ink-muted">Loading categories…</p>
+            <AdminTableSkeleton columns={4} />
           ) : categories.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-primary/20 bg-surface p-10 text-center text-sm text-ink-muted">
               No categories yet. Add your first category above.
@@ -847,14 +897,44 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                 </div>
                 <div>
                   <label htmlFor="p-brand" className="text-sm font-medium text-ink">Brand</label>
-                  <input
+                  <select
                     id="p-brand"
-                    type="text"
-                    maxLength={80}
-                    value={productForm.brand}
-                    onChange={(e) => setProductForm((f) => ({ ...f, brand: e.target.value }))}
+                    value={brandIsCustom ? OTHER_BRAND : productForm.brand || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === OTHER_BRAND) {
+                        setBrandIsCustom(true);
+                        if (ALL_BRAND_OPTIONS.includes(productForm.brand)) {
+                          setProductForm((f) => ({ ...f, brand: "" }));
+                        }
+                      } else {
+                        setBrandIsCustom(false);
+                        setProductForm((f) => ({ ...f, brand: value }));
+                      }
+                    }}
                     className={`mt-2 ${inputClass(formErrors.brand)}`}
-                  />
+                  >
+                    <option value="" disabled>Select…</option>
+                    {AFRICAN_CONSTRUCTION_BRAND_GROUPS.map((group) => (
+                      <optgroup key={group.label} label={group.label}>
+                        {group.brands.map((b) => (
+                          <option key={b} value={b}>{b}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                    <option value={OTHER_BRAND}>Other (specify below)</option>
+                  </select>
+                  {brandIsCustom ? (
+                    <input
+                      type="text"
+                      aria-label="Custom brand"
+                      maxLength={80}
+                      value={productForm.brand}
+                      onChange={(e) => setProductForm((f) => ({ ...f, brand: e.target.value }))}
+                      placeholder="Type a brand not listed…"
+                      className={`mt-2 ${inputClass(formErrors.brand)}`}
+                    />
+                  ) : null}
                   {formErrors.brand ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.brand}</p> : null}
                 </div>
               </div>
@@ -1031,6 +1111,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     </button>
                   ) : null}
                 </div>
+                <ImageUrlPreview url={productForm.imageUrl} />
                 {formErrors.imageUrl ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.imageUrl}</p> : null}
               </div>
 
@@ -1190,6 +1271,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     </button>
                   ) : null}
                 </div>
+                <ImageUrlPreview url={categoryForm.imageUrl} />
                 {formErrors.imageUrl ? <p role="alert" className="mt-1 text-xs text-red-700">{formErrors.imageUrl}</p> : null}
               </div>
 

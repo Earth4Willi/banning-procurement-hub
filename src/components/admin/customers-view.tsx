@@ -296,16 +296,16 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
                     {selected.lastContactAt ? ` · last contact ${formatDate(selected.lastContactAt)}` : " · never contacted"}
                   </p>
                 </div>
-                <a
+<a
                   href={ctaToWhatsApp(
                     selected.phone,
                     `Hello${selected.name.trim() ? ` ${selected.name.trim()}` : ""}, this is Banning Procurement Hub. How can we help you?`,
                   )}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-[10px] bg-[#0d3d1a] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary-700"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-[#0d3d1a] px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-700"
                 >
-                  <WhatsappLogo weight="duotone" size={14} aria-hidden="true" />
+                  <WhatsappLogo weight="duotone" size={16} aria-hidden="true" />
                   Reply on WhatsApp
                 </a>
               </div>
@@ -332,14 +332,14 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
                     className="mt-2 w-full rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-accent/60"
                   />
                   <div className="mt-2 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => void saveCustomer({ notes: notesDraft })}
-                      disabled={busy || !notesDirty}
-                      className="rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
-                    >
-                      {busy ? "Saving…" : "Save notes"}
-                    </button>
+<button
+                        type="button"
+                        onClick={() => void saveCustomer({ notes: notesDraft })}
+                        disabled={busy || !notesDirty}
+                        className="inline-flex min-h-11 items-center gap-1 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
+                      >
+                        {busy ? "Saving…" : "Save notes"}
+                      </button>
                   </div>
                 </div>
 
@@ -350,7 +350,7 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
                     </label>
                     <p className="mt-0.5 text-xs text-ink-muted">How this customer is doing overall.</p>
                   </div>
-                  <select
+<select
                     id="customer-status"
                     value={statusDraft}
                     disabled={busy}
@@ -363,7 +363,7 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
                       setStatusDraft(next);
                       void saveCustomer({ status: next });
                     }}
-                    className={`rounded-[8px] border-0 px-2 py-1.5 text-xs font-semibold disabled:opacity-50 ${statusPill(statusDraft)}`}
+                    className={`rounded-[8px] border-0 px-2.5 py-2 text-sm font-semibold disabled:opacity-50 ${statusPill(statusDraft)}`}
                   >
                     {CUSTOMER_STATUSES.map((option) => (
                       <option key={option} value={option}>
@@ -410,14 +410,15 @@ export function CustomersView(props: { session: Session; onNeedRefresh: () => vo
                           </div>
                         ) : null}
                       </div>
-                      <a
+<a
                         href={ctaToWhatsApp(quote.phone, waSummary(quote))}
                         target="_blank"
                         rel="noreferrer"
                         title="Reply on WhatsApp"
-                        className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        className="inline-flex items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
-                        <WhatsappLogo weight="duotone" size={14} aria-hidden="true" />
+                        <WhatsappLogo weight="duotone" size={16} aria-hidden="true" />
                       </a>
                     </li>
                   ))}

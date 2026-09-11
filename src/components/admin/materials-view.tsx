@@ -574,9 +574,10 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
               role="tab"
               aria-selected={active === item.key}
               onClick={() => switchTab(item.key)}
-              className={`rounded-[8px] px-3 py-1.5 text-sm font-semibold transition-colors ${
+              className={`rounded-[8px] px-3 text-sm font-semibold transition-colors ${
                 active === item.key ? "bg-[#0d3d1a] text-white" : "text-ink-muted hover:text-ink"
               }`}
+              style={{ minHeight: 40 }}
             >
               {item.label}
             </button>
@@ -599,7 +600,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
             <button
               type="button"
               onClick={() => openProductModal()}
-              className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
             >
               <Plus weight="duotone" size={14} aria-hidden="true" />
               Add product
@@ -687,7 +688,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                             type="button"
                             onClick={() => openProductModal(product)}
                             title="Edit product"
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                            className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
                           >
                             <PencilSimple weight="duotone" size={14} aria-hidden="true" />
                           </button>
@@ -696,7 +697,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                             onClick={() => void toggleProductVisible(product)}
                             disabled={busyId === product.slug}
                             title={product.visible !== false ? "Hide product" : "Show product"}
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a] disabled:opacity-50"
+                            className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a] disabled:opacity-50"
                           >
                             {product.visible !== false ? (
                               <Eye weight="duotone" size={14} aria-hidden="true" />
@@ -709,7 +710,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                             onClick={() => void deleteProduct(product)}
                             disabled={busyId === product.slug}
                             title="Delete product"
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-red-500/40 hover:text-red-700 disabled:opacity-50"
+                            className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-red-500/40 hover:text-red-700 disabled:opacity-50"
                           >
                             <Trash weight="duotone" size={14} aria-hidden="true" />
                           </button>
@@ -731,7 +732,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
             <button
               type="button"
               onClick={() => openCategoryModal()}
-              className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
             >
               <Plus weight="duotone" size={14} aria-hidden="true" />
               Add category
@@ -789,7 +790,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                             type="button"
                             onClick={() => openCategoryModal(category)}
                             title="Edit category"
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                            className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
                           >
                             <PencilSimple weight="duotone" size={14} aria-hidden="true" />
                           </button>
@@ -798,7 +799,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                             onClick={() => void (category.visible !== false ? hideCategory(category) : showCategory(category))}
                             disabled={busyId === category.id}
                             title={category.visible !== false ? "Hide category" : "Show category"}
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a] disabled:opacity-50"
+                            className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a] disabled:opacity-50"
                           >
                             {category.visible !== false ? (
                               <EyeSlash weight="duotone" size={14} aria-hidden="true" />
@@ -825,7 +826,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
               <button
                 type="button"
                 onClick={closeModal}
-                className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-ink"
+                className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-ink"
               >
                 <X weight="duotone" size={16} aria-hidden="true" />
               </button>
@@ -1085,7 +1086,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     className={`flex-1 ${inputClass(formErrors.imageUrl)}`}
                   />
                   <label
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                    className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
                   >
                     <UploadSimple weight="duotone" size={14} aria-hidden="true" />
                     Upload
@@ -1105,7 +1106,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     <button
                       type="button"
                       onClick={() => setProductForm((f) => ({ ...f, imageUrl: "" }))}
-                      className="inline-flex items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
                     >
                       Remove
                     </button>
@@ -1144,14 +1145,14 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                 <button
                   type="submit"
                   disabled={formBusy}
-                  className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
                 >
                   {formBusy ? "Saving…" : editSlug ? "Update product" : "Add product"}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="rounded-[10px] px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
+                  className="inline-flex min-h-11 items-center rounded-[10px] px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink"
                 >
                   Cancel
                 </button>
@@ -1169,7 +1170,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
               <button
                 type="button"
                 onClick={closeModal}
-                className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-ink"
+                className="inline-flex size-11 items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-ink"
               >
                 <X weight="duotone" size={16} aria-hidden="true" />
               </button>
@@ -1245,7 +1246,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     className={`flex-1 ${inputClass(formErrors.imageUrl)}`}
                   />
                   <label
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                    className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
                   >
                     <UploadSimple weight="duotone" size={14} aria-hidden="true" />
                     Upload
@@ -1265,7 +1266,7 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                     <button
                       type="button"
                       onClick={() => setCategoryForm((f) => ({ ...f, imageUrl: "" }))}
-                      className="inline-flex items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-red-500/30 bg-surface px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:border-red-500/50 hover:bg-red-500/5"
                     >
                       Remove
                     </button>
@@ -1318,14 +1319,14 @@ export function MaterialsView(props: { session: Session; tab: MaterialsTab; onNe
                 <button
                   type="submit"
                   disabled={formBusy}
-                  className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
                 >
                   {formBusy ? "Saving…" : editCatId ? "Update category" : "Add category"}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="rounded-[10px] px-3 py-2 text-xs font-medium text-ink-muted hover:text-ink"
+                  className="inline-flex min-h-11 items-center rounded-[10px] px-3 py-2 text-sm font-medium text-ink-muted hover:text-ink"
                 >
                   Cancel
                 </button>

@@ -70,7 +70,13 @@ export function SidebarNav(props: {
       <div className="relative">
         <div className="relative z-10 flex items-center gap-4 p-5">
           <div className="min-w-0 flex-1">
-            <p className="font-display text-sm font-bold tracking-tight text-accent">Banning Procurement Hub</p>
+            <img
+              src="/logo-dark.svg"
+              alt="Banning Procurement Hub"
+              decoding="async"
+              height={36}
+              className="mb-2 h-9 w-auto"
+            />
             <h1 className="mt-0.5 break-words font-display text-lg font-semibold leading-snug tracking-tight text-white">
               Welcome back, {firstName}
             </h1>

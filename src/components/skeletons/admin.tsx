@@ -34,8 +34,39 @@ export function AdminTableSkeleton({ columns = 5, framed = true }: AdminTableSke
     </table>
   );
 
-  if (!framed) return table;
-  return <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-surface">{table}</div>;
+  const cards = (
+    <ul className="grid gap-3">
+      {Array.from({ length: 4 }, (_, i) => (
+        <li key={i} className="space-y-3 rounded-2xl border border-primary/10 bg-surface p-4">
+          <div className="flex items-start justify-between gap-3">
+            <Skeleton className="h-3 w-24 rounded-md" />
+            <Skeleton className="h-6 w-20 rounded-md" />
+          </div>
+          <Skeleton className="h-3 w-40 rounded-md" />
+          <Skeleton className="h-3 w-32 rounded-md" />
+          <div className="flex items-center gap-2 pt-1">
+            <Skeleton className="h-9 w-9 rounded-[10px]" />
+            <Skeleton className="h-9 w-20 rounded-[10px]" />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+
+  if (!framed) {
+    return (
+      <>
+        <div className="hidden md:block">{table}</div>
+        <div className="p-3 md:hidden">{cards}</div>
+      </>
+    );
+  }
+  return (
+    <>
+      <div className="hidden overflow-x-auto rounded-2xl border border-primary/10 bg-surface md:block">{table}</div>
+      <div className="rounded-2xl border border-primary/10 bg-surface pt-3 md:hidden">{cards}</div>
+    </>
+  );
 }
 
 export function MessagesListSkeleton() {

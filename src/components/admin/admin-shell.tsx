@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowSquareOut, SignOut } from "@phosphor-icons/react";
+import { List, X } from "@phosphor-icons/react";
 import { useSession } from "@/lib/use-session";
 import { SignInDialog } from "@/components/sign-in-dialog";
 import { SidebarNav, signOutFlow, visibleViews, type AdminView } from "./sidebar";
@@ -14,6 +14,7 @@ import { SettingsView } from "./settings-view";
 import { AnalyticsView } from "./analytics-view";
 import { StaffView } from "./staff-view";
 import type { Session } from "./helpers";
+import { AdminShellSkeleton } from "@/components/skeletons/admin";
 
 const DEFAULT_VIEW = "messages";
 
@@ -26,6 +27,7 @@ export default function AdminShell() {
   const tab = searchParams.get("tab") ?? undefined;
   const [badges, setBadges] = useState<Partial<Record<AdminView, number>>>({});
   const [signInOpen, setSignInOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const refreshBadges = useCallback(async () => {
     try {
@@ -57,6 +59,20 @@ export default function AdminShell() {
     };
   }, [refreshBadges]);
 
+  // Close the mobile menu when the active view changes (e.g. after a navigate).
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [view]);
+
+  // Close the mobile menu on Escape.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // Signed-out: open the sign-in dialog instead of redirecting. Staff in
   // production land here because the public "Owner sign in" buttons are
   // dev-only; the dialog is how they gain access.
@@ -80,8 +96,7 @@ export default function AdminShell() {
     if (!views.includes(requested)) navigate(views[0] ?? DEFAULT_VIEW);
   }, [view, views, session.status]);
 
-  if (session.status === "loading")
-    return <p className="p-6 text-sm text-ink-muted">Checking session…</p>;
+  if (session.status === "loading") return <AdminShellSkeleton />;
 
   const signedIn = session.status === "signed-in";
 
@@ -146,6 +161,8 @@ export default function AdminShell() {
         badges={badges}
         views={views}
         content={content}
+        mobileNavOpen={mobileNavOpen}
+        onToggleMobileNav={() => setMobileNavOpen((open) => !open)}
       />
       <SignInDialog open={signInOpen} onClose={() => setSignInOpen(false)} session={session} />
     </>
@@ -159,13 +176,14 @@ function ShellLayout(props: {
   badges: Partial<Record<AdminView, number>>;
   views: AdminView[];
   content: React.ReactNode;
+  mobileNavOpen: boolean;
+  onToggleMobileNav: () => void;
 }) {
-  const { session, active, onNavigate, badges, views, content } = props;
-  const router = useRouter();
+  const { session, active, onNavigate, badges, views, content, mobileNavOpen, onToggleMobileNav } = props;
 
   return (
-    <div className="flex min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 z-40 w-64 hidden lg:block">
+    <div className="flex min-h-dvh w-full flex-col overflow-x-clip lg:flex-row">
+      <aside className="fixed inset-y-0 left-0 z-40 w-64 shrink-0 hidden lg:block">
         <SidebarNav
           session={session}
           active={active}
@@ -173,83 +191,131 @@ function ShellLayout(props: {
           badges={badges}
         />
       </aside>
-      <div className="flex-1 lg:pl-64">
-        <MobilePillNav
-          active={active}
-          onNavigate={onNavigate}
-          badges={badges}
-          session={session}
-          views={views}
-          router={router}
-        />
+      <MobileShellNav
+        session={session}
+        active={active}
+        onNavigate={onNavigate}
+        badges={badges}
+        views={views}
+        open={mobileNavOpen}
+        onToggle={onToggleMobileNav}
+      />
+      <div className="min-w-0 flex-1 lg:pl-64">
         <main className="mx-auto max-w-5xl p-4 sm:p-8">{content}</main>
       </div>
     </div>
   );
 }
 
-function MobilePillNav(props: {
+function MobileShellNav(props: {
+  session: Session;
   active: AdminView;
   onNavigate: (view: AdminView) => void;
   badges: Partial<Record<AdminView, number>>;
-  session: Session;
   views: AdminView[];
-  router: ReturnType<typeof useRouter>;
+  open: boolean;
+  onToggle: () => void;
 }) {
-  const { active, onNavigate, badges, session, views, router } = props;
+  const { session, active, onNavigate, badges, views, open, onToggle } = props;
 
   return (
-    <div className="sticky top-0 z-30 border-b border-primary/10 bg-surface/80 backdrop-blur lg:hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-2" style={{ paddingTop: "env(safe-area-inset-top)" }}>
-        <span className="truncate font-display text-sm font-semibold tracking-tight text-ink">
-          Banning Procurement Hub
-        </span>
-        <div className="flex shrink-0 items-center gap-1">
-          <a
-            href="/"
-            className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
-            aria-label="Back to site"
-            title="Back to site"
-          >
-            <ArrowSquareOut weight="duotone" size={16} aria-hidden="true" />
-          </a>
+    <>
+      <div
+        className="sticky top-0 z-30 w-full shrink-0 border-b border-primary/10 bg-surface/80 backdrop-blur lg:hidden"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
+        <div className="flex items-center gap-2 px-3 py-2">
           <button
             type="button"
-            onClick={() => signOutFlow(session, router)}
-            className="inline-flex size-8 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
-            aria-label="Sign out"
-            title="Sign out"
+            onClick={onToggle}
+            aria-expanded={open}
+            aria-controls="admin-drawer"
+            aria-label={open ? "Close navigation" : "Open navigation"}
+            className="inline-flex shrink-0 items-center justify-center rounded-[10px] p-2 text-ink transition-colors hover:bg-surface-alt hover:text-ink"
+            style={{ minWidth: 44, minHeight: 44 }}
           >
-            <SignOut weight="duotone" size={16} aria-hidden="true" />
+            {open ? <X weight="duotone" size={20} aria-hidden="true" /> : <List weight="duotone" size={20} aria-hidden="true" />}
           </button>
+          <span className="min-w-0 flex-1">
+            <img
+              src="/logo.svg"
+              alt=""
+              aria-hidden="true"
+              decoding="async"
+              height={32}
+              className="logo-light-mode h-8 w-auto"
+            />
+            <img
+              src="/logo-dark.svg"
+              alt="Banning Procurement Hub"
+              decoding="async"
+              height={32}
+              className="logo-dark-mode h-8 w-auto"
+            />
+          </span>
+        </div>
+        <nav
+          className="hidden items-center gap-2 overflow-x-auto px-3 pb-2 md:flex"
+          aria-label="Admin sections"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {views.map((view) => {
+            const isActive = active === view;
+            const badge = badges[view];
+            return (
+              <button
+                key={view}
+                type="button"
+                onClick={() => onNavigate(view)}
+                aria-current={isActive ? "page" : undefined}
+                className={`relative flex shrink-0 items-center rounded-full px-4 text-sm font-semibold capitalize transition-colors ${
+                  isActive
+                    ? "bg-[#0d3d1a] text-white"
+                    : "text-ink-muted hover:bg-surface-alt hover:text-ink"
+                }`}
+                style={{ minHeight: 40 }}
+              >
+                {view}
+                {badge ? (
+                  <span className="ml-1.5 inline-flex min-w-4 items-center justify-center rounded-full bg-accent px-1 font-mono text-[10px] font-bold leading-4 text-[#0d3d1a]">
+                    {badge}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Slide-in drawer reusing the desktop sidebar (bg image included). */}
+      <div
+        id="admin-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Admin navigation"
+        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        style={{ visibility: open ? "visible" : "hidden" }}
+      >
+        <div
+          aria-hidden="true"
+          onClick={onToggle}
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${
+            open ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute inset-y-0 left-0 w-[min(86%,19rem)] overflow-hidden shadow-2xl transition-transform duration-200 ease-out ${
+            open ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <SidebarNav
+            session={session}
+            active={active}
+            onNavigate={onNavigate}
+            badges={badges}
+          />
         </div>
       </div>
-      <nav className="flex items-center gap-2 overflow-x-auto px-4 pb-2" aria-label="Admin navigation">
-        {views.map((view) => {
-          const isActive = active === view;
-          const badge = badges[view];
-          return (
-            <button
-              key={view}
-              type="button"
-              onClick={() => onNavigate(view)}
-              aria-current={isActive ? "page" : undefined}
-              className={`relative shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
-                isActive
-                  ? "bg-[#0d3d1a] text-white"
-                  : "text-ink-muted hover:bg-surface-alt hover:text-ink"
-              }`}
-            >
-              {view}
-              {badge ? (
-                <span className="ml-1 inline-flex size-4 items-center justify-center rounded-full bg-accent font-mono text-[9px] font-bold text-[#0d3d1a]">
-                  {badge}
-                </span>
-              ) : null}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    </>
   );
 }

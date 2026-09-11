@@ -108,7 +108,7 @@ export function InventoryView(props: { session: Session }) {
         <button
           type="button"
           onClick={() => void Promise.all([loadData(), loadHistory()])}
-          className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
         >
           <ArrowClockwise weight="duotone" size={14} aria-hidden="true" />
           Refresh

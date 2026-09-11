@@ -288,9 +288,10 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
               role="tab"
               aria-selected={active === item.key}
               onClick={() => switchTab(item.key)}
-              className={`rounded-[8px] px-3 py-1.5 text-sm font-semibold transition-colors ${
+              className={`rounded-[8px] px-3 text-sm font-semibold transition-colors ${
                 active === item.key ? "bg-[#0d3d1a] text-white" : "text-ink-muted hover:text-ink"
               }`}
+              style={{ minHeight: 40 }}
             >
               {item.label}
             </button>
@@ -312,18 +313,18 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                 type="button"
                 onClick={() => setManualOpen((open) => !open)}
                 aria-expanded={manualOpen}
-                className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
               >
-                {manualOpen ? <X weight="duotone" size={14} aria-hidden="true" /> : <ClipboardText weight="duotone" size={14} aria-hidden="true" />}
+                {manualOpen ? <X weight="duotone" size={16} aria-hidden="true" /> : <ClipboardText weight="duotone" size={16} aria-hidden="true" />}
                 {manualOpen ? "Close" : "Add a WhatsApp quote"}
               </button>
               <button
                 type="button"
                 onClick={quotesCsv}
                 disabled={quotes.length === 0}
-                className="inline-flex items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/20 bg-surface px-3 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
               >
-                <DownloadSimple weight="duotone" size={14} aria-hidden="true" />
+                <DownloadSimple weight="duotone" size={16} aria-hidden="true" />
                 Export CSV {quotes.length > 0 ? `(${quotes.length})` : ""}
               </button>
             </div>
@@ -334,7 +335,7 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
           </div>
 
           {manualOpen ? (
-            <div className="rounded-2xl border border-primary/10 bg-surface p-6">
+            <div className="rounded-2xl border border-primary/10 bg-surface p-4 sm:p-6">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="font-display text-lg font-semibold tracking-tight text-ink">Add a WhatsApp quote</h3>
@@ -430,9 +431,9 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                   <button
                     type="submit"
                     disabled={manualBusy}
-                    className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-5 py-2 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light disabled:opacity-60"
                   >
-                    <ClipboardText weight="duotone" size={14} aria-hidden="true" />
+                    <ClipboardText weight="duotone" size={16} aria-hidden="true" />
                     {manualBusy ? "Saving…" : "Save quote"}
                   </button>
                   {manualError ? (
@@ -452,80 +453,146 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
               No quotes yet. Quote requests land here the moment they come in — or add one above.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border border-primary/10 bg-surface">
-              <table className="w-full min-w-[980px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-primary/10 text-xs uppercase tracking-wider text-ink-muted">
-                    <th className="px-4 py-3 font-medium">Reference</th>
-                    <th className="px-4 py-3 font-medium">Customer</th>
-                    <th className="px-4 py-3 font-medium">Area</th>
-                    <th className="px-4 py-3 font-medium">Received</th>
-                    <th className="px-4 py-3 font-medium">Items</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-primary/10">
-                  {quotes.map((quote) => (
-                    <tr key={quote.id} className="align-top">
-                      <td className="px-4 py-3 font-mono text-xs text-ink-muted">{quote.reference}</td>
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-ink">{quote.name}</div>
-                        <div className="text-xs text-ink-muted">{quote.phone}</div>
-                        {quote.email ? <div className="text-xs text-ink-muted">{quote.email}</div> : null}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-ink-muted">{quote.area}</td>
-                      <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-muted">{formatDate(quote.created_at)}</td>
-                      <td className="max-w-[260px] px-4 py-3 text-xs text-ink-muted">
-                        <div className="line-clamp-2" title={formatItems(quote.items)}>
-                          {formatItems(quote.items)}
+            <>
+              <ul className="grid gap-3 md:hidden">
+                {quotes.map((quote) => (
+                  <li key={quote.id} className="rounded-2xl border border-primary/10 bg-surface p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                          {quote.reference}
                         </div>
-                        {quote.note ? (
-                          <div className="mt-1 border-l-2 border-primary/20 pl-2 text-ink-muted" title={quote.note}>
-                            “{truncate(quote.note, 120)}”
-                          </div>
+                        <div className="mt-1 truncate font-medium text-ink">{quote.name}</div>
+                        <div className="truncate text-sm text-ink-muted">{quote.phone}</div>
+                        {quote.email ? (
+                          <div className="mt-0.5 truncate text-sm text-ink-muted">{quote.email}</div>
                         ) : null}
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <select
-                          value={quote.status}
-                          disabled={quotesBusyId === quote.id}
-                          onChange={(e) => void changeQuoteStatus(quote, e.target.value as Status)}
-                          className={`rounded-[8px] border-0 px-2 py-1.5 text-xs font-semibold disabled:opacity-50 ${statusPill(quote.status)}`}
-                        >
-                          {STATUSES.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <a
-                            href={ctaToWhatsApp(quote.phone, waSummary(quote))}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Reply on WhatsApp"
-                            className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
-                          >
-                            <WhatsappLogo weight="duotone" size={14} aria-hidden="true" />
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => setDrawerQuote(quote)}
-                            className="inline-flex items-center gap-1 rounded-[8px] border border-primary/10 px-2.5 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
-                          >
-                            <PencilSimple weight="duotone" size={13} aria-hidden="true" />
-                            Edit
-                          </button>
-                        </div>
-                      </td>
+                      </div>
+                      <select
+                        value={quote.status}
+                        disabled={quotesBusyId === quote.id}
+                        onChange={(e) => void changeQuoteStatus(quote, e.target.value as Status)}
+                        aria-label={`Status for ${quote.reference}`}
+                        className={`rounded-[8px] border-0 px-2.5 py-2 text-sm font-semibold disabled:opacity-50 ${statusPill(quote.status)}`}
+                      >
+                        {STATUSES.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-muted">
+                      <span>{quote.area}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{formatDate(quote.created_at)}</span>
+                    </div>
+                    <div className="mt-2 text-sm text-ink">
+                      <span className="line-clamp-2">{formatItems(quote.items)}</span>
+                      {quote.note ? (
+                        <span className="mt-1 block border-l-2 border-primary/20 pl-2 text-ink-muted">
+                          “{truncate(quote.note, 140)}”
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <a
+                        href={ctaToWhatsApp(quote.phone, waSummary(quote))}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Reply on WhatsApp"
+                        className="inline-flex items-center justify-center rounded-[10px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        style={{ minWidth: 44, minHeight: 44 }}
+                      >
+                        <WhatsappLogo weight="duotone" size={18} aria-hidden="true" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setDrawerQuote(quote)}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-primary/10 px-3 text-sm font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                      >
+                        <PencilSimple weight="duotone" size={16} aria-hidden="true" />
+                        Edit
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden overflow-x-auto rounded-2xl border border-primary/10 bg-surface md:block">
+                <table className="w-full min-w-[980px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-primary/10 text-xs uppercase tracking-wider text-ink-muted">
+                      <th className="px-4 py-3 font-medium">Reference</th>
+                      <th className="px-4 py-3 font-medium">Customer</th>
+                      <th className="px-4 py-3 font-medium">Area</th>
+                      <th className="px-4 py-3 font-medium">Received</th>
+                      <th className="px-4 py-3 font-medium">Items</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-primary/10">
+                    {quotes.map((quote) => (
+                      <tr key={quote.id} className="align-top">
+                        <td className="px-4 py-3 font-mono text-xs text-ink-muted">{quote.reference}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-ink">{quote.name}</div>
+                          <div className="text-xs text-ink-muted">{quote.phone}</div>
+                          {quote.email ? <div className="text-xs text-ink-muted">{quote.email}</div> : null}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-ink-muted">{quote.area}</td>
+                        <td className="whitespace-nowrap px-4 py-3 text-xs text-ink-muted">{formatDate(quote.created_at)}</td>
+                        <td className="max-w-[260px] px-4 py-3 text-xs text-ink-muted">
+                          <div className="line-clamp-2" title={formatItems(quote.items)}>
+                            {formatItems(quote.items)}
+                          </div>
+                          {quote.note ? (
+                            <div className="mt-1 border-l-2 border-primary/20 pl-2 text-ink-muted" title={quote.note}>
+                              “{truncate(quote.note, 120)}”
+                            </div>
+                          ) : null}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <select
+                            value={quote.status}
+                            disabled={quotesBusyId === quote.id}
+                            onChange={(e) => void changeQuoteStatus(quote, e.target.value as Status)}
+                            className={`rounded-[8px] border-0 px-2 py-1.5 text-xs font-semibold disabled:opacity-50 ${statusPill(quote.status)}`}
+                          >
+                            {STATUSES.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={ctaToWhatsApp(quote.phone, waSummary(quote))}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Reply on WhatsApp"
+                              className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                            >
+                              <WhatsappLogo weight="duotone" size={14} aria-hidden="true" />
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => setDrawerQuote(quote)}
+                              className="inline-flex items-center gap-1 rounded-[8px] border border-primary/10 px-2.5 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt"
+                            >
+                              <PencilSimple weight="duotone" size={13} aria-hidden="true" />
+                              Edit
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </section>
       ) : (
@@ -591,7 +658,8 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                         type="button"
                         onClick={() => void toggleRead(message)}
                         disabled={messagesBusyId === message.id}
-                        className="inline-flex items-center gap-1 rounded-[8px] border border-primary/10 px-2.5 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded-[8px] border border-primary/10 px-2.5 text-xs font-semibold text-ink transition-colors hover:border-primary/40 hover:bg-surface-alt disabled:opacity-50"
+                        style={{ minHeight: 44 }}
                       >
                         <EnvelopeSimple weight="duotone" size={13} aria-hidden="true" />
                         {message.read ? "Mark unread" : "Mark read"}
@@ -601,7 +669,8 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                         target="_blank"
                         rel="noreferrer"
                         title="Reply on WhatsApp"
-                        className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        className="inline-flex items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
                         <WhatsappLogo weight="duotone" size={14} aria-hidden="true" />
                       </a>
@@ -609,7 +678,8 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                         type="button"
                         onClick={() => startEdit(message)}
                         title="Edit message"
-                        className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        className="inline-flex items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-primary/40 hover:text-[#0d3d1a]"
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
                         <PencilSimple weight="duotone" size={14} aria-hidden="true" />
                       </button>
@@ -618,7 +688,8 @@ export function MessagesView(props: { session: Session; tab: MessagesTab; onNeed
                         onClick={() => void removeMessage(message)}
                         disabled={messagesBusyId === message.id}
                         title="Delete message"
-                        className="inline-flex size-8 items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-red-500/40 hover:text-red-700 disabled:opacity-50"
+                        className="inline-flex items-center justify-center rounded-[8px] border border-primary/10 text-ink-muted transition-colors hover:border-red-500/40 hover:text-red-700 disabled:opacity-50"
+                        style={{ minWidth: 44, minHeight: 44 }}
                       >
                         <Trash weight="duotone" size={14} aria-hidden="true" />
                       </button>

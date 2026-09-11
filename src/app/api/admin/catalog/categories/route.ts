@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { createCategory, deleteCategory, fetchCategories, updateCategory } from "@/server/catalog-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { revalidatePublic } from "@/server/revalidate";
 import { catalogItemIdSchema, categorySchema, parseBody } from "@/server/validate";
@@ -18,6 +19,7 @@ async function guard(request: NextRequest) {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   return null;
 }
 

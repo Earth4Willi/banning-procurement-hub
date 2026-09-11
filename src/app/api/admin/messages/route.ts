@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { badRequest } from "@/server/http-error";
 import { audit } from "@/server/audit";
 import { deleteMessage, isMessageStoreAvailable, listMessages, setMessageRead, updateMessage } from "@/server/message-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { catalogItemIdSchema, messageUpdateSchema, parseBody } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -18,6 +19,7 @@ async function guard(request: NextRequest) {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   return null;
 }
 

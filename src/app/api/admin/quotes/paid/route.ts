@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { setQuotePaid } from "@/server/quote-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { parseBody, quotePaidSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -17,6 +18,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   const body = await parseBody(request, quotePaidSchema);
   const ok = await setQuotePaid(body.id, body.method);
   if (!ok) {

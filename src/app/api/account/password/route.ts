@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { audit } from "@/server/audit";
+import { verifySameOrigin } from "@/server/csrf";
 import { HttpError, unauthorized } from "@/server/http-error";
 import { hashPassword, verifyPassword } from "@/server/passwords";
 import { createRedis } from "@/server/redis";
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 export const POST = withErrorHandling(async (request: NextRequest) => {
   const principal = await requireCustomer(request);
   if (!principal) throw unauthorized();
+  verifySameOrigin(request);
   const body = await parseBody(request, changePasswordSchema);
 
   const user = await findUserByIdWithPassword(principal.id);

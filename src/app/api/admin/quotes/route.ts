@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { ensureQuoteToken, isQuoteStoreAvailable, listQuotes, persistQuote, updateQuote } from "@/server/quote-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { manualQuoteSchema, parseBody, quoteUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -33,6 +34,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   const body = await parseBody(request, manualQuoteSchema);
   const reference = randomBytes(6).toString("hex");
   const persisted = await persistQuote({ reference, source: "whatsapp", ...body, items: [] });
@@ -54,6 +56,7 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   const body = await parseBody(request, quoteUpdateSchema);
   const fields = Object.keys(body).filter((key) => key !== "id");
   if (fields.length === 0) {

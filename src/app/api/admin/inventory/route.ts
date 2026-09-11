@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit, getSupabaseClient } from "@/server/audit";
 import { fetchProducts, updateProduct } from "@/server/catalog-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { revalidatePublic } from "@/server/revalidate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -51,6 +52,7 @@ export const PATCH = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
 
   let raw: string;
   try {

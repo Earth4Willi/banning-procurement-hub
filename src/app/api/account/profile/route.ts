@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { audit } from "@/server/audit";
+import { verifySameOrigin } from "@/server/csrf";
 import { unauthorized } from "@/server/http-error";
 import { createRedis } from "@/server/redis";
 import { requireCustomer } from "@/server/require-customer";
@@ -33,6 +34,7 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 export const PATCH = withErrorHandling(async (request: NextRequest) => {
   const principal = await requireCustomer(request);
   if (!principal) throw unauthorized();
+  verifySameOrigin(request);
   const patch = await parseBody(request, accountProfileSchema);
 
   const ok = await updateCustomerProfile(principal.id, patch);

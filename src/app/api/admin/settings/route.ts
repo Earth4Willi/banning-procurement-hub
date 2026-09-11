@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { getSettings, updateSettings } from "@/server/settings-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { parseBody, settingsUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -44,6 +45,7 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
+  verifySameOrigin(request);
   const body = await parseBody(request, settingsUpdateSchema);
   const ok = await updateSettings(body.key, body.value);
   if (!ok) {

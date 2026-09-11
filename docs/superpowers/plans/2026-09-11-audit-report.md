@@ -69,7 +69,7 @@ BPH's core loops (frontend UX → quote submission → admin acceptance → inve
 
 ## 7. Remaining issues (deliberately not auto-fixed)
 
-- **R1 (Medium, needs a DB change, awaiting your approval):** enable RLS with zero policies on all backend tables + add a `change_type` CHECK on `inventory_history`. Safe today because every query uses the service-role key (RLS bypass), but it makes a leaked anon key inert. Written as `supabase/migrations/0006_hardening.sql`, committed **unapplied**. `npm run supabase:migrate 0006` to apply once you've approved.
+- **R1 (applied 2026-09-11):** RLS with zero policies enabled + `FORCE` on all backend tables (`users, categories, products, messages, customers, quotes, site_settings, inventory_history, security_events`) and a `change_type` CHECK on `inventory_history` (`0006_hardening.sql`, `npm run supabase:migrate 0006`). Safe because every query uses the service-role key (RLS bypass); a leaked anon key is now inert. Post-apply verified: CHECK constraint present, `relrowsecurity`/`relforcerowsecurity` = ON on all 9 tables.
 - **R2 (Medium, needs a DB function, deferred):** the atomic accept path still uses two statements (deduct + status flip). The compensating rollback in code guarantees no partial deduction, but a Postgres transaction/RPC would make the accept and reversal race-safe under concurrent admins. Recommended only if you later run two admins back-to-back on the same quote.
 - **R3 (Low):** `contact-form` still auto-opens WhatsApp after a server failure. Consider mirroring the quote-builder's error handling.
 - **R4 (Low):** no ESLint/typecheck script in `package.json`; `vitest.config.ts` triggers a Vite native-loader warning. Cosmetic.
@@ -95,7 +95,7 @@ Defense-in-depth is now consistent: authN (session + TOTP + CAPTCHA) → authZ (
 
 ## 17. Final assessment
 
-Not claimed "READY" on the strength of a green build — claimed improved on the strength of reproductions, root-cause fixes, and tests that fail without the fix. Baseline of the audit callouts is closed. The single remaining actionable item is applying migration `0006` after your review, plus the optional RPC for full accept atomicity. Everything is on `main`:
+Not claimed "READY" on the strength of a green build — claimed improved on the strength of reproductions, root-cause fixes, and tests that fail without the fix. Baseline of the audit callouts is closed. Migration `0006` (RLS zero-policy + `change_type` CHECK) is applied to the live DB and verified. The only remaining recommendation is the optional Postgres RPC for fully race-safe accept atomicity. Everything is on `main`:
 
 ```
 dbee447 chore: add migration 0006 (RLS zero-policy + change_type CHECK), unapplied

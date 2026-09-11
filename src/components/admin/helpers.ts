@@ -3,7 +3,10 @@ import { money } from "@/lib/quote-document";
 export type Session = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
+  name?: string;
   avatarUrl?: string;
+  role?: "owner" | "staff" | "customer";
+  scopes?: string[];
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 };

@@ -337,3 +337,32 @@ export const settingsUpdateSchema = z.discriminatedUnion("key", [
   z.object({ key: z.literal("payments"), value: paymentSettingsSchema }).strict(),
   z.object({ key: z.literal("delivery"), value: deliverySettingsSchema }).strict(),
 ]);
+
+export const STAFF_SCOPES = [
+  "messages",
+  "customers",
+  "materials",
+  "inventory",
+  "analytics",
+] as const;
+
+export const staffCreateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(80),
+    email: emailSchema,
+    password: strongPasswordSchema,
+    scopes: z.array(z.enum(STAFF_SCOPES)).max(STAFF_SCOPES.length).default(["messages"]),
+    totpSecret: z.string().trim().max(200).optional().nullable(),
+  })
+  .strict();
+
+export const staffUpdateSchema = z
+  .object({
+    id: z.string().trim().min(1).max(64),
+    name: z.string().trim().min(1).max(80).optional(),
+    scopes: z.array(z.enum(STAFF_SCOPES)).max(STAFF_SCOPES.length).optional(),
+    active: z.boolean().optional(),
+    password: strongPasswordSchema.optional(),
+    totpSecret: z.string().trim().max(200).optional().nullable(),
+  })
+  .strict();

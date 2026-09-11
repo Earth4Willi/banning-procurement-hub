@@ -3,22 +3,22 @@ import { NextResponse } from "next/server";
 import { audit, getSupabaseClient } from "@/server/audit";
 import { createProduct, deleteProduct, fetchProducts, updateProduct } from "@/server/catalog-store";
 import { verifySameOrigin } from "@/server/csrf";
-import { requireOwner } from "@/server/require-owner";
+import type { AdminPrincipal } from "@/server/require-staff";
+import { requireStaff } from "@/server/require-staff";
 import { revalidatePublic } from "@/server/revalidate";
-import type { OwnerPrincipal } from "@/server/session";
 import { catalogItemIdSchema, parseBody, productSchema, productUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type GuardResult = { principal: OwnerPrincipal } | NextResponse;
+type GuardResult = { principal: AdminPrincipal } | NextResponse;
 
 async function guard(request: NextRequest): Promise<GuardResult> {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["materials"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

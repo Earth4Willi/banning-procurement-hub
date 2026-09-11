@@ -125,12 +125,12 @@ export function SignInDialog({ open, onClose, session }: Props) {
           <div className="flex items-start justify-between">
             <div>
               <h2 className="font-display text-lg font-semibold text-ink">
-                {step === "code" ? "Enter your code" : "Owner sign in"}
+                {step === "code" ? "Enter your code" : "Sign in"}
               </h2>
               <p className="mt-0.5 text-xs text-ink-muted">
                 {step === "code"
                   ? "Open your authenticator app for the 6-digit code."
-                  : "Two-factor access for the site owner."}
+                  : "Authorized owner or staff access."}
               </p>
             </div>
             <button
@@ -260,7 +260,7 @@ export function SignInDialog({ open, onClose, session }: Props) {
                   )}
                 </button>
                 <p className="text-center text-[11px] text-ink-muted">
-                  A 6-digit code from your authenticator app is the next step.
+                  Accounts with two-factor enabled need a 6-digit code next.
                 </p>
               </form>
             )}

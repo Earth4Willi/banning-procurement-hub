@@ -91,7 +91,7 @@ export function Header() {
   }, [pathname, session.refresh]);
 
   const customerSignedIn = session.status === "signed-in" && session.role === "customer";
-  const ownerSignedIn = session.status === "signed-in" && session.role === "owner";
+  const adminSignedIn = session.status === "signed-in" && (session.role === "owner" || session.role === "staff");
 
   return (
     <>
@@ -170,7 +170,7 @@ export function Header() {
                   <SignOut weight="duotone" size={16} aria-hidden="true" />
                 </button>
               </>
-            ) : ownerSignedIn ? (
+            ) : adminSignedIn ? (
               <>
                 <Link
                   href="/admin"

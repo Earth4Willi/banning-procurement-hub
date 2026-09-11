@@ -6,6 +6,7 @@ import { fetchProducts } from "@/server/catalog-store";
 import { verifySameOrigin } from "@/server/csrf";
 import { badRequest } from "@/server/http-error";
 import { findShortLines } from "@/server/inventory";
+import { emailConfigured, newQuoteForOwner, quoteSubmittedForCustomer, sendEmail } from "@/server/notify";
 import { persistQuote } from "@/server/quote-store";
 import { requireCustomer } from "@/server/require-customer";
 import { clientIp, enforceRateLimit } from "@/server/rate-limit";
@@ -68,6 +69,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     userId,
     persisted,
   });
+
+  if (emailConfigured()) {
+    const ref = { reference, name: body.name, area: body.area, itemCount: body.items.length };
+    void sendEmail(newQuoteForOwner(ref));
+    if (body.email) {
+      void sendEmail(quoteSubmittedForCustomer(body.email, ref));
+    }
+  }
 
   return NextResponse.json({ ok: true, reference }, { status: 202, headers: rateHeaders });
 });

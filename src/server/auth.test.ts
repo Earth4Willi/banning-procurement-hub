@@ -42,6 +42,10 @@ class MemoryPendingStore implements PendingLoginStore {
     this.store.delete(id);
     return record ?? null;
   }
+
+  async peek(id: string): Promise<PendingLogin | null> {
+    return this.store.get(id) ?? null;
+  }
 }
 
 async function messageOf(fn: () => Promise<unknown>): Promise<string> {

@@ -3,18 +3,38 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowSquareOut, ChatCircleText, Gear, Package, SignOut, SquaresFour, UsersThree } from "@phosphor-icons/react";
+import { ArrowSquareOut, ChartBar, ChatCircleText, Gear, Package, SignOut, SquaresFour, UserCircleGear, UsersThree } from "@phosphor-icons/react";
 import type { Session } from "./helpers";
 
-export type AdminView = "messages" | "customers" | "materials" | "settings" | "inventory";
+export type AdminView = "messages" | "customers" | "materials" | "inventory" | "settings" | "analytics" | "staff";
+
+/** Maps a view to the scope required for staff (owner always has full access). */
+const VIEW_SCOPES: Record<AdminView, string | null> = {
+  messages: "messages",
+  customers: "customers",
+  materials: "materials",
+  inventory: "inventory",
+  analytics: "analytics",
+  settings: null,
+  staff: null,
+};
 
 const ICONS: Record<AdminView, typeof ChatCircleText> = {
   messages: ChatCircleText,
   customers: UsersThree,
   materials: SquaresFour,
   inventory: Package,
+  analytics: ChartBar,
   settings: Gear,
+  staff: UserCircleGear,
 };
+
+export function visibleViews(role?: string, scopes?: string[]): AdminView[] {
+  return Object.entries(VIEW_SCOPES).filter(([view, scope]) => {
+    if (role === "owner" || !scope) return true;
+    return scopes?.includes(scope);
+  }).map(([view]) => view as AdminView);
+}
 
 export function signOutFlow(session: Session, router: ReturnType<typeof useRouter>): void {
   void (async () => {
@@ -34,6 +54,7 @@ export function SidebarNav(props: {
   const pathname = usePathname();
 
   const firstName = session.email?.split("@")[0] ?? "owner";
+  const views = visibleViews(session.role, session.scopes);
 
   return (
     <nav
@@ -59,15 +80,15 @@ export function SidebarNav(props: {
       </div>
 
       <ul className="mt-2 flex flex-col gap-1 px-3">
-        {Object.entries(ICONS).map(([view, Icon]) => {
-          const current = view as AdminView;
-          const isActive = active === current;
-          const badge = badges[current];
+        {views.map((view) => {
+          const Icon = ICONS[view];
+          const isActive = active === view;
+          const badge = badges[view];
           return (
             <li key={view}>
               <Link
-                href={`${pathname}?view=${current}`}
-                onClick={() => onNavigate(current)}
+                href={`${pathname}?view=${view}`}
+                onClick={() => onNavigate(view)}
                 aria-current={isActive ? "page" : undefined}
                 className={`relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive ? "bg-white/10 text-white" : "text-white/75 hover:bg-white/5 hover:text-white"
@@ -77,7 +98,7 @@ export function SidebarNav(props: {
                   <span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-accent" aria-hidden="true" />
                 ) : null}
                 <Icon weight={isActive ? "duotone" : "regular"} size={18} aria-hidden="true" />
-                <span className="flex-1 capitalize">{current}</span>
+                <span className="flex-1 capitalize">{view}</span>
                 {badge ? (
                   <span className="min-w-5 rounded-full bg-accent px-1.5 py-0.5 text-center font-mono text-[10px] font-bold leading-none text-[#0d3d1a]">
                     {badge}

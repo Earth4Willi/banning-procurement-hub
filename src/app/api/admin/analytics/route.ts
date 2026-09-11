@@ -5,17 +5,17 @@ import { listSecurityEvents } from "@/server/audit";
 import { countCustomers } from "@/server/customer-store";
 import { isMessageStoreAvailable, listMessages } from "@/server/message-store";
 import { listQuotes } from "@/server/quote-store";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["analytics"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

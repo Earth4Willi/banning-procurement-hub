@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { createCategory, deleteCategory, fetchCategories, updateCategory } from "@/server/catalog-store";
 import { verifySameOrigin } from "@/server/csrf";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { revalidatePublic } from "@/server/revalidate";
 import { catalogItemIdSchema, categorySchema, categoryUpdateSchema, parseBody } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -12,10 +12,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function guard(request: NextRequest) {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["materials"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

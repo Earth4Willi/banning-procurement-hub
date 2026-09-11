@@ -1,9 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
-import { setQuotePaid } from "@/server/quote-store";
+import { emailConfigured, quoteStatusForCustomer, sendEmail } from "@/server/notify";
+import { ensureQuoteToken, getQuote, setQuotePaid } from "@/server/quote-store";
 import { verifySameOrigin } from "@/server/csrf";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { parseBody, quotePaidSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
@@ -11,10 +12,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["messages"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }
@@ -34,5 +35,23 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("quote_receipted", { id: body.id, method: body.method });
+
+  const quote = await getQuote(body.id);
+  if (quote?.email && emailConfigured()) {
+    const token = quote.doc_token ?? (await ensureQuoteToken(body.id));
+    if (token) {
+      void sendEmail(
+        quoteStatusForCustomer(quote.email, {
+          reference: quote.reference,
+          name: quote.name,
+          area: quote.area,
+          itemCount: quote.items.length,
+          status: "won",
+          docUrl: `${process.env.APP_ORIGIN ?? "https://banningprocurementhub.com"}/quote/${token}`,
+        }),
+      );
+    }
+  }
+
   return NextResponse.json({ ok: true });
 });

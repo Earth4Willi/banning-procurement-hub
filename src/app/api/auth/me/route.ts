@@ -36,5 +36,13 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       address: profile?.address ?? "",
     });
   }
+  if (principal.role === "staff") {
+    return NextResponse.json({
+      role: "staff",
+      email: principal.email,
+      name: principal.name,
+      scopes: principal.scopes,
+    });
+  }
   return NextResponse.json({ email: principal.email, role: principal.role, avatarUrl });
 });

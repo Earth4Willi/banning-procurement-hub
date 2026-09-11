@@ -41,3 +41,6 @@ nav-*.png
 # upstash provisioning state (holds REST token)
 .upstash-provision.json
 image/
+
+# Playwright CLI session artifacts
+.playwright-cli/

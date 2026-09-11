@@ -6,7 +6,9 @@ type SessionState = {
   status: "loading" | "signed-out" | "signed-in";
   email?: string;
   avatarUrl?: string;
-  role?: "owner" | "customer";
+  name?: string;
+  scopes?: string[];
+  role?: "owner" | "staff" | "customer";
   error?: string;
 };
 
@@ -26,8 +28,8 @@ export function useSession() {
     try {
       const res = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (res.ok) {
-        const data = (await res.json()) as { email?: string; avatarUrl?: string; role?: "owner" | "customer" };
-        setState({ status: "signed-in", email: data.email, avatarUrl: data.avatarUrl, role: data.role });
+        const data = (await res.json()) as { email?: string; avatarUrl?: string; name?: string; scopes?: string[]; role?: "owner" | "staff" | "customer" };
+        setState({ status: "signed-in", email: data.email, avatarUrl: data.avatarUrl, name: data.name, scopes: data.scopes, role: data.role });
       } else {
         setState({ status: "signed-out" });
       }
@@ -54,6 +56,12 @@ export function useSession() {
         setState((s) => ({ ...s, error: message }));
         return { ok: false };
       }
+      // A staff member without TOTP logs in in a single step: the route answers
+      // 204 with no body, so there is no pending login to verify.
+      if (res.status === 204) {
+        await refresh();
+        return { ok: true };
+      }
       const data = (await res.json()) as { pendingId?: string };
       if (!data.pendingId) {
         setState((s) => ({ ...s, error: GENERIC }));
@@ -64,7 +72,7 @@ export function useSession() {
       setState((s) => ({ ...s, error: GENERIC }));
       return { ok: false };
     }
-  }, []);
+  }, [refresh]);
 
   const verifyCode = useCallback(async (pendingId: string, totpCode: string): Promise<boolean> => {
     setState((s) => ({ ...s, error: undefined }));
@@ -82,11 +90,13 @@ export function useSession() {
       }
       const me = await fetch("/api/auth/me", { credentials: "same-origin" });
       if (me.ok) {
-        const data = (await me.json()) as { email?: string; avatarUrl?: string; role?: "owner" | "customer" };
+        const data = (await me.json()) as { email?: string; avatarUrl?: string; name?: string; scopes?: string[]; role?: "owner" | "staff" | "customer" };
         setState((s) => ({
           ...s,
           status: "signed-in",
           email: s.email ?? data.email,
+          name: s.name ?? data.name,
+          scopes: s.scopes ?? data.scopes,
           avatarUrl: s.avatarUrl ?? data.avatarUrl,
           role: s.role ?? data.role,
         }));

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { audit, getSupabaseClient } from "@/server/audit";
 import { fetchProducts, updateProduct } from "@/server/catalog-store";
 import { verifySameOrigin } from "@/server/csrf";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { revalidatePublic } from "@/server/revalidate";
 import { withErrorHandling } from "@/server/with-error-handling";
 import { z } from "zod";
@@ -23,10 +23,10 @@ const adjustSchema = z
 
 /** GET — inventory summary + all products with inventory fields */
 export const GET = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["inventory"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }
@@ -45,10 +45,10 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
 /** PATCH — manual inventory adjustment */
 export const PATCH = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["inventory"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

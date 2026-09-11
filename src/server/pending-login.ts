@@ -1,11 +1,20 @@
 import { randomBytes } from "node:crypto";
 import type { Redis } from "@upstash/redis";
 
-export type PendingLogin = { email: string; ip: string; createdAt: number };
+export type PendingLogin = {
+  email: string;
+  ip: string;
+  createdAt: number;
+  /** Owner when absent (legacy records + owner path); "staff" for staff logins. */
+  kind?: "owner" | "staff";
+  staffId?: string;
+};
 
 export interface PendingLoginStore {
   create(id: string, record: PendingLogin, ttlSeconds: number): Promise<void>;
   consume(id: string): Promise<PendingLogin | null>;
+  /** Non-destructive peek, used by the verify route to pick owner vs staff flow. */
+  peek(id: string): Promise<PendingLogin | null>;
 }
 
 export function newPendingId(): string {
@@ -38,6 +47,15 @@ export class RedisPendingLoginStore implements PendingLoginStore {
 
   async consume(id: string): Promise<PendingLogin | null> {
     const raw = await this.redis.getdel(this.key(id));
+    return this.parse(raw);
+  }
+
+  async peek(id: string): Promise<PendingLogin | null> {
+    const raw = await this.redis.get(this.key(id));
+    return this.parse(raw);
+  }
+
+  private parse(raw: unknown): PendingLogin | null {
     if (raw === null || raw === undefined) return null;
     let record: PendingLogin;
     if (typeof raw === "string") {

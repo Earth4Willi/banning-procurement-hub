@@ -2,19 +2,41 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { verifySameOrigin } from "@/server/csrf";
-import { acceptQuoteWithInventory, getQuote, reverseQuoteOrder, setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
-import { requireOwner } from "@/server/require-owner";
+import { emailConfigured, quoteStatusForCustomer, sendEmail } from "@/server/notify";
+import { acceptQuoteWithInventory, ensureQuoteToken, getQuote, reverseQuoteOrder, setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
+import { requireStaff } from "@/server/require-staff";
 import { parseBody, adminQuoteStatusSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+async function notifyCustomerStatus(quoteId: string): Promise<void> {
+  try {
+    const quote = await getQuote(quoteId);
+    if (!quote?.email || !emailConfigured()) return;
+    const token = await ensureQuoteToken(quoteId);
+    if (!token) return;
+    void sendEmail(
+      quoteStatusForCustomer(quote.email, {
+        reference: quote.reference,
+        name: quote.name,
+        area: quote.area,
+        itemCount: quote.items.length,
+        status: quote.status,
+        docUrl: `${process.env.APP_ORIGIN ?? "https://banningprocurementhub.com"}/quote/${token}`,
+      }),
+    );
+  } catch (error) {
+    console.warn("[quotes/status] status notification skipped:", error);
+  }
+}
+
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["messages"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }
@@ -32,6 +54,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       );
     }
     await audit("quote_status_updated", { id: body.id, status: "won" });
+    await notifyCustomerStatus(body.id);
     return NextResponse.json({ ok: true });
   }
 
@@ -54,6 +77,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       );
     }
     await audit("quote_status_updated", { id: body.id, status, inventoryReversed: true });
+    await notifyCustomerStatus(body.id);
     return NextResponse.json({ ok: true });
   }
 
@@ -65,6 +89,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("quote_status_updated", { id: body.id, status });
+  await notifyCustomerStatus(body.id);
 
   return NextResponse.json({ ok: true });
 });

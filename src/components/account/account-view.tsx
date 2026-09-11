@@ -190,7 +190,7 @@ export function AccountView() {
     );
   }
 
-  if (session.role === "owner") {
+  if (session.role === "owner" || session.role === "staff") {
     return (
       <div className="mx-auto flex min-h-[320px] max-w-md flex-col items-center justify-center text-center">
         <ShieldCheck weight="duotone" size={40} className="text-accent-dark" aria-hidden="true" />

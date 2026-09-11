@@ -29,7 +29,7 @@ const SECONDARY = [
 ];
 
 type Props = {
-  role?: "owner" | "customer";
+  role?: "owner" | "staff" | "customer";
   onOpenSignIn?: () => void;
   onSignOut?: () => void;
 };
@@ -125,7 +125,7 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
                   </>
                 )}
 
-                {role === "owner" && (
+                {(role === "owner" || role === "staff") && (
                   <>
                     <Link
                       href="/admin"
@@ -144,7 +144,7 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
                     >
                       <SignOut weight="duotone" size={20} className="shrink-0 text-accent-dark" />
-                      Owner · Sign out
+                      {role === "owner" ? "Owner · Sign out" : "Sign out"}
                     </button>
                   </>
                 )}

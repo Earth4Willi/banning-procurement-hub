@@ -3,6 +3,13 @@ import type { Redis } from "@upstash/redis";
 import { getEnv } from "./env";
 
 export type OwnerPrincipal = { id: string; role: "owner"; email: string };
+export type StaffPrincipal = {
+  id: string;
+  role: "staff";
+  email: string;
+  name: string;
+  scopes: string[];
+};
 export type CustomerPrincipal = {
   id: string;
   role: "customer";
@@ -10,7 +17,7 @@ export type CustomerPrincipal = {
   name: string;
   phone: string;
 };
-export type Principal = OwnerPrincipal | CustomerPrincipal;
+export type Principal = OwnerPrincipal | StaffPrincipal | CustomerPrincipal;
 export type SessionRecord = { principal: Principal; lastSeen: number };
 
 export interface SessionStore {

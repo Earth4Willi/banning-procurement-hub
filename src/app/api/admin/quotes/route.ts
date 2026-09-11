@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { ensureQuoteToken, isQuoteStoreAvailable, listQuotes, persistQuote, updateQuote } from "@/server/quote-store";
 import { verifySameOrigin } from "@/server/csrf";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { manualQuoteSchema, parseBody, quoteUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 import { computeTotals } from "@/lib/quote-document";
@@ -13,10 +13,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["messages"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }
@@ -27,10 +27,10 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 });
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["messages"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }
@@ -49,10 +49,10 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 });
 
 export const PUT = withErrorHandling(async (request: NextRequest) => {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["messages"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

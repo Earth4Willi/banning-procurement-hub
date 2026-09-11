@@ -4,7 +4,7 @@ import { audit } from "@/server/audit";
 import { listCustomers, updateCustomer } from "@/server/customer-store";
 import { verifySameOrigin } from "@/server/csrf";
 import { isMessageStoreAvailable } from "@/server/message-store";
-import { requireOwner } from "@/server/require-owner";
+import { requireStaff } from "@/server/require-staff";
 import { customerUpdateSchema, parseBody } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
@@ -12,10 +12,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function guard(request: NextRequest) {
-  const principal = await requireOwner(request);
+  const principal = await requireStaff(request, ["customers"]);
   if (!principal) {
     return NextResponse.json(
-      { error: { code: "forbidden", message: "Owner sign-in required." } },
+      { error: { code: "forbidden", message: "Admin sign-in required." } },
       { status: 403 },
     );
   }

@@ -4,24 +4,28 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowSquareOut, SignOut } from "@phosphor-icons/react";
 import { useSession } from "@/lib/use-session";
-import { SidebarNav, signOutFlow, type AdminView } from "./sidebar";
+import { SignInDialog } from "@/components/sign-in-dialog";
+import { SidebarNav, signOutFlow, visibleViews, type AdminView } from "./sidebar";
 import { MessagesView } from "./messages-view";
 import { CustomersView } from "./customers-view";
 import { MaterialsView } from "./materials-view";
 import { InventoryView } from "./inventory-view";
 import { SettingsView } from "./settings-view";
+import { AnalyticsView } from "./analytics-view";
+import { StaffView } from "./staff-view";
 import type { Session } from "./helpers";
 
-const VIEWS: AdminView[] = ["messages", "customers", "materials", "inventory", "settings"];
+const DEFAULT_VIEW = "messages";
 
 export default function AdminShell() {
   const session = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const view = (searchParams.get("view") ?? "messages") as AdminView;
+  const view = (searchParams.get("view") ?? DEFAULT_VIEW) as AdminView;
   const tab = searchParams.get("tab") ?? undefined;
   const [badges, setBadges] = useState<Partial<Record<AdminView, number>>>({});
+  const [signInOpen, setSignInOpen] = useState(false);
 
   const refreshBadges = useCallback(async () => {
     try {
@@ -53,11 +57,12 @@ export default function AdminShell() {
     };
   }, [refreshBadges]);
 
+  // Signed-out: open the sign-in dialog instead of redirecting. Staff in
+  // production land here because the public "Owner sign in" buttons are
+  // dev-only; the dialog is how they gain access.
   useEffect(() => {
-    if (session.status === "signed-out") {
-      router.replace("/");
-    }
-  }, [session.status, router]);
+    if (session.status === "signed-out") setSignInOpen(true);
+  }, [session.status]);
 
   const navigate = (next: AdminView) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -66,9 +71,29 @@ export default function AdminShell() {
     router.replace(`${pathname}?${params.toString()}`);
   };
 
+  const views = visibleViews(session.role, session.scopes);
+
+  // Guard manually-entered ?view= params the caller lacks scope for.
+  useEffect(() => {
+    if (session.status !== "signed-in") return;
+    const requested = view as AdminView;
+    if (!views.includes(requested)) navigate(views[0] ?? DEFAULT_VIEW);
+  }, [view, views, session.status]);
+
   if (session.status === "loading")
     return <p className="p-6 text-sm text-ink-muted">Checking session…</p>;
-  if (session.status === "signed-out") return null;
+
+  const signedIn = session.status === "signed-in";
+
+  if (!signedIn) {
+    return (
+      <SignInDialog
+        open={signInOpen || session.status === "signed-out"}
+        onClose={() => setSignInOpen(false)}
+        session={session}
+      />
+    );
+  }
 
   const content = (() => {
     switch (view) {
@@ -96,6 +121,10 @@ export default function AdminShell() {
             onNeedRefresh={refreshBadges}
           />
         );
+      case "analytics":
+        return <AnalyticsView session={session} />;
+      case "staff":
+        return <StaffView session={session} onNeedRefresh={refreshBadges} />;
       case "messages":
       default:
         return (
@@ -109,13 +138,17 @@ export default function AdminShell() {
   })();
 
   return (
-    <ShellLayout
-      session={session}
-      active={view}
-      onNavigate={navigate}
-      badges={badges}
-      content={content}
-    />
+    <>
+      <ShellLayout
+        session={session}
+        active={view}
+        onNavigate={navigate}
+        badges={badges}
+        views={views}
+        content={content}
+      />
+      <SignInDialog open={signInOpen} onClose={() => setSignInOpen(false)} session={session} />
+    </>
   );
 }
 
@@ -124,9 +157,10 @@ function ShellLayout(props: {
   active: AdminView;
   onNavigate: (view: AdminView) => void;
   badges: Partial<Record<AdminView, number>>;
+  views: AdminView[];
   content: React.ReactNode;
 }) {
-  const { session, active, onNavigate, badges, content } = props;
+  const { session, active, onNavigate, badges, views, content } = props;
   const router = useRouter();
 
   return (
@@ -145,6 +179,7 @@ function ShellLayout(props: {
           onNavigate={onNavigate}
           badges={badges}
           session={session}
+          views={views}
           router={router}
         />
         <main className="mx-auto max-w-5xl p-4 sm:p-8">{content}</main>
@@ -158,9 +193,10 @@ function MobilePillNav(props: {
   onNavigate: (view: AdminView) => void;
   badges: Partial<Record<AdminView, number>>;
   session: Session;
+  views: AdminView[];
   router: ReturnType<typeof useRouter>;
 }) {
-  const { active, onNavigate, badges, session, router } = props;
+  const { active, onNavigate, badges, session, views, router } = props;
 
   return (
     <div className="sticky top-0 z-30 border-b border-primary/10 bg-surface/80 backdrop-blur lg:hidden">
@@ -189,7 +225,7 @@ function MobilePillNav(props: {
         </div>
       </div>
       <nav className="flex items-center gap-2 overflow-x-auto px-4 pb-2" aria-label="Admin navigation">
-        {VIEWS.map((view) => {
+        {views.map((view) => {
           const isActive = active === view;
           const badge = badges[view];
           return (

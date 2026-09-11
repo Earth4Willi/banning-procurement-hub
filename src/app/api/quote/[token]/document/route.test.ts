@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { NextRequest } from "next/server";
 import { GET } from "@/app/api/quote/[token]/document/route";
 
 vi.mock("@/server/quote-store", () => ({
@@ -12,6 +13,11 @@ vi.mock("@/server/settings-store", () => ({
 
 vi.mock("@/server/audit", () => ({
   audit: vi.fn(),
+}));
+
+vi.mock("@/server/rate-limit", () => ({
+  enforceRateLimit: vi.fn(async () => {}),
+  clientIp: () => "127.0.0.1",
 }));
 
 import { findQuoteByToken, isQuoteStoreAvailable } from "@/server/quote-store";
@@ -43,10 +49,12 @@ const QUOTE: Record<string, unknown> = {
 
 const params: Promise<{ token: string }> = Promise.resolve({ token: "tok_abc" });
 
+const REQ = (url: string) => new Request(url) as unknown as NextRequest;
+
 describe("GET /api/quote/[token]/document", () => {
   it("returns 503 storage_unavailable when the DB is not configured", async () => {
     vi.mocked(isQuoteStoreAvailable).mockReturnValue(false);
-    const res = await GET(new Request("http://localhost/api/quote/tok_abc/document"), { params });
+    const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
     expect(res.status).toBe(503);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("storage_unavailable");
@@ -55,7 +63,7 @@ describe("GET /api/quote/[token]/document", () => {
   it("returns 404 via notFound() for an unknown token", async () => {
     vi.mocked(isQuoteStoreAvailable).mockReturnValue(true);
     vi.mocked(findQuoteByToken).mockResolvedValue(null);
-    await expect(GET(new Request("http://localhost/api/quote/nope/document"), { params: Promise.resolve({ token: "nope" }) }))
+    await expect(GET(REQ("http://localhost/api/quote/nope/document"), { params: Promise.resolve({ token: "nope" }) }))
       .rejects.toThrow();
   });
 
@@ -67,7 +75,7 @@ describe("GET /api/quote/[token]/document", () => {
       bank: { bankName: "GCB", accountName: "Banning Procurement Hub", accountNumber: "1234567890" },
     } as never);
 
-    const res = await GET(new Request("http://localhost/api/quote/tok_abc/document"), { params });
+    const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
     expect(res.status).toBe(200);
     const html = await res.text();
     expect(html).toContain("BPH-2401");
@@ -87,7 +95,7 @@ describe("GET /api/quote/[token]/document", () => {
       payment_method: "cash",
     } as never);
 
-    const res = await GET(new Request("http://localhost/api/quote/tok_abc/document"), { params });
+    const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
     const html = await res.text();
     expect(html).not.toContain("<script>alert(1)</script>");
     expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
@@ -98,7 +106,7 @@ describe("GET /api/quote/[token]/document", () => {
     vi.mocked(isQuoteStoreAvailable).mockReturnValue(true);
     vi.mocked(findQuoteByToken).mockResolvedValue({ ...QUOTE, payment_method: "mobile_money" } as never);
 
-    const res = await GET(new Request("http://localhost/api/quote/tok_abc/document"), { params });
+    const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
     const html = await res.text();
     expect(html).not.toContain("Bank Transfer");
   });

@@ -11,14 +11,17 @@ function toIso(reset: number): string {
 }
 
 /**
- * Sliding-window limiter with graceful degradation: if the Redis store is
- * unreachable we log once and let traffic through instead of bricking the site.
+ * Sliding-window limiter. Default is fail-open (if the Redis store is
+ * unreachable we log once and let traffic through instead of bricking the
+ * site); pass failClosed: true for auth/session-critical budgets where an
+ * outage should reject rather than admit unknown traffic.
  */
 export async function rateLimit(options: {
   prefix: string;
   identifier: string;
   limit: number;
   windowSeconds: number;
+  failClosed?: boolean;
 }): Promise<{ success: boolean; headers: Headers }> {
   const headers = new Headers({ "X-RateLimit-Limit": String(options.limit) });
   const limiter = new Ratelimit({
@@ -32,6 +35,10 @@ export async function rateLimit(options: {
     headers.set("X-RateLimit-Reset", toIso(result.reset));
     return { success: result.success, headers };
   } catch (error) {
+    if (options.failClosed) {
+      headers.set("X-RateLimit-Remaining", "0");
+      return { success: false, headers };
+    }
     if (!warned) {
       warned = true;
       console.warn("[rate-limit] Redis unavailable, letting request through:", error);
@@ -41,6 +48,11 @@ export async function rateLimit(options: {
 }
 
 export function clientIp(request: NextRequest): string {
+  // Platform-set headers are trusted (set by the edge, not the caller). XFF
+  // remains fallback only because it is client-spoofable.
+  const platformIp =
+    request.headers.get("x-vercel-forwarded-ip") ?? request.headers.get("cf-connecting-ip");
+  if (platformIp) return platformIp;
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0]?.trim() ?? "unknown";
   return request.headers.get("x-real-ip") ?? "unknown";
@@ -52,7 +64,7 @@ export function clientIp(request: NextRequest): string {
  */
 export async function enforceRateLimit(
   request: NextRequest,
-  options: { prefix: string; identifier: string; limit: number; windowSeconds: number },
+  options: { prefix: string; identifier: string; limit: number; windowSeconds: number; failClosed?: boolean },
 ): Promise<Headers> {
   const result = await rateLimit(options);
   if (!result.success) {

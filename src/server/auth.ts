@@ -32,12 +32,14 @@ export async function beginOwnerLogin(opts: {
     identifier: ip,
     limit: 20,
     windowSeconds: 900,
+    failClosed: true,
   });
   await enforceRateLimit(opts.request, {
     prefix: "rl:login:email",
     identifier: opts.email,
     limit: 5,
     windowSeconds: 900,
+    failClosed: true,
   });
 
   const normalizedEmail = opts.email.trim().toLowerCase();
@@ -73,6 +75,7 @@ export async function completeOwnerLogin(opts: {
     identifier: ip,
     limit: 5,
     windowSeconds: 300,
+    failClosed: true,
   });
 
   const pending = await opts.store.consume(opts.pendingId);

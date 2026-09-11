@@ -31,6 +31,7 @@ export async function registerCustomer(opts: {
     identifier: ip,
     limit: 10,
     windowSeconds: 900,
+    failClosed: true,
   });
 
   const email = emailSchema.parse(opts.email);
@@ -77,12 +78,14 @@ export async function loginCustomer(opts: {
     identifier: ip,
     limit: 15,
     windowSeconds: 900,
+    failClosed: true,
   });
   await enforceRateLimit(opts.request, {
     prefix: "rl:customer-login:email",
     identifier: email,
     limit: 6,
     windowSeconds: 900,
+    failClosed: true,
   });
 
   const user = await findUserByEmailWithPassword(email);

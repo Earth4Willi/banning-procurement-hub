@@ -1,7 +1,9 @@
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
 import { findQuoteByToken, isQuoteStoreAvailable } from "@/server/quote-store";
 import { audit } from "@/server/audit";
+import { clientIp, enforceRateLimit } from "@/server/rate-limit";
 import { getSettings } from "@/server/settings-store";
 import { computeTotals, formatValidUntil, money, round2 } from "@/lib/quote-document";
 import type { BankDetails } from "@/lib/settings-types";
@@ -27,7 +29,7 @@ function esc(value: unknown): string {
 }
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
 ) {
   if (!isQuoteStoreAvailable()) {
@@ -38,6 +40,22 @@ export async function GET(
   }
 
   const { token } = await params;
+  const ip = clientIp(request);
+  // Public token URL — bound per client IP and per token so a leaked link
+  // can't be hammered. Fail-open by default (no false 429s on Redis outages).
+  await enforceRateLimit(request, {
+    prefix: "rl:quote-doc:ip",
+    identifier: ip,
+    limit: 120,
+    windowSeconds: 900,
+  });
+  await enforceRateLimit(request, {
+    prefix: "rl:quote-doc:token",
+    identifier: token,
+    limit: 30,
+    windowSeconds: 900,
+  });
+
   const quote = await findQuoteByToken(token);
   if (!quote) notFound();
 

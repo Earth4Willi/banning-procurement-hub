@@ -278,46 +278,169 @@ export async function acceptQuoteWithInventory(
     };
   }
 
-  // 4. All clear — deduct inventory and log history
+  // 4. All clear — deduct inventory and log history. Every write is checked:
+  //    if any deduction or the final status flip fails, all deductions taken
+  //    so far are restored (with an order_cancellation history row) so a retry
+  //    cannot double-deduct and a failed accept leaves zero side effects.
   const productMap = new Map(rawProducts.map((p) => [String(p.slug), p]));
-  for (const item of quote.items) {
-    const product = productMap.get(item.slug);
-    if (!product || !product.track_inventory) continue;
-    if (item.quantity <= 0) continue;
+  const applied: { slug: string; productId: string; previousQuantity: number; newQuantity: number }[] = [];
 
-    const previousQuantity = Number(product.stock_quantity ?? 0);
-    const { newQuantity, quantityChanged } = applyQuantityChange(
-      previousQuantity,
-      -item.quantity,
-    );
+  const restoreApplied = async (err: unknown): Promise<{ ok: false; error: string }> => {
+    console.warn(`[quote-store] accept of ${id} failed, rolling back`, err);
+    for (const a of applied) {
+      try {
+        await client.from("products").update({ stock_quantity: a.previousQuantity }).eq("slug", a.slug);
+        await client.from("inventory_history").insert({
+          product_id: a.productId,
+          previous_quantity: a.newQuantity,
+          quantity_changed: a.previousQuantity - a.newQuantity,
+          new_quantity: a.previousQuantity,
+          change_type: "order_cancellation",
+          reference_id: id,
+          changed_by: changedBy,
+        });
+      } catch (rollbackError) {
+        console.warn(`[quote-store] rollback of ${a.slug} failed`, rollbackError);
+      }
+    }
+    return { ok: false, error: "Quote could not be accepted; inventory changes were rolled back. Try again." };
+  };
 
-    // Update product stock
-    await client
+  try {
+    for (const item of quote.items) {
+      const product = productMap.get(item.slug);
+      if (!product || !product.track_inventory) continue;
+      if (item.quantity <= 0) continue;
+
+      const previousQuantity = Number(product.stock_quantity ?? 0);
+      const { newQuantity, quantityChanged } = applyQuantityChange(
+        previousQuantity,
+        -item.quantity,
+      );
+
+      const { error: updateError } = await client
+        .from("products")
+        .update({ stock_quantity: newQuantity })
+        .eq("slug", item.slug);
+      if (updateError) {
+        return restoreApplied(new Error(`stock update failed for ${item.slug}: ${updateError.message}`));
+      }
+
+      const { error: historyError } = await client.from("inventory_history").insert({
+        product_id: String(product.id),
+        previous_quantity: previousQuantity,
+        quantity_changed: quantityChanged,
+        new_quantity: newQuantity,
+        change_type: "order",
+        reference_id: id,
+        changed_by: changedBy,
+      });
+      if (historyError) {
+        return restoreApplied(new Error(`history insert failed for ${item.slug}: ${historyError.message}`));
+      }
+
+      applied.push({ slug: item.slug, productId: String(product.id), previousQuantity, newQuantity });
+      productMap.set(item.slug, { ...product, stock_quantity: newQuantity });
+    }
+
+    // 5. Mark quote as won
+    const { error } = await client
+      .from("quotes")
+      .update({ accepted_at: new Date().toISOString(), status: "won" })
+      .eq("id", id);
+
+    if (error) {
+      console.warn(`[quote-store] accept failed: ${error.message}`);
+      return restoreApplied(new Error(`quote status update failed: ${error.message}`));
+    }
+
+    return { ok: true };
+  } catch (err) {
+    return restoreApplied(err);
+  }
+}
+
+/**
+ * Un-accept a won quote: restores the exact quantities that the original
+ * acceptance deducted (read from the `order` history rows, so manual stock
+ * adjustments in between are preserved) and flips the quote back to the
+ * requested status. Idempotent per product — a quote that was already
+ * reversed is never restored twice.
+ */
+export async function reverseQuoteOrder(
+  id: string,
+  changedBy: string = "system",
+  nextStatus: QuoteStatus = "reviewed",
+): Promise<AcceptResult> {
+  const client = getSupabaseClient();
+  if (!client) return { ok: false, error: "Database not available." };
+
+  const quote = await getQuote(id);
+  if (!quote) return { ok: false, error: "Quote not found." };
+  if (quote.status !== "won") return { ok: false, error: "Only an accepted (won) quote can be reversed." };
+
+  const { data: orderRows, error: histError } = await client
+    .from("inventory_history")
+    .select("product_id, previous_quantity, quantity_changed, new_quantity")
+    .eq("reference_id", id)
+    .eq("change_type", "order");
+  if (histError) {
+    return { ok: false, error: "Failed to read inventory history for this quote." };
+  }
+
+  for (const row of orderRows ?? []) {
+    const productId = String(row.product_id);
+    const quantityChanged = Number(row.quantity_changed ?? 0);
+    if (quantityChanged >= 0) continue;
+
+    // Already reversed? skip.
+    const { data: cancelled } = await client
+      .from("inventory_history")
+      .select("id")
+      .eq("reference_id", id)
+      .eq("product_id", productId)
+      .eq("change_type", "order_cancellation")
+      .maybeSingle();
+    if (cancelled) continue;
+
+    const { data: product } = await client
       .from("products")
-      .update({ stock_quantity: newQuantity })
-      .eq("slug", item.slug);
+      .select("stock_quantity")
+      .eq("id", productId)
+      .maybeSingle();
+    if (!product) continue;
 
-    // Write inventory history (product_id is the UUID)
+    const current = Number(product.stock_quantity ?? 0);
+    const restored = Math.max(0, current - quantityChanged);
+
+    const { error: updateError } = await client
+      .from("products")
+      .update({ stock_quantity: restored })
+      .eq("id", productId);
+    if (updateError) {
+      console.warn(`[quote-store] reversal restore failed for ${productId}: ${updateError.message}`);
+      continue;
+    }
+
     await client.from("inventory_history").insert({
-      product_id: String(product.id),
-      previous_quantity: previousQuantity,
-      quantity_changed: quantityChanged,
-      new_quantity: newQuantity,
-      change_type: "order",
+      product_id: productId,
+      previous_quantity: current,
+      quantity_changed: -quantityChanged,
+      new_quantity: restored,
+      change_type: "order_cancellation",
       reference_id: id,
       changed_by: changedBy,
     });
   }
 
-  // 5. Mark quote as won
   const { error } = await client
     .from("quotes")
-    .update({ accepted_at: new Date().toISOString(), status: "won" })
+    .update({ accepted_at: null, status: nextStatus })
     .eq("id", id);
 
   if (error) {
-    console.warn(`[quote-store] accept failed: ${error.message}`);
-    return { ok: false, error: "Failed to update quote status." };
+    console.warn(`[quote-store] reversal status update failed: ${error.message}`);
+    return { ok: false, error: "Stock was restored but the quote status could not be updated." };
   }
 
   return { ok: true };

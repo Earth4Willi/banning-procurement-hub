@@ -8,4 +8,7 @@ import { revalidatePath } from "next/cache";
 export function revalidatePublic(): void {
   revalidatePath("/", "layout");
   revalidatePath("/products", "layout");
+  // The client catalog fetch is ISR-stale up to 60s; poke it too so admin
+  // writes appear immediately in the quote builder and contact form.
+  revalidatePath("/api/catalog");
 }

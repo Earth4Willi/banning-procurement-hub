@@ -1,16 +1,20 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { audit } from "@/server/audit";
+import { audit, getSupabaseClient } from "@/server/audit";
 import { createProduct, deleteProduct, fetchProducts, updateProduct } from "@/server/catalog-store";
+import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { revalidatePublic } from "@/server/revalidate";
+import type { OwnerPrincipal } from "@/server/session";
 import { catalogItemIdSchema, parseBody, productSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function guard(request: NextRequest) {
+type GuardResult = { principal: OwnerPrincipal } | NextResponse;
+
+async function guard(request: NextRequest): Promise<GuardResult> {
   const principal = await requireOwner(request);
   if (!principal) {
     return NextResponse.json(
@@ -18,19 +22,44 @@ async function guard(request: NextRequest) {
       { status: 403 },
     );
   }
-  return null;
+  verifySameOrigin(request);
+  return { principal };
+}
+
+/** Best-effort inventory_history row; failures are logged, never fatal. */
+async function recordStockHistory(input: {
+  slug: string;
+  previousQuantity: number;
+  newQuantity: number;
+  changeType: "stock_adjustment" | "stock_addition";
+  changedBy: string;
+}): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+  const { data: row } = await client.from("products").select("id").eq("slug", input.slug).maybeSingle();
+  if (!row) return;
+  await client.from("inventory_history").insert({
+    product_id: row.id,
+    previous_quantity: input.previousQuantity,
+    quantity_changed: input.newQuantity - input.previousQuantity,
+    new_quantity: input.newQuantity,
+    change_type: input.changeType,
+    reference_id: null,
+    changed_by: input.changedBy,
+  });
 }
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
-  const blocked = await guard(request);
-  if (blocked) return blocked;
+  const auth = await guard(request);
+  if (auth instanceof NextResponse) return auth;
   const products = await fetchProducts();
   return NextResponse.json({ products, dbAvailable: products.length > 0 });
 });
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const blocked = await guard(request);
-  if (blocked) return blocked;
+  const auth = await guard(request);
+  if (auth instanceof NextResponse) return auth;
+  const principal = auth.principal;
   const body = await parseBody(request, productSchema);
   const ok = await createProduct({
     slug: body.slug,
@@ -55,15 +84,27 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       { status: 503 },
     );
   }
+  await recordStockHistory({
+    slug: body.slug,
+    previousQuantity: 0,
+    newQuantity: body.stockQuantity ?? 0,
+    changeType: "stock_adjustment",
+    changedBy: principal.email ?? "owner",
+  });
   await audit("catalog_product_created", { slug: body.slug, categoryId: body.categoryId });
   revalidatePublic();
   return NextResponse.json({ ok: true }, { status: 201 });
 });
 
 export const PUT = withErrorHandling(async (request: NextRequest) => {
-  const blocked = await guard(request);
-  if (blocked) return blocked;
+  const auth = await guard(request);
+  if (auth instanceof NextResponse) return auth;
+  const principal = auth.principal;
   const body = await parseBody(request, productSchema);
+
+  const products = await fetchProducts();
+  const current = products.find((p) => p.slug === body.slug);
+
   const ok = await updateProduct(body.slug, {
     categoryId: body.categoryId,
     name: body.name,
@@ -86,14 +127,23 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
       { status: 503 },
     );
   }
+  if (current && body.stockQuantity !== undefined && body.stockQuantity !== current.stockQuantity) {
+    await recordStockHistory({
+      slug: body.slug,
+      previousQuantity: current.stockQuantity,
+      newQuantity: body.stockQuantity,
+      changeType: "stock_adjustment",
+      changedBy: principal.email ?? "owner",
+    });
+  }
   await audit("catalog_product_updated", { slug: body.slug });
   revalidatePublic();
   return NextResponse.json({ ok: true });
 });
 
 export const DELETE = withErrorHandling(async (request: NextRequest) => {
-  const blocked = await guard(request);
-  if (blocked) return blocked;
+  const auth = await guard(request);
+  if (auth instanceof NextResponse) return auth;
   const body = await parseBody(request, catalogItemIdSchema);
   const ok = await deleteProduct(body.id);
   if (!ok) {

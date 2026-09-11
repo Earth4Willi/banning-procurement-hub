@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { audit } from "@/server/audit";
 import { verifySameOrigin } from "@/server/csrf";
-import { acceptQuoteWithInventory, setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
+import { acceptQuoteWithInventory, getQuote, reverseQuoteOrder, setQuoteStatus, type QuoteStatus } from "@/server/quote-store";
 import { requireOwner } from "@/server/require-owner";
 import { parseBody, adminQuoteStatusSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
@@ -32,6 +32,28 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       );
     }
     await audit("quote_status_updated", { id: body.id, status: "won" });
+    return NextResponse.json({ ok: true });
+  }
+
+  // Reaching here means a non-"won" status is requested. If the quote is
+  // currently "won", reverse the inventory deduction before flipping so stock
+  // stays consistent with the quote's state.
+  const current = await getQuote(body.id);
+  if (!current) {
+    return NextResponse.json(
+      { error: { code: "update_failed", message: "Quote not found." } },
+      { status: 404 },
+    );
+  }
+  if (current.status === "won") {
+    const reversed = await reverseQuoteOrder(body.id, principal.email ?? "owner", status);
+    if (!reversed.ok) {
+      return NextResponse.json(
+        { error: { code: "update_failed", message: reversed.error } },
+        { status: 502 },
+      );
+    }
+    await audit("quote_status_updated", { id: body.id, status, inventoryReversed: true });
     return NextResponse.json({ ok: true });
   }
 

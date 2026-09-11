@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Gauge, Quotes, SignIn, SignOut, User } from "@phosphor-icons/react";
 import { siteConfig, stats } from "@/lib/site";
@@ -104,7 +105,7 @@ export function Header() {
           <BrandLogo imgClassName="h-12 w-auto" />
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <a
+            <Link
               href="/quote"
               className="inline-flex items-center gap-1.5 rounded-[10px] bg-accent px-3 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light"
             >
@@ -112,7 +113,7 @@ export function Header() {
               <span className="hidden min-[380px]:inline">
                 {count > 0 ? formatItemCount(count) : "Request a Quote"}
               </span>
-            </a>
+            </Link>
             <ThemeToggle compact />
             <MobileMenu
               role={session.status === "signed-in" ? (session.role ?? "customer") : undefined}
@@ -138,13 +139,13 @@ export function Header() {
           {/* Nav links dead-centred in the viewport */}
           <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex" aria-label="Main nav">
             {NAV.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className="rounded-[10px] px-3 py-2 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
@@ -152,13 +153,13 @@ export function Header() {
           <div className="ml-auto flex shrink-0 items-center gap-2 pr-4 sm:pr-6">
             {customerSignedIn ? (
               <>
-                <a
+                <Link
                   href="/account"
                   className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
                 >
                   <User weight="duotone" size={14} aria-hidden="true" />
                   My account
-                </a>
+                </Link>
                 <button
                   type="button"
                   onClick={() => void session.signOut()}
@@ -171,13 +172,13 @@ export function Header() {
               </>
             ) : ownerSignedIn ? (
               <>
-                <a
+                <Link
                   href="/admin"
                   className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
                 >
                   <Gauge weight="duotone" size={14} aria-hidden="true" />
                   Admin
-                </a>
+                </Link>
                 <button
                   type="button"
                   onClick={() => void session.signOut()}
@@ -190,29 +191,31 @@ export function Header() {
               </>
             ) : (
               <>
-                <a
+                <Link
                   href="/login"
                   className="hidden items-center gap-1.5 rounded-[10px] border border-primary/20 px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-surface-alt sm:inline-flex"
                 >
                   <SignIn weight="duotone" size={14} aria-hidden="true" />
                   Sign in
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setSignInOpen(true)}
-                  className="hidden items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink sm:inline-flex"
-                >
-                  Owner sign in
-                </button>
+                </Link>
+                {process.env.NODE_ENV === "development" && (
+                  <button
+                    type="button"
+                    onClick={() => setSignInOpen(true)}
+                    className="hidden items-center gap-1.5 rounded-[10px] px-3 py-2 text-xs font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink sm:inline-flex"
+                  >
+                    Owner sign in
+                  </button>
+                )}
               </>
             )}
-            <a
+            <Link
               href="/quote"
               className="hidden items-center gap-1.5 rounded-[10px] bg-accent px-4 py-2 text-xs font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light sm:inline-flex"
             >
               <Quotes weight="duotone" size={14} />
               <span>{count > 0 ? formatItemCount(count) : "Request a Quote"}</span>
-            </a>
+            </Link>
 
             <ThemeToggle />
           </div>

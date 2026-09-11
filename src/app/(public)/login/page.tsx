@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <section className="py-20 lg:py-28" aria-label="Customer sign in">
+    <section className="py-20 lg:py-28" aria-label="Sign in">
       <div className="mx-auto max-w-[1400px] px-4 md:px-6">
         <div className="mx-auto max-w-md">
           <Reveal>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { LockKey, SignIn } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { api, inputClass } from "@/components/admin/helpers";
@@ -255,10 +256,10 @@ export function RegisterForm() {
 
       <p className="mt-5 text-center text-sm text-ink-muted">
         Already have an account?{" "}
-        <a href="/login" className="inline-flex items-center gap-1 font-semibold text-primary-700 hover:text-accent-dark">
+        <Link href="/login" className="inline-flex items-center gap-1 font-semibold text-primary-700 hover:text-accent-dark">
           <SignIn weight="duotone" size={13} aria-hidden="true" />
           Sign in
-        </a>
+        </Link>
       </p>
     </form>
   );

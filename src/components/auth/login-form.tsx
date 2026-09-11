@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { LinkSimple, SignIn } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { api, inputClass } from "@/components/admin/helpers";
@@ -107,10 +108,10 @@ export function LoginForm() {
 
       <p className="mt-5 text-center text-sm text-ink-muted">
         New here?{" "}
-        <a href="/register" className="inline-flex items-center gap-1 font-semibold text-primary-700 hover:text-accent-dark">
+        <Link href="/register" className="inline-flex items-center gap-1 font-semibold text-primary-700 hover:text-accent-dark">
           Create an account
           <LinkSimple weight="duotone" size={13} aria-hidden="true" />
-        </a>
+        </Link>
       </p>
     </form>
   );

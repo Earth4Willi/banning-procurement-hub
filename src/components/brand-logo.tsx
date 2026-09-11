@@ -1,9 +1,11 @@
+import Link from "next/link";
+
 export function BrandLogo({
   href = "/",
   imgClassName = "h-14 w-auto sm:h-20",
 }: { href?: string; imgClassName?: string }) {
   return (
-    <a href={href} className="inline-flex items-center" aria-label="Banning Procurement Hub home">
+    <Link href={href} className="inline-flex items-center" aria-label="Banning Procurement Hub home">
       <img
         src="/logo.svg"
         alt=""
@@ -19,6 +21,6 @@ export function BrandLogo({
         decoding="async"
         className={`logo-dark-mode ${imgClassName}`}
       />
-    </a>
+    </Link>
   );
 }

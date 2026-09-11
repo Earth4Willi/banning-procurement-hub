@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { createPortal } from "react-dom";
 import {
   Gauge,
@@ -102,14 +103,14 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
               <nav className="flex flex-col gap-1 p-3" aria-label="Mobile nav">
                 {role === "customer" && (
                   <>
-                    <a
+                    <Link
                       href="/account"
                       onClick={close}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
                     >
                       <User weight="duotone" size={20} className="shrink-0 text-accent-dark" />
                       My account
-                    </a>
+                    </Link>
                     <button
                       type="button"
                       onClick={() => {
@@ -126,14 +127,14 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
 
                 {role === "owner" && (
                   <>
-                    <a
+                    <Link
                       href="/admin"
                       onClick={close}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
                     >
                       <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
                       Admin dashboard
-                    </a>
+                    </Link>
                     <button
                       type="button"
                       onClick={() => {
@@ -150,32 +151,34 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
 
                 {!role && (
                   <>
-                    <a
+                    <Link
                       href="/login"
                       onClick={close}
                       className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-alt"
                     >
                       <SignIn weight="duotone" size={20} className="shrink-0 text-accent-dark" />
-                      Customer sign in
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        close();
-                        onOpenSignIn?.();
-                      }}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
-                    >
-                      <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
-                      Owner sign in
-                    </button>
+                      Sign in
+                    </Link>
+                    {process.env.NODE_ENV === "development" && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          close();
+                          onOpenSignIn?.();
+                        }}
+                        className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-ink-muted transition-colors hover:bg-surface-alt hover:text-ink"
+                      >
+                        <Gauge weight="duotone" size={20} className="shrink-0 text-ink-muted" />
+                        Owner sign in
+                      </button>
+                    )}
                   </>
                 )}
 
                 <div className="my-1 border-t border-primary/10" />
 
                 {PRIMARY.map((item) => (
-                  <a
+                  <Link
                     key={item.href + item.label}
                     href={item.href}
                     onClick={close}
@@ -183,13 +186,13 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
                   >
                     <item.icon weight="duotone" size={20} className="shrink-0 text-ink-muted" />
                     {item.label}
-                  </a>
+                  </Link>
                 ))}
 
                 <div className="my-1 border-t border-primary/10" />
 
                 {SECONDARY.map((item) => (
-                  <a
+                  <Link
                     key={item.href}
                     href={item.href}
                     onClick={close}
@@ -197,7 +200,7 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
                   >
                     <item.icon weight="duotone" size={20} className="shrink-0 text-ink-muted" />
                     {item.label}
-                  </a>
+                  </Link>
                 ))}
               </nav>
             </div>

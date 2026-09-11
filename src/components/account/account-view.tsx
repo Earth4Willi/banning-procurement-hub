@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CaretRight, CircleNotch, MapPin, ShieldCheck, SignIn, UserCircle } from "@phosphor-icons/react";
 import { api, formatDate, formatItems, inputClass, statusPill } from "@/components/admin/helpers";
 import { money } from "@/lib/quote-document";
@@ -178,13 +179,13 @@ export function AccountView() {
         <p className="mt-2 max-w-[45ch] text-sm leading-relaxed text-ink-muted">
           Sign in to manage your profile, delivery details and orders. New customer? It only takes a minute.
         </p>
-        <a
+        <Link
           href="/login"
           className="mt-6 inline-flex items-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98]"
         >
           <SignIn weight="duotone" size={16} aria-hidden="true" />
           Sign in
-        </a>
+        </Link>
       </div>
     );
   }
@@ -199,13 +200,13 @@ export function AccountView() {
         <p className="mt-2 max-w-[45ch] text-sm leading-relaxed text-ink-muted">
           Your dashboard is the best place to manage quotes, orders and customers.
         </p>
-        <a
+        <Link
           href="/admin"
           className="mt-6 inline-flex items-center gap-2 rounded-[10px] border border-primary/20 px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-surface-alt"
         >
           Go to Admin dashboard
           <CaretRight weight="duotone" size={14} aria-hidden="true" />
-        </a>
+        </Link>
       </div>
     );
   }
@@ -476,13 +477,13 @@ export function AccountView() {
               {orders.length === 0 ? (
                 <div className="mt-6 rounded-[16px] border border-dashed border-primary/20 bg-surface-alt p-10 text-center">
                   <p className="text-base text-ink-muted">No orders yet.</p>
-                  <a
+                  <Link
                     href="/quote"
                     className="mt-4 inline-flex items-center gap-2 rounded-[10px] bg-accent px-5 py-2.5 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light"
                   >
                     Start a quote
                     <CaretRight weight="duotone" size={14} aria-hidden="true" />
-                  </a>
+                  </Link>
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">

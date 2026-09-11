@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Phone, WhatsappLogo, EnvelopeSimple, MapPin } from "@phosphor-icons/react";
 import { categories as staticCategories, siteConfig, certifications } from "@/lib/site";
 import type { CatalogCategory } from "@/lib/catalog-types";
@@ -69,9 +70,9 @@ export function Footer() {
             <ul className="space-y-2.5">
               {navCategories.map((cat) => (
                 <li key={cat.id}>
-                  <a href={`/products/${cat.id}`} className="text-sm text-ink-muted transition-colors hover:text-ink">
+                  <Link href={`/products/${cat.id}`} className="text-sm text-ink-muted transition-colors hover:text-ink">
                     {cat.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -80,12 +81,12 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-ink">Quick Links</h3>
             <ul className="space-y-2.5">
-              <li><a href="/" className="text-sm text-ink-muted transition-colors hover:text-ink">Home</a></li>
-              <li><a href="/products" className="text-sm text-ink-muted transition-colors hover:text-ink">All Materials</a></li>
-              <li><a href="/about" className="text-sm text-ink-muted transition-colors hover:text-ink">About</a></li>
-              <li><a href="/contact" className="text-sm text-ink-muted transition-colors hover:text-ink">Contact</a></li>
-              <li><a href="/privacy" className="text-sm text-ink-muted transition-colors hover:text-ink">Privacy Policy</a></li>
-              <li><a href="/terms" className="text-sm text-ink-muted transition-colors hover:text-ink">Terms of Service</a></li>
+              <li><Link href="/" className="text-sm text-ink-muted transition-colors hover:text-ink">Home</Link></li>
+              <li><Link href="/products" className="text-sm text-ink-muted transition-colors hover:text-ink">All Materials</Link></li>
+              <li><Link href="/about" className="text-sm text-ink-muted transition-colors hover:text-ink">About</Link></li>
+              <li><Link href="/contact" className="text-sm text-ink-muted transition-colors hover:text-ink">Contact</Link></li>
+              <li><Link href="/privacy" className="text-sm text-ink-muted transition-colors hover:text-ink">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="text-sm text-ink-muted transition-colors hover:text-ink">Terms of Service</Link></li>
             </ul>
           </div>
 
@@ -141,8 +142,8 @@ export function Footer() {
             &copy; {year} Banning Procurement Hub. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
-            <a href="/privacy" className="text-xs text-ink-muted transition-colors hover:text-ink">Privacy</a>
-            <a href="/terms" className="text-xs text-ink-muted transition-colors hover:text-ink">Terms</a>
+            <Link href="/privacy" className="text-xs text-ink-muted transition-colors hover:text-ink">Privacy</Link>
+            <Link href="/terms" className="text-xs text-ink-muted transition-colors hover:text-ink">Terms</Link>
             <a
               href="mailto:appianda@proton.me"
               className="text-xs text-ink-muted transition-colors hover:text-ink"

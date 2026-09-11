@@ -8,6 +8,7 @@ import { useQuote } from "@/lib/quote-context";
 import { buildQuoteMessage, buildWhatsAppUrl, type QuoteContact } from "@/lib/whatsapp";
 import { validateQuoteContact } from "@/lib/validation";
 import { submitViaWeb3Forms, web3FormsConfigured } from "@/lib/forms";
+import { track } from "@/lib/analytics";
 
 const EMPTY: QuoteContact = { name: "", phone: "", email: "", area: "", note: "" };
 
@@ -94,6 +95,7 @@ export function ContactForm() {
           ? "Message sent to us by email and opened in WhatsApp."
           : "Opening WhatsApp with your message…"
       );
+      track("contact_form_submitted", { emailed });
       window.open(url, "_blank", "noopener");
     } finally {
       setIsSubmitting(false);

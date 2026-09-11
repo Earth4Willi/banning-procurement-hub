@@ -12,6 +12,7 @@ import type { QuoteContact } from "@/lib/whatsapp";
 import { validateQuoteContact } from "@/lib/validation";
 import { submitViaWeb3Forms, web3FormsConfigured } from "@/lib/forms";
 import { formatItemCount, monetaryTotal } from "@/lib/format";
+import { track } from "@/lib/analytics";
 
 const EMPTY: QuoteContact = { name: "", phone: "", email: "", area: "", note: "" };
 const FIELD_LABEL: Record<string, string> = {
@@ -229,6 +230,7 @@ export function QuoteBuilder() {
           ? "Request sent to us by email and opened in WhatsApp."
           : "Opening WhatsApp with your request…"
     );
+    track("quote_submitted", { item_count: lines.length, reference: reference ?? "", emailed });
     window.open(url, "_blank", "noopener");
   };
 

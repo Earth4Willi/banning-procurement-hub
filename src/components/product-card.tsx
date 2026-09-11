@@ -7,6 +7,7 @@ import type { Product } from "@/lib/site";
 import type { StockStatus } from "@/lib/catalog-types";
 import { siteConfig } from "@/lib/site";
 import { useQuote } from "@/lib/quote-context";
+import { track } from "@/lib/analytics";
 
 type Props = {
   product: Product;
@@ -59,6 +60,7 @@ export function ProductCard({ product }: Props) {
   const handleAdd = () => {
     add(product.slug);
     setAdded(true);
+    track("add_to_quote", { product: product.slug, category: product.categoryId });
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = window.setTimeout(() => setAdded(false), 1600);
   };

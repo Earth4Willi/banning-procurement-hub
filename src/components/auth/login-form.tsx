@@ -6,6 +6,7 @@ import { LinkSimple, SignIn } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { api, inputClass } from "@/components/admin/helpers";
 import { validateLogin, type LoginFieldErrors } from "@/lib/validation";
+import { track } from "@/lib/analytics";
 
 const EMPTY = { email: "", password: "" };
 
@@ -28,6 +29,7 @@ export function LoginForm() {
         method: "POST",
         body: JSON.stringify({ email: values.email.trim(), password: values.password }),
       });
+      track("signin_completed", { method: "password" });
       router.push("/account");
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Unable to sign in.");

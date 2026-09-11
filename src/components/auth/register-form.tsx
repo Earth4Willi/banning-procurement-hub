@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { api, inputClass } from "@/components/admin/helpers";
 import { siteConfig } from "@/lib/site";
 import { validateRegister, type RegisterFieldErrors } from "@/lib/validation";
+import { track } from "@/lib/analytics";
 
 const EMPTY = { name: "", phone: "", email: "", area: "", address: "", password: "", confirmPassword: "" };
 
@@ -36,6 +37,7 @@ export function RegisterForm() {
           password: values.password,
         }),
       });
+      track("signup_completed", { method: "email" });
       router.push("/account");
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Unable to create your account.");

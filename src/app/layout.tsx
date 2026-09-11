@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Manrope, Outfit } from "next/font/google";
 import "./globals.css";
 import { QuoteProvider } from "@/lib/quote-context";
+import { GoogleAnalytics } from "@/components/ga";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QuoteProvider>
           {children}
         </QuoteProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

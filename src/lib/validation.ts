@@ -1,8 +1,14 @@
 export type QuoteContact = { name: string; phone: string; email?: string; area: string; note?: string };
 export type QuoteFieldErrors = { name?: string; phone?: string; email?: string; area?: string };
 
-const GHANA_MOBILE = /^(?:\+?233|0)?\s?[245][0-9]{2}\s?[0-9]{3}\s?[0-9]{3}$/;
+const GHANA_MOBILE = /^(?:\+?233|0)?[245]\d{2}\d{3}\d{3}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Accepts 055 885 0667 | 0558850667 | +233 55 885 0667 | +233558850667 by
+// ignoring spaces, then matching the compact 0XX / +233 form.
+export function isGhanaMobile(value: string): boolean {
+  return GHANA_MOBILE.test(value.replace(/\s+/g, ""));
+}
 
 export function validateQuoteContact(contact: QuoteContact): QuoteFieldErrors {
   const errors: QuoteFieldErrors = {};
@@ -12,7 +18,7 @@ export function validateQuoteContact(contact: QuoteContact): QuoteFieldErrors {
   if (contact.email && contact.email.trim() && !EMAIL.test(contact.email.trim())) {
     errors.email = "Enter a valid email address.";
   }
-  if (!GHANA_MOBILE.test(contact.phone.trim())) {
+  if (!isGhanaMobile(contact.phone)) {
     errors.phone = "Enter a valid Ghana mobile number, e.g. 055 885 0667.";
   }
   return errors;
@@ -72,7 +78,7 @@ export function validateRegister(input: {
   }
   if (!input.phone.trim()) {
     errors.phone = "Please enter your phone number.";
-  } else if (!GHANA_MOBILE.test(input.phone.trim())) {
+  } else if (!isGhanaMobile(input.phone.trim())) {
     errors.phone = "Enter a valid Ghana mobile number, e.g. 055 885 0667.";
   }
   if (!input.email.trim()) {
@@ -106,7 +112,7 @@ export function validateProfile(input: { name: string; email: string; phone: str
   }
   if (!input.phone.trim()) {
     errors.phone = "Please enter your phone number.";
-  } else if (!GHANA_MOBILE.test(input.phone.trim())) {
+  } else if (!isGhanaMobile(input.phone.trim())) {
     errors.phone = "Enter a valid Ghana mobile number, e.g. 055 885 0667.";
   }
   return errors;

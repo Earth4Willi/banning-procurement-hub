@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useReducer, ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer, useState, ReactNode } from "react";
 import { initialQuoteState, QuoteItem, quoteCount, quoteReducer } from "./quote-reducer";
 import { getProduct } from "./site";
 import { QuoteLine } from "./whatsapp";
+import type { CatalogProduct } from "./catalog-types";
 
 type QuoteContextValue = {
   items: QuoteItem[];
@@ -20,6 +21,28 @@ const STORAGE_KEY = "bph-quote";
 
 export function QuoteProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(quoteReducer, initialQuoteState);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+
+  // DB-first product lookup: admin-created (DB-only) products survive quote
+  // hydration because /api/catalog is the same DB-backed source the site uses.
+  // Static site.ts data remains the fallback when the catalog is unreachable.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/catalog", { credentials: "same-origin" })
+      .then((res) => res.json().catch(() => null))
+      .then((data) => {
+        const products = (data as { products?: CatalogProduct[] } | null)?.products;
+        if (!cancelled && Array.isArray(products) && products.length > 0) {
+          setCatalogProducts(products);
+        }
+      })
+      .catch(() => {
+        /* keep static fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -39,13 +62,18 @@ export function QuoteProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      /* private mode / storage disabled — cart keeps working in memory */
+    }
   }, [state]);
 
   const value = useMemo<QuoteContextValue>(() => {
     const lines: QuoteLine[] = state.items
       .flatMap((item) => {
-        const product = getProduct(item.productId);
+        const product =
+          catalogProducts.find((p) => p.slug === item.productId) ?? getProduct(item.productId);
         return product
           ? [{
               name: product.name,
@@ -64,7 +92,7 @@ export function QuoteProvider({ children }: { children: ReactNode }) {
       setQty: (productId, qty) => dispatch({ type: "setQty", productId, qty }),
       clear: () => dispatch({ type: "clear" }),
     };
-  }, [state]);
+  }, [state, catalogProducts]);
 
   return <QuoteContext.Provider value={value}>{children}</QuoteContext.Provider>;
 }

@@ -25,6 +25,16 @@ describe("quoteReducer", () => {
     s = quoteReducer(s, { type: "setQty", productId: "a", qty: -3 });
     expect(s.items).toEqual([]);
   });
+  it("floors fractional quantities, clamps to 9999, and drops non-finite values", () => {
+    let s = quoteReducer(initialQuoteState, { type: "add", productId: "a" });
+    s = quoteReducer(s, { type: "setQty", productId: "a", qty: 2.9 });
+    expect(s.items[0].qty).toBe(2);
+    s = quoteReducer(s, { type: "setQty", productId: "a", qty: Number.POSITIVE_INFINITY });
+    expect(s.items).toEqual([]);
+    s = quoteReducer(initialQuoteState, { type: "add", productId: "a" });
+    s = quoteReducer(s, { type: "setQty", productId: "a", qty: 100000 });
+    expect(s.items[0].qty).toBe(9999);
+  });
   it("quoteCount sums quantities", () => {
     const s = quoteReducer(quoteReducer(initialQuoteState, { type: "add", productId: "a" }), { type: "add", productId: "b" });
     const withQty = quoteReducer(s, { type: "setQty", productId: "b", qty: 4 });

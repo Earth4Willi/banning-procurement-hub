@@ -29,7 +29,11 @@ export function useTheme(): { theme: Theme; toggle: () => void } {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = theme;
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    } catch {
+      /* storage disabled — theme still applies for this session */
+    }
   }, [theme]);
 
   const toggle = useCallback(() => setTheme((t) => (t === "light" ? "dark" : "light")), []);

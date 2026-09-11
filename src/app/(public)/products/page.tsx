@@ -88,15 +88,22 @@ export default async function ProductsPage() {
                       View all
                     </Link>
                   </div>
-                  <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {products.map((product, index) => (
-                      <li key={product.slug}>
-                        <Reveal delay={(index % 4) * 0.05}>
-                          <ProductCard product={product} />
-                        </Reveal>
-                      </li>
-                    ))}
-                  </ul>
+                  {products.length > 0 ? (
+                    <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {products.map((product, index) => (
+                        <li key={product.slug}>
+                          <Reveal delay={(index % 4) * 0.05}>
+                            <ProductCard product={product} />
+                          </Reveal>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-4 rounded-xl border border-dashed border-primary/20 bg-surface-alt px-4 py-10 text-center text-sm text-ink-muted">
+                      No products in this category yet. Message us on WhatsApp and we&apos;ll
+                      source it for you.
+                    </p>
+                  )}
                 </section>
               );
             })}

@@ -20,11 +20,13 @@ export function quoteReducer(state: QuoteState, action: QuoteAction): QuoteState
     case "remove":
       return { items: state.items.filter((i) => i.productId !== action.productId) };
     case "setQty": {
-      if (action.qty <= 0) {
+      const qty = Math.floor(action.qty);
+      if (!Number.isFinite(qty) || qty <= 0) {
         return { items: state.items.filter((i) => i.productId !== action.productId) };
       }
+      const clamped = Math.min(9999, qty);
       return {
-        items: state.items.map((i) => (i.productId === action.productId ? { ...i, qty: action.qty } : i)),
+        items: state.items.map((i) => (i.productId === action.productId ? { ...i, qty: clamped } : i)),
       };
     }
     case "clear":

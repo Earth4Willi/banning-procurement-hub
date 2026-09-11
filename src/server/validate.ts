@@ -6,10 +6,9 @@ import {
   siteSettingsSchema,
 } from "@/lib/settings-types";
 import { badRequest } from "./http-error";
+import { isGhanaMobile } from "@/lib/validation";
 
 export const BODY_LIMIT_BYTES = 16 * 1024;
-
-const GHANA_MOBILE = /^(?:\+?233|0)?\s?[245][0-9]{2}\s?[0-9]{3}\s?[0-9]{3}$/;
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
@@ -25,7 +24,7 @@ export const phoneSchema = z
   .trim()
   .min(10)
   .max(20)
-  .regex(GHANA_MOBILE, "Enter a valid Ghana mobile number.")
+  .refine(isGhanaMobile, "Enter a valid Ghana mobile number.")
   .transform(normalizePhone);
 
 export const emailSchema = z

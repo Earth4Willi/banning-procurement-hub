@@ -90,6 +90,8 @@ export function MobileMenu({ role, onOpenSignIn, onSignOut }: Props) {
               role="dialog"
               aria-modal="true"
               aria-label="Mobile navigation"
+              aria-hidden={!open || undefined}
+              inert={!open || undefined}
               className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4rem+1px)] z-50 max-h-[calc(100dvh-calc(env(safe-area-inset-top)+4rem+1px))] overflow-y-auto border-b border-primary/10 bg-surface transition-transform duration-300 ${
                 open
                   ? "translate-y-0"

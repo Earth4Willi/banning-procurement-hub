@@ -35,6 +35,7 @@ export function QuoteBuilder() {
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [status, setStatus] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -84,7 +85,7 @@ export function QuoteBuilder() {
   const baseLines = lines.map((l) => ({
     name: l.product.name,
     unit: l.product.unit,
-    unitPrice: l.product.unitPrice,
+    unitPrice: l.product.pricingMode === "fixed" ? l.product.unitPrice : "",
     qty: l.qty,
   }));
   const total = monetaryTotal(baseLines);
@@ -116,9 +117,12 @@ export function QuoteBuilder() {
       else if (nextErrors.area && areaRef.current) areaRef.current.focus();
       return;
     }
+    if (submitting) return;
+    setSubmitting(true);
     setStatus("Saving your request…");
 
     let reference: string | null = null;
+    let storageError: string | null = null;
     try {
       const res = await fetch("/api/quote", {
         method: "POST",
@@ -137,10 +141,27 @@ export function QuoteBuilder() {
           })),
         }),
       });
-      const data = (await res.json().catch(() => null)) as { reference?: string } | null;
-      reference = res.ok && data?.reference ? data.reference : null;
+      const data = (await res.json().catch(() => null)) as
+        | { reference?: string; error?: { message?: string } }
+        | null;
+      if (res.ok && data?.reference) {
+        reference = data.reference;
+      } else if (!res.ok) {
+        // A structured server rejection (e.g. stock unavailable or invalid
+        // input) must NOT fall through to the WhatsApp handoff.
+        storageError =
+          data?.error?.message ??
+          "Your request could not be saved. Check your details and try again.";
+      }
     } catch {
-      // Persistence is best-effort — the WhatsApp handoff still proceeds.
+      // Network failure — persistence is best-effort, the WhatsApp handoff still proceeds.
+    } finally {
+      setSubmitting(false);
+    }
+
+    if (storageError) {
+      setStatus(storageError);
+      return;
     }
 
     const message = buildQuoteMessage(contact, baseLines, reference ?? undefined);
@@ -211,7 +232,8 @@ export function QuoteBuilder() {
 
         <ul className="mt-6 space-y-4">
           {lines.map((line) => {
-            const numeral = parseFloat(line.product.unitPrice.replace(/[^0-9.]/g, ""));
+            const isFixed = line.product.pricingMode === "fixed";
+            const numeral = isFixed ? parseFloat(line.product.unitPrice.replace(/[^0-9.]/g, "")) : NaN;
             const lineTotal = Number.isFinite(numeral) ? numeral * line.qty : 0;
             const label = `Quantity of ${line.product.name}`;
             return (
@@ -273,7 +295,7 @@ export function QuoteBuilder() {
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="font-mono text-sm font-semibold text-ink">
-                      {formatMoney(lineTotal)}
+                      {isFixed ? formatMoney(lineTotal) : "On request"}
                     </span>
                     <button
                       type="button"
@@ -452,9 +474,10 @@ export function QuoteBuilder() {
 
           <button
             type="submit"
-            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98]"
+            disabled={submitting}
+            className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
           >
-            Send request
+            {submitting ? "Sending…" : "Send request"}
           </button>
 
           {status ? (

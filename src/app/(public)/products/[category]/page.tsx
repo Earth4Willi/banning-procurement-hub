@@ -73,6 +73,7 @@ export default async function CategoryPage({ params }: Props) {
             </Reveal>
           </div>
 
+          {products.length > 0 ? (
           <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {products.map((product, index) => (
               <li key={product.slug}>
@@ -82,6 +83,12 @@ export default async function CategoryPage({ params }: Props) {
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="mt-8 rounded-xl border border-dashed border-primary/20 bg-surface-alt px-4 py-12 text-center text-sm text-ink-muted">
+            No products in this category yet. Message us on WhatsApp and we&apos;ll source it
+            for you.
+          </p>
+        )}
         </div>
       </section>
 

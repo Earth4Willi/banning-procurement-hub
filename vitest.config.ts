@@ -8,6 +8,7 @@ export default defineConfig({
     environment: "jsdom",
     pool: "forks",
     include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["./vitest.setup.ts"],
   },
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "./src") },

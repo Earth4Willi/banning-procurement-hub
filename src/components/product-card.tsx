@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Check } from "@phosphor-icons/react";
 import type { Product } from "@/lib/site";
 import type { StockStatus } from "@/lib/catalog-types";
@@ -65,13 +66,12 @@ export function ProductCard({ product }: Props) {
   return (
     <div className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-surface-alt transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-[0_12px_40px_rgba(13,61,26,0.12)] sm:rounded-[16px]">
       <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10]">
-        <img
+        <Image
           src={product.image}
           alt={product.name}
-          width={900}
-          height={700}
-          loading="lazy"
-          className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 ${outOfStock ? "opacity-70 grayscale" : ""}`}
+          fill
+          sizes="(min-width:1280px) 25vw, (min-width:640px) 33vw, 50vw"
+          className={`object-cover transition-transform duration-300 group-hover:scale-105 ${outOfStock ? "opacity-70 grayscale" : ""}`}
         />
         <span aria-hidden="true" className="shine-sweep" />
         <span

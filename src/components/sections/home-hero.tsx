@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Reveal } from "@/components/reveal";
 import { stats } from "@/lib/site";
 
@@ -10,12 +11,14 @@ export function HomeHero() {
       className="relative flex min-h-[100dvh] items-center py-20"
       aria-label="Introduction"
     >
-      <img
+      <Image
         src="/hero.jpg"
         alt=""
         aria-hidden
-        fetchPriority="high"
-        className="absolute inset-0 h-full w-full object-cover"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
       />
       <div
         aria-hidden

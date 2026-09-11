@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 
@@ -45,7 +46,7 @@ export function AboutStory() {
           </Reveal>
           <Reveal delay={0.15}>
             <div className="overflow-hidden rounded-2xl shadow-[0_24px_48px_-16px_rgba(13,61,26,0.4)]">
-              <img
+              <Image
                 src="/about-story.jpg"
                 alt="Construction formwork and materials ready for a building project"
                 width={800}

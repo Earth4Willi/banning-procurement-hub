@@ -32,7 +32,9 @@ const securityHeaders = [
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Backend phase: server mode. Route handlers require a runtime; pages stay SSG.
-  images: { unoptimized: true },
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "**.supabase.co", pathname: "/**" }],
+  },
   trailingSlash: true,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

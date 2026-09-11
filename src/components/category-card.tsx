@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import type { Category } from "@/lib/site";
 
@@ -17,13 +18,12 @@ export function CategoryCard({ category, count }: Props) {
       className="group flex h-full flex-col overflow-hidden rounded-xl border border-primary/10 bg-surface-alt transition-transform duration-300 hover:-translate-y-1 sm:rounded-[16px]"
     >
       <div className="relative aspect-square overflow-hidden sm:aspect-[4/3]">
-        <img
+        <Image
           src={category.image}
           alt={category.name}
-          width={900}
-          height={700}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          fill
+          sizes="(min-width:1280px) 25vw, (min-width:768px) 33vw, 50vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
         />
       </div>
       <div className="flex flex-1 flex-col p-3 sm:p-5">

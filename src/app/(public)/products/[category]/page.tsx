@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { fetchCategories, fetchProducts } from "@/server/catalog-store";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductCard } from "@/components/product-card";
 import { Reveal } from "@/components/reveal";
+import { BreadcrumbSchema, ProductListSchema } from "@/components/schema";
 
 export const revalidate = 60;
 
@@ -34,6 +36,14 @@ export default async function CategoryPage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Products", href: "/products" },
+          { name: cat.name, href: `/products/${cat.id}/` },
+        ]}
+      />
+      {products.length > 0 && <ProductListSchema products={products} />}
       <section className="py-12 lg:py-28" aria-label={`${cat.name} materials`}>
         <div className="mx-auto max-w-[1400px] px-4 md:px-6">
           <Breadcrumbs
@@ -62,7 +72,7 @@ export default async function CategoryPage({ params }: Props) {
 
             <Reveal delay={0.15} className="relative">
               <div className="overflow-hidden rounded-2xl">
-                <img
+                <Image
                   src={cat.image}
                   alt={cat.name}
                   width={900}

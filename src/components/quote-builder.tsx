@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Minus, Plus, Trash } from "@phosphor-icons/react";
 import { siteConfig } from "@/lib/site";
 import { useCatalog } from "@/lib/catalog-context";
@@ -285,12 +286,12 @@ export function QuoteBuilder() {
                 className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-surface-alt p-3 sm:flex-row sm:items-center sm:rounded-[16px] sm:p-4"
               >
                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg sm:h-16 sm:w-16 sm:rounded-[10px]">
-                  <img
+                  <Image
                     src={line.product.image}
                     alt=""
-                    width={160}
-                    height={160}
-                    className="h-full w-full object-cover"
+                    fill
+                    sizes="64px"
+                    className="object-cover"
                   />
                 </div>
                 <div className="min-w-0 flex-1">

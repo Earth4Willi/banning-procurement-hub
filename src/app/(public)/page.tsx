@@ -8,6 +8,8 @@ import { Certifications } from "@/components/sections/certifications";
 import { Faq } from "@/components/sections/faq";
 import { CtaBand } from "@/components/sections/cta-band";
 import { OrganizationSchema } from "@/components/organization-schema";
+import { FaqSchema } from "@/components/schema";
+import { faqs } from "@/lib/site";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -25,6 +27,7 @@ export default function Home() {
       <Faq />
       <CtaBand />
       <OrganizationSchema />
+      <FaqSchema faqs={faqs} />
     </>
   );
 }

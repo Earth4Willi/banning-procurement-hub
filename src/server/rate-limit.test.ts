@@ -29,8 +29,18 @@ describe("clientIp", () => {
   const req = (headers: Headers) =>
     ({ headers, ip: undefined }) as unknown as NextRequest;
 
-  it("takes the first x-forwarded-for entry", () => {
-    expect(clientIp(req(new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" })))).toBe("1.2.3.4");
+  it("takes the last x-forwarded-for entry (the closest trusted hop)", () => {
+    expect(clientIp(req(new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" })))).toBe("5.6.7.8");
+  });
+
+  it("takes the platform header over x-forwarded-for", () => {
+    expect(
+      clientIp(req(new Headers({ "x-forwarded-for": "1.2.3.4", "cf-connecting-ip": "9.9.9.9" }))),
+    ).toBe("9.9.9.9");
+  });
+
+  it("returns unknown for non-IP x-forwarded-for values", () => {
+    expect(clientIp(req(new Headers({ "x-forwarded-for": "not-an-ip" })))).toBe("unknown");
   });
 
   it("falls back to x-real-ip, then unknown", () => {

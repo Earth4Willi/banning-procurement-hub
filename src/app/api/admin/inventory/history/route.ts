@@ -24,7 +24,8 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
   const url = new URL(request.url);
   const productId = url.searchParams.get("product_id");
-  const limit = Math.min(Number(url.searchParams.get("limit") ?? "100"), 500);
+  const rawLimit = Number(url.searchParams.get("limit") ?? "100");
+  const limit = Math.min(Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 100, 500);
 
   let query = client
     .from("inventory_history")

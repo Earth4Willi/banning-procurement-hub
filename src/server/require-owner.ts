@@ -15,7 +15,7 @@ import {
  * without a session; production never honors it.
  */
 export async function requireOwner(request: NextRequest): Promise<OwnerPrincipal | null> {
-  const dev = devOwnerPrincipal();
+  const dev = devOwnerPrincipal(request);
   if (dev) return dev;
   const sessionId = request.cookies.get(SESSION_COOKIE)?.value;
   if (!sessionId) return null;

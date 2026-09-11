@@ -12,6 +12,7 @@ export const PAYMENT_OPTIONS = [
   { key: "mobile_money", label: "Mobile Money" },
   { key: "bank", label: "Bank Transfer" },
   { key: "cash", label: "Cash" },
+  { key: "other", label: "Other" },
 ] as const;
 
 export function SettingsView(props: { session: Session; onNeedRefresh: () => void }) {
@@ -371,11 +372,17 @@ function PaymentsSection(props: { initial: PaymentSettings; onSaved: () => void 
             );
           })}
         </fieldset>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <TextField label="Bank name" name="payment-bankName" value={bank.bankName} onChange={setBankField("bankName")} />
-          <TextField label="Account name" name="payment-accountName" value={bank.accountName} onChange={setBankField("accountName")} />
-          <TextField label="Account number" name="payment-accountNumber" value={bank.accountNumber} onChange={setBankField("accountNumber")} />
-        </div>
+        {methods.includes("bank") ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <TextField label="Bank name" name="payment-bankName" value={bank.bankName} onChange={setBankField("bankName")} />
+            <TextField label="Account name" name="payment-accountName" value={bank.accountName} onChange={setBankField("accountName")} />
+            <TextField label="Account number" name="payment-accountNumber" value={bank.accountNumber} onChange={setBankField("accountNumber")} />
+          </div>
+        ) : (
+          <p className="text-sm text-ink-muted">
+            Bank details appear on receipts when Bank Transfer is enabled.
+          </p>
+        )}
         {error ? (
           <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-3 text-sm text-red-700" role="alert">
             {error}

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { audit } from "@/server/audit";
+import { audit, getSupabaseClient } from "@/server/audit";
 import { verifySameOrigin } from "@/server/csrf";
-import { unauthorized } from "@/server/http-error";
+import { conflict, HttpError } from "@/server/http-error";
 import { createRedis } from "@/server/redis";
 import { requireCustomer } from "@/server/require-customer";
 import {
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const principal = await requireCustomer(request);
-  if (!principal) throw unauthorized();
+  if (!principal) throw new HttpError(401, "unauthorized", "Authentication required.");
   const profile = await findUserById(principal.id);
   return NextResponse.json({
     role: "customer",
@@ -33,15 +33,43 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
 
 export const PATCH = withErrorHandling(async (request: NextRequest) => {
   const principal = await requireCustomer(request);
-  if (!principal) throw unauthorized();
+  if (!principal) throw new HttpError(401, "unauthorized", "Authentication required.");
   verifySameOrigin(request);
   const patch = await parseBody(request, accountProfileSchema);
 
+  const client = getSupabaseClient();
+  if (client) {
+    if (patch.email !== undefined && patch.email !== principal.email) {
+      const { data } = await client
+        .from("users")
+        .select("id")
+        .eq("email", patch.email)
+        .neq("id", principal.id)
+        .maybeSingle();
+      if (data) throw conflict("email");
+    }
+    if (patch.phone !== undefined && patch.phone !== principal.phone) {
+      const { data } = await client
+        .from("users")
+        .select("id")
+        .eq("phone", patch.phone)
+        .neq("id", principal.id)
+        .maybeSingle();
+      if (data) throw conflict("phone");
+    }
+  }
+
   const ok = await updateCustomerProfile(principal.id, patch);
-  if (!ok) throw unauthorized();
+  if (!ok) {
+    console.error("[profile] updateCustomerProfile failed for", principal.id);
+    throw new HttpError(503, "storage_unavailable", "Profile update failed — database unavailable.");
+  }
 
   const updated = await findUserById(principal.id);
-  if (!updated) throw unauthorized();
+  if (!updated) {
+    console.error("[profile] findUserById failed after update for", principal.id);
+    throw new HttpError(503, "storage_unavailable", "Profile update failed — database unavailable.");
+  }
 
   const response = NextResponse.json({ ok: true, user: updated });
   const emailChanged = patch.email !== undefined && patch.email !== principal.email;

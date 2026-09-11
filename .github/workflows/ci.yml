@@ -31,3 +31,7 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # Production-prerender build: the public origin must be a non-loopback
+          # HTTPS URL (getEnv rejects loopback origins in production).
+          APP_ORIGIN: https://banningprocurementhub.com

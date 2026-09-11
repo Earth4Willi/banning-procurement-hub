@@ -134,4 +134,29 @@ describe("findShortLines", () => {
     expect(short).toHaveLength(1);
     expect(short[0].slug).toBe("cement-42-5");
   });
+
+  it("aggregates duplicate slugs before comparing against stock", () => {
+    const short = findShortLines(
+      [
+        { slug: "cement-42-5", quantity: 6 },
+        { slug: "cement-42-5", quantity: 6 },
+      ],
+      products,
+    );
+    expect(short).toEqual([
+      { name: "Ghacem Supacem", slug: "cement-42-5", requested: 12, available: 10 },
+    ]);
+  });
+
+  it("does not flag duplicate slugs whose combined quantity fits", () => {
+    expect(
+      findShortLines(
+        [
+          { slug: "cement-42-5", quantity: 4 },
+          { slug: "cement-42-5", quantity: 6 },
+        ],
+        products,
+      ),
+    ).toEqual([]);
+  });
 });

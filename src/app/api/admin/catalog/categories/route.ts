@@ -5,7 +5,7 @@ import { createCategory, deleteCategory, fetchCategories, updateCategory } from 
 import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { revalidatePublic } from "@/server/revalidate";
-import { catalogItemIdSchema, categorySchema, parseBody } from "@/server/validate";
+import { catalogItemIdSchema, categorySchema, categoryUpdateSchema, parseBody } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
@@ -57,7 +57,7 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 export const PUT = withErrorHandling(async (request: NextRequest) => {
   const blocked = await guard(request);
   if (blocked) return blocked;
-  const body = await parseBody(request, categorySchema);
+  const body = await parseBody(request, categoryUpdateSchema);
   const ok = await updateCategory(body.id, {
     name: body.name,
     short: body.short,

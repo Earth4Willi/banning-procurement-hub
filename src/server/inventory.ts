@@ -100,15 +100,24 @@ export function findShortLines(
   products: { slug: string; name: string; unit?: string; trackInventory: boolean; stockQuantity: number }[],
 ): ShortLine[] {
   const bySlug = new Map(products.map((p) => [p.slug, p] as const));
-  const short: ShortLine[] = [];
+  // Aggregate requested quantity per slug first so duplicate lines for the
+  // same product are checked against stock together (otherwise repeated
+  // small lines could collectively exceed available stock undetected).
+  const requestedBySlug = new Map<string, number>();
   for (const item of items) {
     const product = bySlug.get(item.slug);
     if (!product || !product.trackInventory) continue;
-    if (item.quantity > product.stockQuantity) {
+    requestedBySlug.set(item.slug, (requestedBySlug.get(item.slug) ?? 0) + item.quantity);
+  }
+  const short: ShortLine[] = [];
+  for (const [slug, quantity] of requestedBySlug) {
+    const product = bySlug.get(slug);
+    if (!product) continue;
+    if (quantity > product.stockQuantity) {
       short.push({
         name: product.name,
         slug: product.slug,
-        requested: item.quantity,
+        requested: quantity,
         available: product.stockQuantity,
       });
     }

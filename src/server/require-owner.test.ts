@@ -12,7 +12,9 @@ describe("requireOwner", () => {
 
   it("returns the owner principal in development when the bypass flag is set", async () => {
     setTestEnv({ NODE_ENV: "development", DEV_OWNER_BYPASS: "1" });
-    const request = new NextRequest("https://example.com/api/admin/quotes");
+    const request = new NextRequest("https://example.com/api/admin/quotes", {
+      headers: { "x-real-ip": "127.0.0.1" },
+    });
     await expect(requireOwner(request)).resolves.toEqual({
       id: "owner",
       role: "owner",
@@ -21,15 +23,19 @@ describe("requireOwner", () => {
   });
 
   it("ignores the bypass in production even when the flag is set", async () => {
-    setTestEnv({ NODE_ENV: "production", DEV_OWNER_BYPASS: "1" });
-    const request = new NextRequest("https://example.com/api/admin/quotes");
+    setTestEnv({ NODE_ENV: "production", APP_ORIGIN: "https://app.bph.example", DEV_OWNER_BYPASS: "1" });
+    const request = new NextRequest("https://example.com/api/admin/quotes", {
+      headers: { "x-real-ip": "127.0.0.1" },
+    });
     await expect(requireOwner(request)).resolves.toBeNull();
   });
 
   it("requires the flag in development", async () => {
     setTestEnv({ NODE_ENV: "development" });
     delete process.env.DEV_OWNER_BYPASS;
-    const request = new NextRequest("https://example.com/api/admin/quotes");
+    const request = new NextRequest("https://example.com/api/admin/quotes", {
+      headers: { "x-real-ip": "127.0.0.1" },
+    });
     await expect(requireOwner(request)).resolves.toBeNull();
   });
 });

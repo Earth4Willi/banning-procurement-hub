@@ -58,6 +58,17 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
   }
   verifySameOrigin(request);
   const body = await parseBody(request, quoteUpdateSchema);
+  if (body.status !== undefined) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "validation_failed",
+          message: "The status field is read-only here — use the quotes/status endpoint to change a quote's status.",
+        },
+      },
+      { status: 400 },
+    );
+  }
   const fields = Object.keys(body).filter((key) => key !== "id");
   if (fields.length === 0) {
     return NextResponse.json(
@@ -74,14 +85,19 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     items: body.items,
   };
 
-  let priced = false;
-  if (body.items?.some((item) => typeof item.unitPrice === "number")) {
-    const totals = computeTotals(body.items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice })));
-    const token = await ensureQuoteToken(body.id);
-    patch.totalAmount = totals.total;
-    patch.validUntil = body.validUntil;
-    if (token) patch.docToken = token;
-    priced = true;
+  if (body.items !== undefined) {
+    if (body.items.some((item) => typeof item.unitPrice === "number")) {
+      const totals = computeTotals(body.items.map((item) => ({ quantity: item.quantity, unitPrice: item.unitPrice })));
+      const token = await ensureQuoteToken(body.id);
+      patch.totalAmount = totals.total;
+      patch.validUntil = body.validUntil;
+      if (token) patch.docToken = token;
+    } else {
+      // Items were saved without pricing — clear any previously stored total
+      // so the document route recomputes from a fresh (unpriced) state.
+      patch.totalAmount = null;
+      patch.validUntil = body.validUntil;
+    }
   } else if (body.validUntil !== undefined) {
     patch.validUntil = body.validUntil;
   }
@@ -94,6 +110,8 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
     );
   }
   await audit("quote_edited", { id: body.id, reference: body.name });
-  if (priced) await audit("quote_priced", { id: body.id });
+  if (body.items !== undefined && body.items.some((item) => typeof item.unitPrice === "number")) {
+    await audit("quote_priced", { id: body.id });
+  }
   return NextResponse.json({ ok: true });
 });

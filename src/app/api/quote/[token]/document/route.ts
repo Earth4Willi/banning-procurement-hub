@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { notFound } from "next/navigation";
@@ -7,6 +8,7 @@ import { clientIp, enforceRateLimit } from "@/server/rate-limit";
 import { getSettings } from "@/server/settings-store";
 import { computeTotals, formatValidUntil, money, round2 } from "@/lib/quote-document";
 import type { BankDetails } from "@/lib/settings-types";
+import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,10 +30,10 @@ function esc(value: unknown): string {
   });
 }
 
-export async function GET(
+export const GET = withErrorHandling(async (
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> },
-) {
+) => {
   if (!isQuoteStoreAvailable()) {
     return NextResponse.json(
       { error: { code: "storage_unavailable", message: "Database not configured." } },
@@ -41,8 +43,6 @@ export async function GET(
 
   const { token } = await params;
   const ip = clientIp(request);
-  // Public token URL — bound per client IP and per token so a leaked link
-  // can't be hammered. Fail-open by default (no false 429s on Redis outages).
   await enforceRateLimit(request, {
     prefix: "rl:quote-doc:ip",
     identifier: ip,
@@ -69,7 +69,8 @@ export async function GET(
     }
   }
 
-  void audit("doc_viewed", { token, reference: quote.reference });
+  const hashedToken = createHash("sha256").update(token).digest("hex");
+  void audit("doc_viewed", { tokenHash: hashedToken, reference: quote.reference });
 
   const showBank =
     quote.payment_method === "bank" &&
@@ -77,16 +78,9 @@ export async function GET(
   const paidLabel =
     quote.status === "won" ? "Accepted" : quote.status === "lost" ? "Declined" : quote.status === "reviewed" ? "Reviewed" : "Pending";
   const hasPricing = quote.items.some((item) => typeof item.unitPrice === "number");
-  const totals =
-    quote.total_amount != null
-      ? {
-          subtotal: round2(quote.total_amount / 1.15),
-          vat: round2(quote.total_amount - quote.total_amount / 1.15),
-          total: quote.total_amount,
-        }
-      : hasPricing
-        ? computeTotals(quote.items)
-        : null;
+  // Always recompute from the current items when pricing is present rather
+  // than reverse-engineering from a potentially stale total_amount column.
+  const totals = hasPricing ? computeTotals(quote.items) : null;
 
   const rows = quote.items
     .map((item) => {
@@ -186,4 +180,4 @@ export async function GET(
   return new NextResponse(html, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
-}
+});

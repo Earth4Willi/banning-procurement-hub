@@ -6,7 +6,7 @@ import { verifySameOrigin } from "@/server/csrf";
 import { requireOwner } from "@/server/require-owner";
 import { revalidatePublic } from "@/server/revalidate";
 import type { OwnerPrincipal } from "@/server/session";
-import { catalogItemIdSchema, parseBody, productSchema } from "@/server/validate";
+import { catalogItemIdSchema, parseBody, productSchema, productUpdateSchema } from "@/server/validate";
 import { withErrorHandling } from "@/server/with-error-handling";
 
 export const runtime = "nodejs";
@@ -100,7 +100,7 @@ export const PUT = withErrorHandling(async (request: NextRequest) => {
   const auth = await guard(request);
   if (auth instanceof NextResponse) return auth;
   const principal = auth.principal;
-  const body = await parseBody(request, productSchema);
+  const body = await parseBody(request, productUpdateSchema);
 
   const products = await fetchProducts();
   const current = products.find((p) => p.slug === body.slug);

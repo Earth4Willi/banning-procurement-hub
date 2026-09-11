@@ -91,7 +91,7 @@ describe("sessions", () => {
   });
 
   it("builds a hardened cookie config", () => {
-    setTestEnv({ NODE_ENV: "production" });
+    setTestEnv({ NODE_ENV: "production", APP_ORIGIN: "https://app.bph.example" });
     const config = sessionCookieConfig("abc");
     expect(config.httpOnly).toBe(true);
     expect(config.sameSite).toBe("lax");

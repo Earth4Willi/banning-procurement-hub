@@ -1,9 +1,14 @@
+import { isIP } from "node:net";
 import { Ratelimit } from "@upstash/ratelimit";
 import type { NextRequest } from "next/server";
 import { HttpError } from "./http-error";
 import { createRedis } from "./redis";
 
 let warned = false;
+
+function validIp(ip: string): string {
+  return isIP(ip) ? ip : "unknown";
+}
 
 function toIso(reset: number): string {
   const ms = reset < 1e12 ? reset * 1000 : reset;
@@ -49,12 +54,16 @@ export async function rateLimit(options: {
 
 export function clientIp(request: NextRequest): string {
   // Platform-set headers are trusted (set by the edge, not the caller). XFF
-  // remains fallback only because it is client-spoofable.
+  // remains fallback only because it is client-spoofable; when present we use
+  // the last entry (closest trusted hop) and validate it.
   const platformIp =
     request.headers.get("x-vercel-forwarded-ip") ?? request.headers.get("cf-connecting-ip");
-  if (platformIp) return platformIp;
+  if (platformIp) return validIp(platformIp);
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() ?? "unknown";
+  if (forwarded) {
+    const last = forwarded.split(",").pop()?.trim();
+    if (last) return validIp(last);
+  }
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 

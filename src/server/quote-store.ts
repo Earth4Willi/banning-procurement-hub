@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { getSupabaseClient } from "./audit";
-import { applyQuantityChange, findShortLines } from "./inventory";
+import { findShortLines } from "./inventory";
 import type { QuoteSource } from "@/lib/catalog-types";
 
 export type QuoteStatus = "new" | "reviewed" | "won" | "lost";
@@ -206,24 +206,6 @@ export async function ensureQuoteToken(id: string): Promise<string | null> {
   return ok ? docToken : null;
 }
 
-export async function setQuoteAccepted(id: string): Promise<boolean> {
-  try {
-    const client = getSupabaseClient();
-    if (!client) return false;
-    const { error } = await client
-      .from("quotes")
-      .update({ accepted_at: new Date().toISOString(), status: "won" })
-      .eq("id", id);
-    if (error) {
-      console.warn(`[quote-store] accept failed: ${error.message}`);
-      return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export type AcceptResult =
   | { ok: true }
   | { ok: false; error: string; shortLines?: string[] };
@@ -289,12 +271,23 @@ export async function acceptQuoteWithInventory(
     console.warn(`[quote-store] accept of ${id} failed, rolling back`, err);
     for (const a of applied) {
       try {
-        await client.from("products").update({ stock_quantity: a.previousQuantity }).eq("slug", a.slug);
+        // Restore against the LIVE stock value, adding back exactly the amount
+        // we deducted. Using the stale `previousQuantity` would clobber any
+        // deductions other quotes took after ours.
+        const { data: live } = await client
+          .from("products")
+          .select("stock_quantity")
+          .eq("id", a.productId)
+          .maybeSingle();
+        const current = live ? Number(live.stock_quantity ?? 0) : a.newQuantity;
+        const delta = a.previousQuantity - a.newQuantity;
+        const restored = Math.max(0, current + delta);
+        await client.from("products").update({ stock_quantity: restored }).eq("id", a.productId);
         await client.from("inventory_history").insert({
           product_id: a.productId,
-          previous_quantity: a.newQuantity,
-          quantity_changed: a.previousQuantity - a.newQuantity,
-          new_quantity: a.previousQuantity,
+          previous_quantity: current,
+          quantity_changed: restored - current,
+          new_quantity: restored,
           change_type: "order_cancellation",
           reference_id: id,
           changed_by: changedBy,
@@ -313,21 +306,35 @@ export async function acceptQuoteWithInventory(
       if (item.quantity <= 0) continue;
 
       const previousQuantity = Number(product.stock_quantity ?? 0);
-      const { newQuantity, quantityChanged } = applyQuantityChange(
-        previousQuantity,
-        -item.quantity,
-      );
 
-      const { error: updateError } = await client
+      // Atomic compare-and-swap deduction: only write when the stock row still
+      // holds the value we read (eq) AND has enough left (gte). PostgREST cannot
+      // do arithmetic column updates, so this is the strongest guarantee
+      // available without a DB RPC — under READ COMMITTED the UPDATE re-evaluates
+      // these predicates against the latest committed row after any lock wait,
+      // so a stale or insufficient write is rejected with zero rows returned.
+      const { data: updated, error: updateError } = await client
         .from("products")
-        .update({ stock_quantity: newQuantity })
-        .eq("slug", item.slug);
+        .update({ stock_quantity: previousQuantity - item.quantity })
+        .eq("slug", item.slug)
+        .eq("stock_quantity", previousQuantity)
+        .gte("stock_quantity", item.quantity)
+        .select("id, stock_quantity");
       if (updateError) {
         return restoreApplied(new Error(`stock update failed for ${item.slug}: ${updateError.message}`));
       }
+      if (!updated || updated.length !== 1) {
+        // Stock changed since we read it, or there isn't enough left — nothing
+        // was written for this line. Roll back any earlier deductions.
+        return restoreApplied(new Error(`stock raced for ${item.slug}: expected ${previousQuantity}, condition not met`));
+      }
+
+      const newQuantity = Number(updated[0].stock_quantity);
+      const productId = String(updated[0].id);
+      const quantityChanged = newQuantity - previousQuantity;
 
       const { error: historyError } = await client.from("inventory_history").insert({
-        product_id: String(product.id),
+        product_id: productId,
         previous_quantity: previousQuantity,
         quantity_changed: quantityChanged,
         new_quantity: newQuantity,
@@ -339,19 +346,27 @@ export async function acceptQuoteWithInventory(
         return restoreApplied(new Error(`history insert failed for ${item.slug}: ${historyError.message}`));
       }
 
-      applied.push({ slug: item.slug, productId: String(product.id), previousQuantity, newQuantity });
+      applied.push({ slug: item.slug, productId, previousQuantity, newQuantity });
       productMap.set(item.slug, { ...product, stock_quantity: newQuantity });
     }
 
-    // 5. Mark quote as won
-    const { error } = await client
+    // 5. Mark quote as won — conditionally on the status we loaded, so a
+    //    concurrent accept of the same quote cannot both succeed: only the
+    //    first flip matches, the loser reconciles by rolling back its stock.
+    const { data: flipped, error: statusError } = await client
       .from("quotes")
       .update({ accepted_at: new Date().toISOString(), status: "won" })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("status", quote.status)
+      .select("id");
 
-    if (error) {
-      console.warn(`[quote-store] accept failed: ${error.message}`);
-      return restoreApplied(new Error(`quote status update failed: ${error.message}`));
+    if (statusError) {
+      console.warn(`[quote-store] accept failed: ${statusError.message}`);
+      return restoreApplied(new Error(`quote status update failed: ${statusError.message}`));
+    }
+    if (!flipped || flipped.length !== 1) {
+      console.warn(`[quote-store] accept of ${id} lost the status race, rolling back deductions`);
+      return restoreApplied(new Error(`quote ${id} was already accepted while this acceptance was being processed`));
     }
 
     return { ok: true };
@@ -435,7 +450,7 @@ export async function reverseQuoteOrder(
 
   const { error } = await client
     .from("quotes")
-    .update({ accepted_at: null, status: nextStatus })
+    .update({ accepted_at: null, status: nextStatus, paid_at: null })
     .eq("id", id);
 
   if (error) {
@@ -446,21 +461,30 @@ export async function reverseQuoteOrder(
   return { ok: true };
 }
 
-export async function setQuotePaid(id: string, method: string): Promise<boolean> {
+export type SetQuotePaidResult =
+  | { ok: true }
+  | { ok: false; error: "store" | "state" };
+
+export async function setQuotePaid(id: string, method: string): Promise<SetQuotePaidResult> {
   try {
     const client = getSupabaseClient();
-    if (!client) return false;
+    if (!client) return { ok: false, error: "store" };
+    const quote = await getQuote(id);
+    if (!quote) return { ok: false, error: "store" };
+    if (quote.status === "new" || quote.status === "lost") {
+      return { ok: false, error: "state" };
+    }
     const { error } = await client
       .from("quotes")
       .update({ paid_at: new Date().toISOString(), payment_method: method })
       .eq("id", id);
     if (error) {
       console.warn(`[quote-store] paid failed: ${error.message}`);
-      return false;
+      return { ok: false, error: "store" };
     }
-    return true;
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false, error: "store" };
   }
 }
 

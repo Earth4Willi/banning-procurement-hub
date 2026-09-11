@@ -26,6 +26,7 @@ export async function beginOwnerLogin(opts: {
   password: string;
 }): Promise<{ pendingId: string; ip: string }> {
   const env = getEnv();
+  const normalizedEmail = opts.email.trim().toLowerCase();
   const ip = clientIp(opts.request);
   await enforceRateLimit(opts.request, {
     prefix: "rl:login:ip",
@@ -36,13 +37,12 @@ export async function beginOwnerLogin(opts: {
   });
   await enforceRateLimit(opts.request, {
     prefix: "rl:login:email",
-    identifier: opts.email,
+    identifier: normalizedEmail,
     limit: 5,
     windowSeconds: 900,
     failClosed: true,
   });
 
-  const normalizedEmail = opts.email.trim().toLowerCase();
   const emailMatches = normalizedEmail === env.OWNER_EMAIL;
   // Always run bcrypt so unknown-email and wrong-password take ~equal time.
   const passwordOk = await verifyPassword(opts.password, env.OWNER_PASSWORD_HASH);

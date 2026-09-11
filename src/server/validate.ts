@@ -16,7 +16,9 @@ function normalizeEmail(value: string): string {
 
 function normalizePhone(value: string): string {
   const compact = value.replace(/\s+/g, "");
-  return /^0[245]/.test(compact) ? `+233${compact.slice(1)}` : compact;
+  if (/^0[245]/.test(compact)) return `+233${compact.slice(1)}`;
+  if (/^\+?233\d{9}$/.test(compact)) return compact.startsWith("+") ? compact : `+${compact}`;
+  return compact;
 }
 
 export const phoneSchema = z
@@ -125,15 +127,17 @@ export const categorySchema = z
   })
   .strict();
 
+const productSlugSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a lowercase slug like 'ghacem-supacem-42-5'.")
+  .min(1)
+  .max(120);
+
 export const productSchema = z
   .object({
-    slug: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a lowercase slug like 'ghacem-supacem-42-5'.")
-      .min(1)
-      .max(120),
+    slug: productSlugSchema,
     categoryId: z.string().trim().min(1).max(60),
     name: z.string().trim().min(1).max(120),
     brand: optionalText(80),
@@ -148,6 +152,46 @@ export const productSchema = z
     kind: z.enum(["unit", "measure"]).default("unit"),
     visible: z.boolean().default(true),
     sortOrder: z.number().int().min(0).max(9999).default(0),
+  })
+  .strict();
+
+/**
+ * Update schema for the products PUT — deliberately has NO defaults so a
+ * partial payload can never silently reset omitted columns (the create schema
+ * above defaults stock/labels, but an update must only touch sent keys).
+ */
+export const productUpdateSchema = z
+  .object({
+    slug: productSlugSchema,
+    categoryId: z.string().trim().min(1).max(60).optional(),
+    name: z.string().trim().min(1).max(120).optional(),
+    brand: optionalText(80),
+    unit: optionalText(30),
+    unitPrice: optionalText(30),
+    imageUrl: optionalText(500),
+    description: optionalText(2000),
+    stockQuantity: z.number().int().min(0).max(1000000).optional(),
+    lowStockThreshold: z.number().int().min(0).max(1000000).optional(),
+    trackInventory: z.boolean().optional(),
+    pricingMode: z.enum(["fixed", "quote"]).optional(),
+    kind: z.enum(["unit", "measure"]).optional(),
+    visible: z.boolean().optional(),
+    sortOrder: z.number().int().min(0).max(9999).optional(),
+  })
+  .strict();
+
+/**
+ * Update schema for the categories PUT — no defaults, `id` required.
+ */
+export const categoryUpdateSchema = z
+  .object({
+    id: z.string().trim().min(1).max(60),
+    name: z.string().trim().min(1).max(80).optional(),
+    short: optionalText(40),
+    description: optionalText(2000),
+    imageUrl: optionalText(500),
+    sortOrder: z.number().int().min(0).max(9999).optional(),
+    visible: z.boolean().optional(),
   })
   .strict();
 

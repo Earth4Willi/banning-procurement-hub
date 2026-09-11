@@ -80,7 +80,7 @@ describe("GET /api/quote/[token]/document", () => {
     const html = await res.text();
     expect(html).toContain("BPH-2401");
     expect(html).toContain("Ghacem Super Cement");
-    expect(html).toContain("GH₵ 306.00");
+    expect(html).toContain("GH₵ 276.00");
     expect(html).toContain("Bank Transfer");
     expect(html).toContain("GCB");
     expect(html).toContain('<meta name="viewport"');
@@ -109,5 +109,19 @@ describe("GET /api/quote/[token]/document", () => {
     const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
     const html = await res.text();
     expect(html).not.toContain("Bank Transfer");
+  });
+
+  it("derives totals from current items even when total_amount is stale", async () => {
+    vi.mocked(isQuoteStoreAvailable).mockReturnValue(true);
+    vi.mocked(findQuoteByToken).mockResolvedValue({ ...QUOTE, total_amount: 999 } as never);
+    vi.mocked(getSettings).mockResolvedValue({
+      methods: ["mobile_money", "bank", "cash"],
+      bank: { bankName: "GCB", accountName: "Banning Procurement Hub", accountNumber: "1234567890" },
+    } as never);
+    const res = await GET(REQ("http://localhost/api/quote/tok_abc/document"), { params });
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("GH₵ 276.00");
+    expect(html).not.toContain("GH₵ 999");
   });
 });

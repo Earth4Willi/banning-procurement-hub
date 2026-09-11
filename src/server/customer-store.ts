@@ -9,15 +9,13 @@ export async function upsertCustomer(phone: string, info: { name: string; email?
   try {
     const client = getSupabaseClient();
     if (!client) return false;
-    const { error } = await client.from("customers").upsert(
-      {
+    const payload: Record<string, unknown> = {
         phone,
         name: info.name,
-        email: info.email ?? "",
         updated_at: new Date().toISOString(),
-      },
-      { onConflict: "phone" },
-    );
+      };
+      if (info.email) payload.email = info.email;
+      const { error } = await client.from("customers").upsert(payload, { onConflict: "phone" });
     if (error) {
       console.warn(`[customer-store] upsert failed: ${error.message}`);
       return false;
@@ -26,6 +24,20 @@ export async function upsertCustomer(phone: string, info: { name: string; email?
   } catch (error) {
     console.warn("[customer-store] unavailable:", error);
     return false;
+  }
+}
+
+export async function countCustomers(): Promise<number> {
+  const client = getSupabaseClient();
+  if (!client) return 0;
+  try {
+    const { count } = await client
+      .from("customers")
+      .select("id", { count: "exact", head: true });
+    return count ?? 0;
+  } catch (error) {
+    console.warn("[customer-store] count failed:", error);
+    return 0;
   }
 }
 

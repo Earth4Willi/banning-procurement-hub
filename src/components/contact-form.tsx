@@ -23,6 +23,7 @@ export function ContactForm() {
   const [contact, setContact] = useState<QuoteContact>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof QuoteContact, string>>>({});
   const [status, setStatus] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -47,50 +48,56 @@ export function ContactForm() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const nextErrors = validateQuoteContact(contact);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) {
-      if (nextErrors.name && nameRef.current) nameRef.current.focus();
-      else if (nextErrors.phone && phoneRef.current) phoneRef.current.focus();
-      else if (nextErrors.email && emailRef.current) emailRef.current.focus();
-      else if (nextErrors.area && areaRef.current) areaRef.current.focus();
-      return;
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      const nextErrors = validateQuoteContact(contact);
+      setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) {
+        if (nextErrors.name && nameRef.current) nameRef.current.focus();
+        else if (nextErrors.phone && phoneRef.current) phoneRef.current.focus();
+        else if (nextErrors.email && emailRef.current) emailRef.current.focus();
+        else if (nextErrors.area && areaRef.current) areaRef.current.focus();
+        return;
+      }
+      const message = buildQuoteMessage(contact, lines);
+      const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
+      let emailed = false;
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email,
+          area: contact.area,
+          message: contact.note ?? "",
+        }),
+      }).catch(() => null);
+      if (response?.ok) {
+        const payload = (await response.json().catch(() => null)) as { emailed?: boolean } | null;
+        emailed = Boolean(payload?.emailed);
+      }
+      if (!emailed && web3FormsConfigured()) {
+        const result = await submitViaWeb3Forms({
+          name: contact.name,
+          phone: contact.phone,
+          email: contact.email,
+          area: contact.area,
+          message: contact.note ?? "",
+          subject: "Contact message — Banning Procurement Hub",
+        });
+        emailed = result.ok;
+      }
+      setStatus(
+        emailed
+          ? "Message sent to us by email and opened in WhatsApp."
+          : "Opening WhatsApp with your message…"
+      );
+      window.open(url, "_blank", "noopener");
+    } finally {
+      setIsSubmitting(false);
     }
-    const message = buildQuoteMessage(contact, lines);
-    const url = buildWhatsAppUrl(siteConfig.whatsappNumber, message);
-    let emailed = false;
-    const response = await fetch("/api/contact", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: contact.name,
-        phone: contact.phone,
-        email: contact.email,
-        area: contact.area,
-        message: contact.note ?? "",
-      }),
-    }).catch(() => null);
-    if (response?.ok) {
-      const payload = (await response.json().catch(() => null)) as { emailed?: boolean } | null;
-      emailed = Boolean(payload?.emailed);
-    }
-    if (!emailed && web3FormsConfigured()) {
-      const result = await submitViaWeb3Forms({
-        name: contact.name,
-        phone: contact.phone,
-        email: contact.email,
-        area: contact.area,
-        message: contact.note ?? "",
-        subject: "Contact message — Banning Procurement Hub",
-      });
-      emailed = result.ok;
-    }
-    setStatus(
-      emailed
-        ? "Message sent to us by email and opened in WhatsApp."
-        : "Opening WhatsApp with your message…"
-    );
-    window.open(url, "_blank", "noopener");
   };
 
   const errorText = (field: keyof QuoteContact) => errors[field] ?? undefined;
@@ -245,7 +252,8 @@ export function ContactForm() {
 
               <button
                 type="submit"
-                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98]"
+                disabled={isSubmitting}
+                className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-6 py-3 text-sm font-semibold text-[#0d3d1a] transition-colors hover:bg-accent-light active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
               >
                 <PaperPlaneTilt weight="duotone" size={16} aria-hidden="true" />
                 Send message

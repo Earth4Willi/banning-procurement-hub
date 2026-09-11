@@ -37,6 +37,21 @@ export async function registerCustomer(opts: {
   const email = emailSchema.parse(opts.email);
   const phone = phoneSchema.parse(opts.phone);
 
+  await enforceRateLimit(opts.request, {
+    prefix: "rl:register:email",
+    identifier: email,
+    limit: 3,
+    windowSeconds: 86_400,
+    failClosed: true,
+  });
+  await enforceRateLimit(opts.request, {
+    prefix: "rl:register:phone",
+    identifier: phone,
+    limit: 3,
+    windowSeconds: 86_400,
+    failClosed: true,
+  });
+
   const existingEmail = await findUserByEmail(email);
   if (existingEmail) {
     throw badRequest("email_taken", "An account already exists with those details.");

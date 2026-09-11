@@ -20,8 +20,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
   verifySameOrigin(request);
   const body = await parseBody(request, quotePaidSchema);
-  const ok = await setQuotePaid(body.id, body.method);
-  if (!ok) {
+  const result = await setQuotePaid(body.id, body.method);
+  if (!result.ok) {
+    if (result.error === "state") {
+      return NextResponse.json(
+        { error: { code: "invalid_state", message: "Only reviewed or won quotes can be marked paid." } },
+        { status: 422 },
+      );
+    }
     return NextResponse.json(
       { error: { code: "storage_unavailable", message: "Live database not configured — quote not updated." } },
       { status: 503 },

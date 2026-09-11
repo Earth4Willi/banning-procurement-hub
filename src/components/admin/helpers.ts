@@ -84,8 +84,11 @@ export function buildCsv(rows: QuoteRow[], filename: string): void {
     formatItems(quote.items),
     quote.note ?? "",
   ]);
-  const escape = (value: string) => `"${value.replaceAll('"', '""')}"`;
-  const lines = [header, ...data].map((row) => row.map(escape).join(","));
+  const safeCell = (value: string) => {
+    const guarded = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+    return `"${guarded.replaceAll('"', '""')}"`;
+  };
+  const lines = [header, ...data].map((row) => row.map(safeCell).join(","));
   const blob = new Blob([`\uFEFF${lines.join("\r\n")}\r\n`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");

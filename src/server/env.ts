@@ -33,6 +33,9 @@ export function getEnv(source: NodeJS.ProcessEnv = process.env): ParsedEnv {
     throw new Error(`Invalid environment configuration: ${issues}`);
   }
   const env = result.data;
+  if (env.NODE_ENV === "production" && /^https?:\/\/localhost(?::\d+)?$/i.test(env.APP_ORIGIN)) {
+    throw new Error("APP_ORIGIN must not be a loopback address in production.");
+  }
   const missingSupabase = !env.SUPABASE_URL || !env.SUPABASE_ANON_KEY || !env.SUPABASE_SERVICE_ROLE_KEY;
   if (missingSupabase && env.NODE_ENV === "production") {
     console.warn(

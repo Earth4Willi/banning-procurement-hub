@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const GET = withErrorHandling(async (request: NextRequest) => {
   const avatarUrl = avatarPublicUrl();
-  const dev = devOwnerPrincipal();
+  const dev = devOwnerPrincipal(request);
   if (dev) {
     return NextResponse.json({ email: dev.email, role: dev.role, avatarUrl });
   }

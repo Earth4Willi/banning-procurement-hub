@@ -14,23 +14,48 @@ const datasets: Record<string, Record<string, unknown>[]> = {
 const stub = {
   from: (table: string) => ({
     upsert: async (row: Record<string, unknown>) => {
-      if (table === "customers") customersData.push(row);
+      if (table === "customers") {
+        const existing = customersData.findIndex((r) => r.phone === row.phone);
+        if (existing >= 0) customersData[existing] = { ...customersData[existing], ...row };
+        else customersData.push(row);
+      }
       return { error: null };
     },
-    select: () => ({ data: datasets[table] ?? [] }),
+    select: (columns?: string, opts?: { count?: "exact" | "planned" | "estimated"; head?: boolean }) => {
+      if (opts?.head) return { data: null, count: customersData.length, error: null };
+      return { data: datasets[table] ?? [], error: null };
+    },
     update: () => ({ eq: async () => ({ error: null }) }),
   }),
 } as unknown as SupabaseClient;
 
 vi.mock("./audit", () => ({ getSupabaseClient: () => stub }));
 
-import { listCustomers, upsertCustomer, updateCustomer } from "./customer-store";
+import { countCustomers, listCustomers, upsertCustomer, updateCustomer } from "./customer-store";
 
 describe("upsertCustomer / updateCustomer", () => {
   it("upserts then updates the notes", async () => {
     expect(await upsertCustomer("+233558850667", { name: "Ama", email: "a@b.com" })).toBe(true);
     expect(customersData).toHaveLength(1);
     expect(await updateCustomer("+233558850667", { notes: "repeat buyer" })).toBe(true);
+  });
+
+  it("writes a non-blank email and never blanks an existing one", async () => {
+    customersData.length = 0;
+    await upsertCustomer("+233550000111", { name: "Kofi", email: "kofi@example.com" });
+    expect(customersData[0]).toHaveProperty("email", "kofi@example.com");
+
+    await upsertCustomer("+233550000111", { name: "Kofi", email: "" });
+    expect(customersData[0]).toHaveProperty("email", "kofi@example.com");
+
+    await upsertCustomer("+233550000111", { name: "Kofi" });
+    expect(customersData[0]).toHaveProperty("email", "kofi@example.com");
+  });
+
+  it("counts customers exactly without loading rows", async () => {
+    customersData.length = 0;
+    customersData.push({ phone: "+233558850667" }, { phone: "+233551112223" });
+    expect(await countCustomers()).toBe(2);
   });
 });
 

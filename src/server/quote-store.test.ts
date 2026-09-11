@@ -156,100 +156,160 @@ class MockSupabase {
       historyRows?: Array<Record<string, unknown>>;
       failQuoteStatusUpdate?: boolean;
       failProductUpdateFor?: string[];
+      acceptFlipMismatch?: boolean;
     },
   ) {}
 
-  productUpdates: Array<{ payload: Record<string, unknown>; slug: string }> = [];
+  productUpdates: Array<{ payload: Record<string, unknown>; eq: Array<[string, unknown]>; gte: Array<[string, unknown]> }> = [];
   quoteUpdates: Array<Record<string, unknown>> = [];
   historyInserts: Array<Record<string, unknown>> = [];
 
   from(table: string): Record<string, unknown> {
-    if (table === "products") {
-      return {
-        select: () => {
-          const q: Record<string, unknown> & { then?: unknown } = {} as never;
-          const filters: Array<[string, unknown]> = [];
-          q.eq = (col: string, value: unknown) => {
-            filters.push([col, value]);
-            return q;
-          };
-          q.order = () => q;
-          q.maybeSingle = async () => {
-            const row = (this.cfg.products ?? []).find((r) =>
-              filters.every(([c, v]) => r[c] === v),
-            );
-            return { data: row ?? null, error: null };
-          };
-          q.then = (resolve: (v: unknown) => void) =>
-            resolve({
-              data: (this.cfg.products ?? []).filter((r) =>
-                filters.every(([c, v]) => r[c] === v),
-              ),
-              error: null,
-            });
-          return q;
-        },
-        update: (payload: Record<string, unknown>) => {
-          return {
-            eq: async (_col: string, slug: string) => {
-              this.productUpdates.push({ payload, slug });
-              if (this.cfg.failProductUpdateFor?.includes(slug)) {
-                return { error: { message: "update boom" } };
-              }
-              return { error: null };
-            },
-          };
-        },
-      };
-    }
-    if (table === "quotes") {
-      return {
-        select: () => {
-          const q: Record<string, unknown> & { then?: unknown } = {} as never;
-          q.eq = () => q;
-          q.maybeSingle = async () => ({ data: this.cfg.quote ?? null, error: null });
-          return q;
-        },
-        update: (payload: Record<string, unknown>) => {
-          this.quoteUpdates.push(payload);
-          return {
-            eq: async () => {
-              if (this.cfg.failQuoteStatusUpdate) return { error: { message: "status boom" } };
-              return { error: null };
-            },
-          };
-        },
-      };
-    }
-    if (table === "inventory_history") {
-      return {
-        select: () => {
-          const q: Record<string, unknown> & { then?: unknown } = {} as never;
-          const filters: Array<[string, unknown]> = [];
-          q.eq = (col: string, value: unknown) => {
-            filters.push([col, value]);
-            return q;
-          };
-          q.maybeSingle = async () => {
-            const rows = (this.cfg.historyRows ?? []).filter((r) =>
-              filters.every(([c, v]) => r[c] === v),
-            );
-            return { data: rows[0] ?? null, error: null };
-          };
-          q.then = (resolve: (v: unknown) => void) =>
-            resolve({
-              data: (this.cfg.historyRows ?? []).filter((r) => filters.every(([c, v]) => r[c] === v)),
-              error: null,
-            });
-          return q;
-        },
-        insert: async (payload: Record<string, unknown>) => {
-          this.historyInserts.push(payload);
-          return { error: null, data: null };
-        },
-      };
-    }
+    if (table === "products") return this.products();
+    if (table === "quotes") return this.quotes();
+    if (table === "inventory_history") return this.history();
     throw new Error(`unexpected table ${table}`);
+  }
+
+  private products(): Record<string, unknown> {
+    const rows = this.cfg.products ?? [];
+    const q: Record<string, unknown> & { then?: unknown } = {} as never;
+    const readFilters: Array<[string, unknown]> = [];
+    q.select = () => q;
+    q.eq = (col: string, value: unknown) => {
+      readFilters.push([col, value]);
+      return q;
+    };
+    q.order = () => q;
+    q.maybeSingle = async () => {
+      const row = rows.find((r) => readFilters.every(([c, v]) => r[c] === v));
+      return { data: row ?? null, error: null };
+    };
+    q.then = (resolve: (v: unknown) => void) =>
+      resolve({
+        data: rows.filter((r) => readFilters.every(([c, v]) => r[c] === v)),
+        error: null,
+      });
+    return {
+      select: () => q,
+      update: (payload: Record<string, unknown>) => {
+        const eqFilters: Array<[string, unknown]> = [];
+        const gteFilters: Array<[string, unknown]> = [];
+        let recorded = false;
+        const chain = {
+          eq(col: string, value: unknown) {
+            eqFilters.push([col, value]);
+            return chain;
+          },
+          gte(col: string, value: unknown) {
+            gteFilters.push([col, value]);
+            return chain;
+          },
+          select() {
+            return chain;
+          },
+          then: async (_resolve: (v: unknown) => void, _reject?: (v: unknown) => void) => {
+            if (!recorded) {
+              recorded = true;
+              this.productUpdates.push({ payload, eq: [...eqFilters], gte: [...gteFilters] });
+            }
+            const failingSlug = eqFilters.find(
+              ([c, v]) => c === "slug" && this.cfg.failProductUpdateFor?.includes(String(v)),
+            );
+            if (failingSlug) {
+              _resolve({ data: null, error: { message: "update boom" } });
+              return;
+            }
+            const matched = rows.filter(
+              (r) =>
+                eqFilters.every(([c, v]) => r[c] === v) &&
+                gteFilters.every(([c, v]) => Number(r[c]) >= Number(v)),
+            );
+            for (const row of matched) Object.assign(row, payload);
+            _resolve({
+              data: matched.map((r) => ({ id: r.id, stock_quantity: r.stock_quantity })),
+              error: null,
+            });
+          },
+        };
+        return chain;
+      },
+    };
+  }
+
+  private quotes(): Record<string, unknown> {
+    const quote = this.cfg.quote;
+    const q: Record<string, unknown> & { then?: unknown } = {} as never;
+    const readFilters: Array<[string, unknown]> = [];
+    q.eq = (col: string, value: unknown) => {
+      readFilters.push([col, value]);
+      return q;
+    };
+    q.maybeSingle = async () => ({ data: quote ?? null, error: null });
+    q.then = (resolve: (v: unknown) => void) =>
+      resolve({ data: quote ? [quote] : [], error: null });
+    return {
+      select: () => q,
+      update: (payload: Record<string, unknown>) => {
+        const eqFilters: Array<[string, unknown]> = [];
+        const chain = {
+          eq(col: string, value: unknown) {
+            eqFilters.push([col, value]);
+            return chain;
+          },
+          select() {
+            return chain;
+          },
+          then: async (_resolve: (v: unknown) => void, _reject?: (v: unknown) => void) => {
+            this.quoteUpdates.push(payload);
+            if (this.cfg.failQuoteStatusUpdate && payload.status === "won") {
+              _resolve({ data: null, error: { message: "status boom" } });
+              return;
+            }
+            if (payload.status === "won" && this.cfg.acceptFlipMismatch) {
+              _resolve({ data: [], error: null });
+              return;
+            }
+            const matched = quote != null && eqFilters.every(([c, v]) => quote[c] === v);
+            if (!matched) {
+              _resolve({ data: [], error: null });
+              return;
+            }
+            const updated = { ...quote, ...payload };
+            Object.assign(quote, payload);
+            _resolve({ data: matched ? [updated] : [], error: null });
+          },
+        };
+        return chain;
+      },
+    };
+  }
+
+  private history(): Record<string, unknown> {
+    const rows = this.cfg.historyRows ?? [];
+    const q: Record<string, unknown> & { then?: unknown } = {} as never;
+    const readFilters: Array<[string, unknown]> = [];
+    q.eq = (col: string, value: unknown) => {
+      readFilters.push([col, value]);
+      return q;
+    };
+    q.maybeSingle = async () => {
+      const row = rows.find((r) => readFilters.every(([c, v]) => r[c] === v));
+      return { data: row ?? null, error: null };
+    };
+    q.then = (resolve: (v: unknown) => void) =>
+      resolve({
+        data: rows.filter((r) => readFilters.every(([c, v]) => r[c] === v)),
+        error: null,
+      });
+    return {
+      select: () => q,
+      insert: async (payload: Record<string, unknown>) => {
+        rows.push(payload);
+        this.historyInserts.push(payload);
+        return { error: null, data: null };
+      },
+    };
   }
 }
 
@@ -288,7 +348,12 @@ describe("acceptQuoteWithInventory rollback", () => {
     expect(result.error).toContain("rolled back");
 
     expect(mock.productUpdates.map((u) => u.payload.stock_quantity)).toEqual([5, 17, 10, 20]);
-    expect(mock.productUpdates.map((u) => u.slug)).toEqual(["cement", "rod", "cement", "rod"]);
+    expect(mock.productUpdates.map((u) => u.eq.map(([c]) => c))).toEqual([
+      ["slug", "stock_quantity"],
+      ["slug", "stock_quantity"],
+      ["id"],
+      ["id"],
+    ]);
 
     const types = mock.historyInserts.map((h) => h.change_type);
     expect(types).toEqual(["order", "order", "order_cancellation", "order_cancellation"]);
@@ -316,9 +381,65 @@ describe("acceptQuoteWithInventory rollback", () => {
     if (result.ok) return;
 
     expect(mock.productUpdates.map((u) => u.payload.stock_quantity)).toEqual([5, 17, 10]);
-    expect(mock.productUpdates.map((u) => u.slug)).toEqual(["cement", "rod", "cement"]);
     expect(mock.historyInserts).toHaveLength(2);
     expect(mock.historyInserts.map((h) => h.change_type)).toEqual(["order", "order_cancellation"]);
+  });
+
+  it("deducts inventory, logs history, and flips the quote to won on success", async () => {
+    const mock = new MockSupabase({
+      quote: {
+        id: "q3",
+        status: "reviewed",
+        items: [
+          { slug: "cement", label: "Cement", quantity: 5 },
+          { slug: "rod", label: "Rod", quantity: 3 },
+        ],
+      },
+      products: [trackedBag("p9", "cement", 10), trackedBag("p10", "rod", 20)],
+    });
+    auditMock.__setClient(mock as unknown as Record<string, unknown>);
+
+    const result = await acceptQuoteWithInventory("q3", "owner@test.com");
+    expect(result).toEqual({ ok: true });
+
+    expect(mock.productUpdates.map((u) => u.payload.stock_quantity)).toEqual([5, 17]);
+    expect(mock.productUpdates.map((u) => u.eq.map(([c]) => c))).toEqual([
+      ["slug", "stock_quantity"],
+      ["slug", "stock_quantity"],
+    ]);
+    expect(mock.historyInserts.map((h) => h.change_type)).toEqual(["order", "order"]);
+    expect(mock.historyInserts[0]).toMatchObject({ product_id: "p9", previous_quantity: 10, quantity_changed: -5, new_quantity: 5 });
+    expect(mock.historyInserts[1]).toMatchObject({ product_id: "p10", previous_quantity: 20, quantity_changed: -3, new_quantity: 17 });
+    expect(mock.cfg.products![0].stock_quantity).toBe(5);
+    expect(mock.cfg.products![1].stock_quantity).toBe(17);
+    expect(mock.cfg.quote!.status).toBe("won");
+    expect(mock.quoteUpdates).toEqual([{ accepted_at: expect.any(String), status: "won" }]);
+  });
+
+  it("rolls back deductions when the status flip loses a concurrent accept race", async () => {
+    const mock = new MockSupabase({
+      quote: {
+        id: "q4",
+        status: "reviewed",
+        items: [{ slug: "cement", label: "Cement", quantity: 5 }],
+      },
+      products: [trackedBag("p11", "cement", 10)],
+      acceptFlipMismatch: true,
+    });
+    auditMock.__setClient(mock as unknown as Record<string, unknown>);
+
+    const result = await acceptQuoteWithInventory("q4", "owner@test.com");
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain("rolled back");
+
+    expect(mock.productUpdates.map((u) => u.payload.stock_quantity)).toEqual([5, 10]);
+    expect(mock.productUpdates.map((u) => u.eq.map(([c]) => c))).toEqual([
+      ["slug", "stock_quantity"],
+      ["id"],
+    ]);
+    expect(mock.historyInserts.map((h) => h.change_type)).toEqual(["order", "order_cancellation"]);
+    expect(mock.cfg.products![0].stock_quantity).toBe(10);
   });
 });
 
@@ -345,7 +466,7 @@ describe("reverseQuoteOrder", () => {
     expect(mock.historyInserts).toHaveLength(2);
     expect(mock.historyInserts.every((h) => h.change_type === "order_cancellation")).toBe(true);
     expect(mock.historyInserts.every((h) => h.reference_id === "q1")).toBe(true);
-    expect(mock.quoteUpdates).toEqual([{ accepted_at: null, status: "lost" }]);
+    expect(mock.quoteUpdates).toEqual([{ accepted_at: null, status: "lost", paid_at: null }]);
   });
 
   it("is idempotent — already-reversed products are never restored twice", async () => {
@@ -368,6 +489,6 @@ describe("reverseQuoteOrder", () => {
     expect(result.ok).toBe(true);
     expect(mock.productUpdates).toHaveLength(0);
     expect(mock.historyInserts).toHaveLength(0);
-    expect(mock.quoteUpdates).toEqual([{ accepted_at: null, status: "lost" }]);
+    expect(mock.quoteUpdates).toEqual([{ accepted_at: null, status: "lost", paid_at: null }]);
   });
 });

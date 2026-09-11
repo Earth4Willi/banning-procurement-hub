@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { computeAnalytics } from "@/server/analytics";
 import { listSecurityEvents } from "@/server/audit";
-import { listCustomers } from "@/server/customer-store";
+import { countCustomers } from "@/server/customer-store";
 import { isMessageStoreAvailable, listMessages } from "@/server/message-store";
 import { listQuotes } from "@/server/quote-store";
 import { requireOwner } from "@/server/require-owner";
@@ -19,16 +19,16 @@ export const GET = withErrorHandling(async (request: NextRequest) => {
       { status: 403 },
     );
   }
-  const [quotes, messages, customers, events] = await Promise.all([
+  const [quotes, messages, customersCount, events] = await Promise.all([
     listQuotes(200),
     listMessages(200),
-    listCustomers(),
+    countCustomers(),
     listSecurityEvents(50),
   ]);
   const analytics = computeAnalytics({
     quotes,
     messages,
-    customersCount: customers.length,
+    customersCount,
     events,
   });
   return NextResponse.json({ analytics, dbAvailable: await isMessageStoreAvailable() });

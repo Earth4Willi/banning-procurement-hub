@@ -33,6 +33,8 @@ export const notFound = (code = "not_found", message = "Not found.") =>
   new HttpError(404, code, message);
 export const tooManyRequests = (message = "Too many requests. Try again later.") =>
   new HttpError(429, "rate_limited", message);
+export const conflict = (field: string) =>
+  new HttpError(409, "conflict", `This ${field} is already in use by another account.`);
 
 const GENERIC_MESSAGE = "Something went wrong.";
 

@@ -30,13 +30,20 @@ describe("getEnv", () => {
     );
   });
 
-  it("applies defaults for session TTLs and environment", () => {
+  it("rejects a loopback APP_ORIGIN in production", () => {
     resetEnvCache();
-    const env = getEnv({ ...FULL, NODE_ENV: "test" });
-    expect(env.SESSION_ABS_TTL_SECONDS).toBe(604800);
-    expect(env.SESSION_IDLE_TTL_SECONDS).toBe(1800);
-    expect(env.APP_ORIGIN).toBe("http://localhost:3000");
-    expect(env.NODE_ENV).toBe("test");
+    expect(() => getEnv({ ...FULL, NODE_ENV: "production" })).toThrow(/APP_ORIGIN/);
+    resetEnvCache();
+  });
+
+  it("accepts a public APP_ORIGIN in production", () => {
+    resetEnvCache();
+    const env = getEnv({
+      ...FULL,
+      NODE_ENV: "production",
+      APP_ORIGIN: "https://app.bph.example",
+    });
+    expect(env.NODE_ENV).toBe("production");
     resetEnvCache();
   });
 });

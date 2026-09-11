@@ -104,3 +104,55 @@ dbee447 chore: add migration 0006 (RLS zero-policy + change_type CHECK), unappli
 849e80a security: enforce same-origin on all mutating owner/customer routes
 6b58f13 fix: frontend audit findings (phone validation, qty clamp, pricing, submit, a11y, empty states, guards, catalog)
 ```
+
+---
+
+# Round 2 — 2026-09-11 (second audit pass, P1–P26)
+
+**Date:** 2026-09-11
+**Method:** same walkthrough discipline. Reproduced → root cause → fix → test that fails without the fix.
+**Verification baseline (this pass):** `npx vitest run` **300/300 passing (41 files)**, `npx tsc --noEmit` clean, `npm run build` exit 0 (with `APP_ORIGIN` provided as required by the new production gate).
+
+## Summary
+
+| Severity | Found | Fixed | Remaining |
+|---|---|---|---|
+| High | 2 | 2 | 0 |
+| Medium | 8 | 8 | 1 (needs DB — race-safe accept RPC, carried over) |
+| Low | 10 | 9 | 1 (by design: restored-quote placeholder SKUs) |
+
+## Backend/security fixes
+
+- **P1 — atomic quote acceptance under READ COMMITTED** (`B1` harden): `acceptQuoteWithInventory` now uses a **compare-and-swap** deduction — `.update({stock_quantity: prev − qty}).eq("slug", slug).eq("stock_quantity", prev).gte("stock_quantity", qty).select("id, stock_quantity")`. Under Postgres READ COMMITTED, EvalPlanQual re-evaluates the WHERE after the lock wait, so a concurrent stale/insufficient write updates **0 rows** and is detected instead of silently deducting. The status flip is also a guarded CAS (`.eq("status", quote.status).select("id")`), and the race loser rolls back its deduction using **live-value** restore (reads current stock, adds back the exact delta). Proven by a race test (`acceptFlipMismatch`) that fails stock-aggregation/conditional patterns.
+- **P5 — `findShortLines` aggregation bug**: requested quantity was compared per-line against stock, so two lines of the same slug could each pass individually while the combined request exceeded stock. Now quantities are aggregated **per slug** before the stock comparison; a fixed stock can no longer be double-sold across line items. Two new tests.
+- **P2/P12 — reverse/clear `paid_at`**: `reverseQuoteOrder` now also clears `paid_at` so an un-accepted quote can't keep showing "Paid on …" on the document.
+- **P3 — `setQuotePaid` rejects invalid states**: returns a `SetQuotePaidResult` discriminated union (`ok | {error:"state"|"store"}`). Accepting payment on a `new`/`lost` quote is now rejected as `state` (mapped to 422) instead of silently flipping; DB failures map to 503.
+- **P7 — admin quote PUT hardening**: `status` in the body is rejected with 400 (points to the `/quotes/status` endpoint); items re-saved **without** pricing now clear `total_amount` (preventing a stale total drifting the document); re-pricing recomputes totals via `computeTotals` and refreshes the doc token.
+- **P8/P16 — quote document uses current items, not stale totals**: `GET /quote/[token]/document` always recomputes subtotal/VAT/total from the **live items** when pricing is present, instead of back-division from a possibly stale `total_amount` (drift had been noted as "verified not an issue" against static line data; now genuinely impossible). The route is wrapped in `withErrorHandling` so the 429 rate-limit headers surface instead of a generic 500, and the audit log now records a **SHA-256 token hash** rather than the raw doc token. Drift test added (`total_amount: 999` still renders 276).
+- **P10 — account profile PATCH**: an update/re-read failure previously surfaced as a confusing 401; now 503 with a logged cause. Email/phone changes are pre-checked for duplicates and rejected as 409 `conflict` instead of tripping a DB unique-constraint error.
+- **P9 — `upsertCustomer` no longer clobbers email**: a blank/absent email on quote submission no longer overwrites a known customer email (payload omits the column when empty); added `countCustomers()` with an exact head-count query.
+- **P11/P13 — auth rate-limit key hygiene**: registration now has per-email and per-phone daily budgets (3/day) in addition to per-IP; the owner login email limiter now keys on the **normalized** email (trim + lowercase) so `Name@…`, `NAME@…` and spaced variants share one budget.
+- **P14 — untrusted-proxy IP spoofing fixed**: `clientIp()` now takes the **last** `x-forwarded-for` entry (the closest trusted hop) and validates the result with `net.isIP`, discarding non-IP garbage. XFF spoofing an earlier entry can no longer evade per-IP limits. Tests flipped/added to match.
+- **P15 — `withErrorHandling` generalized**: forwards extra arguments (so routes with `{ params }` can be wrapped), sanitizes IPs in the log line (strips control chars), and **re-throws** Next.js `NEXT_HTTP_ERROR_FALLBACK` digests so `notFound()` still renders Next's 404 page. Own test file added.
+- **P17 — production loopback `APP_ORIGIN` rejected**: `getEnv()` throws if `NODE_ENV=production` and `APP_ORIGIN` is a loopback URL, so a prod deploy can never silently run CSRF checks against `localhost`. CI build and `.env.example` updated to supply the public origin; env tests added.
+- **P18 — dev owner bypass locked to loopback**: `devOwnerPrincipal()` now requires the caller to pass the request, rejects unless the client IP is loopback (`127.0.0.1`/`::1`), and requires `APP_ORIGIN` to be `http://`. Both callers updated. (`NODE_ENV` is forced to `production` during `next build`, so the bypass cannot leak into a build.)
+- **P19 — analytics customer total not capped**: the dashboard "total customers" used `listCustomers().length`, which is irrelevant post-cap; now uses an exact `countCustomers()` head query, uncapped by the 200-row list limit.
+- **P20 — inventory history limit guard**: `?limit=` now clamps `NaN`/`0`/negatives to the 100 default instead of silently returning 0 rows.
+- **P6 — admin catalog PUT schemas**: product/category updates use dedicated no-default schemas (all optional, `slug`/`id` required), so a partial PUT can't mutate fields the client didn't send.
+
+## Frontend fixes (from `DEFECT-REPORT.md`)
+
+1. **Contact form double-submit (Medium, `F1`)** — added an `isSubmitting` busy guard with `try/finally` and `disabled={disabled:isSubmitting}` on the submit button (mirrors quote-builder).
+2. **Qty input un-clearable (Low, `F2`)** — new `QtyInput` subcomponent with transient string state: the field can be cleared and a fresh value typed; blur commits a positive parsed value or restores the previous quantity. Reducer already drops ≤0.
+3. **CSV formula injection (Low, `F3`)** — `safeCell` prefixes values starting with `=`, `+`, `-`, `@`, tab, CR, LF with a single-quote before quoting.
+5. **Blank acceptable bank details (Low, `F5`)** — `paymentSettingsSchema` now superRefines: when `bank` is in `methods`, all three bank fields are required; the settings UI hides the bank fields until Bank is enabled and the enum gained `other`.
+
+> **Finding 4 (restored-quote placeholder SKUs) is intentionally deferred** as a product decision: building `lines` from persisted items with placeholder metadata may let stale SKUs through to the WhatsApp handoff. Current behavior (drop + a coherent `count`) is documented; a follow-up can choose a "checking availability" state.
+
+## Test coverage delta
+
+Round 2 added/changed: `quote-store` race test + mock rewrite, `inventory` aggregation tests (2), `document` drift test + 404-through-wrapper, `rate-limit` spoof/validation tests (3), `customer-store` conditional-email + count tests (2), `env` loopback tests (2), `with-error-handling` suite (4), plus assertion updates in `require-owner`, `session`, and `settings-view`.
+
+## Final assessment (Round 2)
+
+All audit callouts closed in code. Remaining optional hardening that requires a database object (not code) and explicit approval: **R2** — a single Postgres transaction/RPC for fully race-safe accept + reversal, replacing the two-statement CAS pattern. Everything else verified green: 300 tests, typecheck, production build. Defect report file removed.

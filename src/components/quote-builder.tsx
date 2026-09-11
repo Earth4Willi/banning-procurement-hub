@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Minus, Plus, Trash } from "@phosphor-icons/react";
 import { siteConfig } from "@/lib/site";
@@ -26,6 +26,49 @@ function formatMoney(value: number): string {
     ? value.toLocaleString("en-GH")
     : value.toLocaleString("en-GH", { maximumFractionDigits: 2 });
   return `GH₵ ${formatted}`;
+}
+
+function QtyInput({
+  value,
+  onCommit,
+  className,
+  ...rest
+}: {
+  value: number;
+  onCommit: (next: number) => void;
+  className?: string;
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
+  const [draft, setDraft] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+  useEffect(() => {
+    if (!focused) setDraft(String(value));
+  }, [value, focused]);
+  return (
+    <input
+      {...rest}
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      className={className}
+      value={draft}
+      onFocus={() => setFocused(true)}
+      onBlur={() => {
+        setFocused(false);
+        const trimmed = draft.trim();
+        if (trimmed === "") {
+          // Restore the previously held quantity — the field is clearable so
+          // a fresh value can be typed, but never commits an empty qty.
+          setDraft(String(value));
+          return;
+        }
+        const parsed = Number.parseInt(trimmed, 10);
+        const next = Number.isFinite(parsed) && parsed > 0 ? parsed : value;
+        setDraft(String(next));
+        if (next !== value) onCommit(next);
+      }}
+      onChange={(event) => setDraft(event.target.value)}
+    />
+  );
 }
 
 export function QuoteBuilder() {
@@ -271,17 +314,10 @@ export function QuoteBuilder() {
                     >
                       <Minus weight="duotone" size={16} aria-hidden="true" />
                     </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
+                    <QtyInput
                       aria-label={label}
                       value={line.qty}
-                      onChange={(event) => {
-                        const next = Number.parseInt(event.target.value, 10);
-                        if (Number.isNaN(next)) return;
-                        setQty(line.product.slug, next);
-                      }}
+                      onCommit={(next) => setQty(line.product.slug, next)}
                       className="h-8 w-12 rounded-[10px] border border-primary/20 bg-surface text-center font-mono text-sm text-ink outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-accent/60 sm:h-9 sm:w-14"
                     />
                     <button

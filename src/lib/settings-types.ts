@@ -65,7 +65,7 @@ export const marqueeSettingsSchema = z
 
 export const paymentSettingsSchema = z
   .object({
-    methods: z.array(z.enum(["mobile_money", "bank", "cash"])).min(1),
+    methods: z.array(z.enum(["mobile_money", "bank", "cash", "other"])).min(1),
     bank: z
       .object({
         bankName: z.string().trim().max(120),
@@ -74,7 +74,20 @@ export const paymentSettingsSchema = z
       })
       .strict(),
   })
-  .strict();
+  .strict()
+  .superRefine((settings, ctx) => {
+    if (settings.methods.includes("bank")) {
+      for (const field of ["bankName", "accountName", "accountNumber"] as const) {
+        if (!settings.bank[field].trim()) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["bank", field],
+            message: "Required when Bank transfer is enabled.",
+          });
+        }
+      }
+    }
+  });
 
 export const deliverySettingsSchema = z
   .object({
